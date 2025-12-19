@@ -66,6 +66,19 @@ python -m scripts.download_logos --output-dir assets/logos --size 256
 Both commands default to saving under `data/` and `assets/logos/`. Re-run them
 when a new nflfastR release drops to refresh the source data.
 
+### Restrict to specific weeks or win-probability windows
+
+The EPA fetcher can mirror common analytics views—such as weeks 8-15 with win
+probabilities between 10-90%—using its filtering flags:
+
+```bash
+python -m scripts.fetch_epa --season 2022 --week-start 8 --week-end 15 --min-wp 0.1 --max-wp 0.9
+```
+
+By default postseason plays are excluded; pass `--include-playoffs` to keep
+them. These filters are applied before calculating per-team offensive and
+defensive EPA/play.
+
 ## Generate the EPA scatter plot
 
 With the aggregated data and logos in place, render the offense vs defense
@@ -78,7 +91,12 @@ python -m scripts.plot_epa_scatter --season 2023 --week "Weeks 1-10" --output pl
 The script will read `data/team_epa_<season>.csv` by default and saves PNG
 output to `plots/epa_scatter.png`, optionally alongside SVG/PDF copies via
 `--svg`/`--pdf`. Use `--invert-y` to flip the defensive EPA axis so better
-defenses appear higher on the chart.
+defenses appear higher on the chart. Combine this with the filters above to
+mirror the example tiers chart:
+
+```bash
+python -m scripts.plot_epa_scatter --season 2022 --week "Weeks 8-15 (win prob 10-90%)" --invert-y --output plots/epa_scatter_2022_w8_15.png
+```
 
 ## Run end-to-end
 
@@ -87,8 +105,8 @@ A lightweight `Makefile` provides shortcuts for common tasks. Override the
 
 ```bash
 make logos                # Cache logos into assets/logos (placeholders if offline)
-make fetch-epa SEASON=2023  # Download + summarize play-by-play into data/team_epa_<season>.csv
-make plot-epa SEASON=2023   # Render plots/epa_scatter.png from the aggregated CSV
+make fetch-epa SEASON=2023 WEEK_START=8 WEEK_END=15 MIN_WP=0.1 MAX_WP=0.9  # Download + summarize with filters
+make plot-epa SEASON=2023 WEEK_LABEL="Weeks 8-15 (win prob 10-90%)" INVERT_Y=1  # Render plots/epa_scatter.png with labels and inverted y-axis
 make refresh SEASON=2023    # Run all the above in order
 ```
 

@@ -2,7 +2,9 @@
 
 The script downloads the season play-by-play CSV if it is not already cached
 locally, normalizes team abbreviations to align with logo filenames, and
-produces per-team offensive and defensive EPA/play aggregates.
+produces per-team offensive and defensive EPA/play aggregates. Optional flags
+restrict plays by week, win probability, and season type to mirror common
+analytics charts.
 """
 from __future__ import annotations
 
@@ -77,6 +79,42 @@ def ensure_epa_file(season: int, data_dir: Path, force: bool = False) -> Path:
     return download_epa_csv(season, target_dir=data_dir)
 
 
+def filter_plays(
+    df: pd.DataFrame,
+    *,
+    week_start: Optional[int] = None,
+    week_end: Optional[int] = None,
+    min_wp: Optional[float] = None,
+    max_wp: Optional[float] = None,
+    include_playoffs: bool = False,
+) -> pd.DataFrame:
+    """Apply optional filters before aggregating EPA."""
+
+    working = df.copy()
+
+    if not include_playoffs and "season_type" in working.columns:
+        working = working[working["season_type"].astype(str).str.upper() == "REG"]
+
+    if week_start is not None or week_end is not None:
+        if "week" not in working.columns:
+            raise ValueError("Input data is missing the 'week' column required for week filtering")
+        working["week"] = pd.to_numeric(working.get("week"), errors="coerce")
+        start = week_start if week_start is not None else working["week"].min()
+        end = week_end if week_end is not None else working["week"].max()
+        working = working[working["week"].between(start, end, inclusive="both")]
+
+    if min_wp is not None or max_wp is not None:
+        if "wp" not in working.columns:
+            raise ValueError("Input data is missing the 'wp' column required for win-probability filtering")
+        working["wp"] = pd.to_numeric(working.get("wp"), errors="coerce")
+        if min_wp is not None:
+            working = working[working["wp"] >= min_wp]
+        if max_wp is not None:
+            working = working[working["wp"] <= max_wp]
+
+    return working
+
+
 def compute_team_epa(df: pd.DataFrame) -> pd.DataFrame:
     """Compute offensive and defensive EPA/play per team.
 
@@ -137,6 +175,35 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Re-download the play-by-play file even if a cached copy exists.",
     )
+    parser.add_argument(
+        "--week-start",
+        type=int,
+        default=None,
+        help="First week to include (regular season numbering)",
+    )
+    parser.add_argument(
+        "--week-end",
+        type=int,
+        default=None,
+        help="Last week to include (regular season numbering)",
+    )
+    parser.add_argument(
+        "--min-wp",
+        type=float,
+        default=None,
+        help="Minimum in-play win probability to include (0-1). Useful for dropping blowouts.",
+    )
+    parser.add_argument(
+        "--max-wp",
+        type=float,
+        default=None,
+        help="Maximum in-play win probability to include (0-1). Useful for dropping blowouts.",
+    )
+    parser.add_argument(
+        "--include-playoffs",
+        action="store_true",
+        help="Include postseason plays when filtering by week.",
+    )
     return parser.parse_args()
 
 
@@ -147,6 +214,14 @@ def main() -> None:
     print(f"Loading play-by-play data from {epa_path}...")
 
     df = pd.read_csv(epa_path, compression="gzip", low_memory=False)
+    df = filter_plays(
+        df,
+        week_start=args.week_start,
+        week_end=args.week_end,
+        min_wp=args.min_wp,
+        max_wp=args.max_wp,
+        include_playoffs=args.include_playoffs,
+    )
     summary = compute_team_epa(df)
 
     output_path = args.output or args.data_dir / f"team_epa_{args.season}.csv"
