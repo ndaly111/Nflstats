@@ -24,7 +24,7 @@ on:
         required: false
         default: "false"
         type: boolean
-      week_label:
+      wek_label:
         description: "Custom subtitle label for the week range"
         required: false
       invert_y:
@@ -68,11 +68,27 @@ jobs:
             export INVERT_Y=1
           fi
 
-          make logos
-          make fetch-epa
-          make plot-epa
+       # Generate team logos
+    python -m scripts.download_logos --output-dir assets/logos --size 256
 
-      - name: Upload EPA chart artifacts
+    # Build team EPA data
+    args=""
+    if [ -n "$WEEK_START" ]; then args="$args --week-start $WEEK_START"; fi
+    if [ -n "$WEEK_END" ]; then args="$args --week-end $WEEK_END"; fi
+    if [ -n "$MIN_WP" ]; then args="$args --min-wp $MIN_WP"; fi
+    if [ -n "$MAX_WP" ]; then args="$args --max-wp $MAX_WP"; fi
+    if [ "$INCLUDE_PLAYOFFS" = "1" ]; then args="$args --include-playoffs"; fi
+
+    python -m scripts.fetch_epa --season $SEASON $args
+
+    # Plot offense vs defense EPA scatter
+    plot_args=""
+    if [ -n "$WEEK_LABEL" ]; then plot_args="$plot_args --week \"$WEEK_LABEL\""; fi
+    if [ "$INVERT_Y" = "1" ]; then plot_args="$plot_args --invert-y"; fi
+
+   
+
+   :  - name: Upload EPA chart artifacts
         uses: actions/upload-artifact@v4
         with:
           name: epa-chart-${{ inputs.season }}
