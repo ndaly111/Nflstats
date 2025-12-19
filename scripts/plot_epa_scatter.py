@@ -124,19 +124,13 @@ def draw_logos(ax: plt.Axes, df: pd.DataFrame, logos_dir: Path, zoom: float = 0.
                 ab = AnnotationBbox(image, (x, y), frameon=False)
                 ax.add_artist(ab)
                 continue
-            except Exception:
-                pass
-                    ax.scatter(x, y, color="black", s=20, zorder=5)
-                    ax.text(x, y, team, fontsize=8, ha="center", va=center")u
-            img_arr = plt.imread(buf)
-            image = OffsetImage(img_arr, zoom=zoom)
-            ab = AnnotationBbox(image, (x, y), frameon=False)
-            ax.add_artist(ab)
-            continue
-        except Exception:
-            pass
-    ax.scatter(x, y, color="black", s=20, zorder=5)
-    ax.text(x, y, team, fontsize=8, ha="center", va="center")
+     except Exception:
+        pass
+          # Fallback to black square and team text when placeholder fails or PIL is unavailable
+        ax.scatter(x, y, color="black", s=20, zorder=5)
+        ax.text(x, y, team, fontsize=8, ha="center", va="center")
+        continuee
+   
 
 def add_reference_lines(ax: plt.Axes, df: pd.DataFrame) -> tuple[float, float]:
     """Draw league-average reference lines for offense and defense."""
