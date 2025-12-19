@@ -1,14 +1,14 @@
-name: Refresh EPA data and plots
+name: Run EPA pipeline
 
 on:
   workflow_dispatch:
     inputs:
       season:
-        description: "Season year to download"
+        description: "Season year to process"
         required: true
-        default: "2023"
+        default: "2025"
       week_label:
-        description: "Optional week label for plot subtitle (e.g., Weeks 1-10)"
+        description: "Optional week label for plot subtitle"
         required: false
         default: ""
       invert_defense_axis:
@@ -24,7 +24,7 @@ permissions:
   contents: read
 
 jobs:
-  refresh:
+  run-main:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -40,24 +40,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Download logos (with offline fallback)
-        run: |
-          python -m scripts.download_logos --output-dir assets/logos --size 256
-
-      - name: Fetch and summarize EPA data
-        run: |
-          python -m scripts.fetch_epa --season ${{ github.event.inputs.season }}
-
-      - name: Generate EPA scatter plot
+      - name: Run pipeline
         run: |
           EXTRA_ARGS=""
           if [ "${{ github.event.inputs.invert_defense_axis }}" = "true" ]; then
-            EXTRA_ARGS="--invert-y"
+            EXTRA_ARGS="--invert-defense-axis"
           fi
 
-          python -m scripts.plot_epa_scatter \
+          python Main.py \
             --season ${{ github.event.inputs.season }} \
-            --week "${{ github.event.inputs.week_label }}" \
+            --week-label "${{ github.event.inputs.week_label }}" \
             $EXTRA_ARGS
 
       - name: Upload artifacts
