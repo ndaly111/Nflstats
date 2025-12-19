@@ -19,13 +19,21 @@ on:
         description: "Upload generated CSV/plots as workflow artifacts"
         required: false
         default: "true"
+  push:
+    branches: [ "main" ]
+  pull_request:
 
 permissions:
   contents: read
 
 jobs:
-  run-main:
+  run-pipeline:
     runs-on: ubuntu-latest
+    env:
+      SEASON: ${{ github.event.inputs.season || '2025' }}
+      WEEK_LABEL: ${{ github.event.inputs.week_label || '' }}
+      INVERT_DEFENSE_AXIS: ${{ github.event.inputs.invert_defense_axis || 'false' }}
+      UPLOAD_ARTIFACTS: ${{ github.event.inputs.upload_artifacts || 'true' }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -40,26 +48,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run pipeline
+      - name: Run pipeline scripts
         run: |
-          EXTRA_ARGS=""
-          if [ "${{ github.event.inputs.invert_defense_axis }}" = "true" ]; then
-            EXTRA_ARGS="--invert-defense-axis"
+          EXTRA_PLOT_ARGS=""
+          if [ "$INVERT_DEFENSE_AXIS" = "true" ]; then
+            EXTRA_PLOT_ARGS="--invert-y"
           fi
 
-          python Main.py \
-            --season ${{ github.event.inputs.season }} \
-            --week-label "${{ github.event.inputs.week_label }}" \
-            $EXTRA_ARGS
+          python -m scripts.download_logos --output-dir assets/logos --size 256
+          python -m scripts.fetch_epa --season "$SEASON"
+          python -m scripts.plot_epa_scatter --season "$SEASON" --week "$WEEK_LABEL" $EXTRA_PLOT_ARGS --svg --pdf
 
       - name: Upload artifacts
-        if: ${{ github.event.inputs.upload_artifacts != 'false' }}
+        if: env.UPLOAD_ARTIFACTS != 'false'
         uses: actions/upload-artifact@v4
         with:
-          name: epa-${{ github.event.inputs.season }}
+          name: epa-${{ env.SEASON }}
           path: |
-            data/play_by_play_${{ github.event.inputs.season }}.csv.gz
-            data/team_epa_${{ github.event.inputs.season }}.csv
+            data/play_by_play_${{ env.SEASON }}.csv.gz
+            data/team_epa_${{ env.SEASON }}.csv
             plots/epa_scatter.png
             plots/epa_scatter.svg
             plots/epa_scatter.pdf
