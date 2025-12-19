@@ -24,7 +24,7 @@ on:
         required: false
         default: "false"
         type: boolean
-      wek_label:
+      week_label:
         description: "Custom subtitle label for the week range"
         required: false
       invert_y:
@@ -36,7 +36,6 @@ on:
 jobs:
   generate:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -51,44 +50,55 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Build EPA dataset and chart
-        env:
-          SEASON: ${{ inputs.season }}
-          WEEK_START: ${{ inputs.week_start }}
-          WEEK_END: ${{ inputs.week_end }}
-          MIN_WP: ${{ inputs.min_wp }}
-          MAX_WP: ${{ inputs.max_wp }}
-          WEEK_LABEL: ${{ inputs.week_label }}
+      - name: Generate team logos
         run: |
-          set -e
-          if [ "${{ inputs.include_playoffs }}" = "true" ]; then
-            export INCLUDE_PLAYOFFS=1
-          fi
-          if [ "${{ inputs.invert_y }}" = "true" ]; then
-            export INVERT_Y=1
-          fi
+          python -m scripts.download_logos --output-dir assets/logos --size 256
 
-       # Generate team logos
-    python -m scripts.download_logos --output-dir assets/logos --size 256
+      - name: Build team EPA data
+        run: |
+          args=""
+          if [ -n "${{ inputs.week_start }}" ]; then args="$args --week-start ${{ inputs.week_start }}"; fi
+          if [ -n "${{ inputs.week_end }}" ]; then args="$args --week-end ${{ inputs.week_end }}"; fi
+          if [ -n "${{ inputs.min_wp }}" ]; then args="$args --min-wp ${{ inputs.min_wp }}"; fi
+          if [ -n "${{ inputs.max_wp }}" ]; then args="$args --max-wp ${{ inputs.max_wp }}"; fi
+          if [ "${{ inputs.include_playoffs }}" = "true" ]; then args="$args --include-playoffs"; fi
+          python -m scripts.fetch_epa --season ${{ inputs.season }} $args
 
-    # Build team EPA data
-    args=""
-    if [ -n "$WEEK_START" ]; then args="$args --week-start $WEEK_START"; fi
-    if [ -n "$WEEK_END" ]; then args="$args --week-end $WEEK_END"; fi
-    if [ -n "$MIN_WP" ]; then args="$args --min-wp $MIN_WP"; fi
-    if [ -n "$MAX_WP" ]; then args="$args --max-wp $MAX_WP"; fi
-    if [ "$INCLUDE_PLAYOFFS" = "1" ]; then args="$args --include-playoffs"; fi
+      - name: Plot offense vs defense EPA scatter
+        run: |
+          plot_args=""
+          if [ -n "${{ inputs.week_label }}" ]; then plot_args="$plot_args --week \"${{ inputs.week_label }}\""; fi
+          if [ "${{ inputs.invert_y }}" = "true" ]; then plot_args="$plot_args --invert-y"; fi
+          python -m scripts.plot_epa_scatter --season ${{ inputs.season }} $plot_args
 
-    python -m scripts.fetch_epa --season $SEASON $args
+      - name: Create/update index.html
+        run: |
+          cat > index.html <<'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>NFL EPA Scatter Plot</title>
+          </head>
+          <body>
+            <h1>NFL Offense vs Defense Efficiency (EPA/play)</h1>
+            <p>Season: ${{ inputs.season }}</p>
+            <img src="plots/epa_scatter.png" alt="EPA scatter plot" style="max-width: 100%; height: auto;">
+          </body>
+          </html>
+          EOF
 
-    # Plot offense vs defense EPA scatter
-    plot_args=""
-    if [ -n "$WEEK_LABEL" ]; then plot_args="$plot_args --week \"$WEEK_LABEL\""; fi
-    if [ "$INVERT_Y" = "1" ]; then plot_args="$plot_args --invert-y"; fi
+      - name: Commit and push updated chart and index.html
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add plots/epa_scatter.png index.html
+          git commit -m "Update EPA scatter plot and index.html"
+          git push origin HEAD:main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-   
-
-   :  - name: Upload EPA chart artifacts
+      - name: Upload EPA chart artifacts
         uses: actions/upload-artifact@v4
         with:
           name: epa-chart-${{ inputs.season }}
