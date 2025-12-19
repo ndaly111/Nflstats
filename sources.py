@@ -77,13 +77,13 @@ def download_team_logo(team_abbr: str, fmt: LogoFormat = "png", target_dir: Path
     Args:
         team_abbr: Team abbreviation matching logo filenames (e.g., "KC").
         fmt: Desired logo format (png or svg).
-        target_dir: Optional directory for downloaded logos. Defaults to a
-            "logos" directory under the repository root.
+        target_dir: Optional directory for downloaded logos. Defaults to the
+            "assets/logos" directory under the repository root.
 
     Returns:
         Path to the downloaded logo file.
     """
-    directory = target_dir or Path("logos") / fmt
+    directory = target_dir or Path("assets") / "logos" / fmt
     url = logo_url(team_abbr, fmt)
     destination = directory / f"{team_abbr.lower()}.{fmt}"
     return download_file(url, destination)
