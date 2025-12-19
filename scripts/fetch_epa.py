@@ -123,35 +123,27 @@ def compute_team_epa(df: pd.DataFrame) -> pd.DataFrame:
 
     working = df.copy()
     working["epa"] = pd.to_numeric(working.get("epa"), errors="coerce")
-    working["offense_team"] = working.get("posteam").apply(normalize_team_abbr)
-    working["defense_team"] = working.get("defteam").apply(normalize_team_abbr)
+    working["team_offense"] = working.get("posteam").apply(normalize_team_abbr)
+    working["team_defense"] = working.get("defteam").apply(normalize_team_abbr)
 
-    valid_offense = working.dropna(subset=["epa", "offense_team"])
-    valid_defense = working.dropna(subset=["epa", "defense_team"])
+    melted = pd.concat(
+        [
+            working.rename(columns={"team_offense": "team"})[["team", "epa"]].assign(metric="off_epa_per_play"),
+            working.rename(columns={"team_defense": "team"})[["team", "epa"]].assign(metric="def_epa_per_play"),
+        ]
+    )
 
-    offense = (
-        valid_offense.groupby("offense_team")["epa"]
+    summary = (
+        melted.dropna(subset=["team", "epa"])
+        .groupby(["team", "metric"])["epa"]
         .mean()
-        .rename("off_epa_per_play")
+        .unstack()
         .reset_index()
+        .sort_values("team")
+        .reset_index(drop=True)
     )
-    defense = (
-        valid_defense.groupby("defense_team")["epa"]
-        .mean()
-        .rename("def_epa_per_play")
-        .reset_index()
-    )
-
-    merged = offense.merge(
-        defense,
-        how="outer",
-        left_on="offense_team",
-        right_on="defense_team",
-    )
-    merged["team"] = merged["offense_team"].combine_first(merged["defense_team"])
-
-    summary = merged[["team", "off_epa_per_play", "def_epa_per_play"]]
-    summary = summary.sort_values("team").reset_index(drop=True)
+    summary = summary.rename_axis(None, axis=1)
+    summary = summary.reindex(columns=["team", "off_epa_per_play", "def_epa_per_play"])
     return summary
 
 

@@ -10,24 +10,13 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import struct
 import sys
-import zlib
 from io import BytesIO
 from pathlib import Path
 from typing import Iterable, Optional
-from urllib.error import URLError
-from urllib.request import urlopen
 
-try:  # Optional dependency for rich download + resize
-    import requests
-except ImportError:  # pragma: no cover - optional
-    requests = None  # type: ignore
-
-try:  # Optional dependency for resize + format conversion
-    from PIL import Image
-except ImportError:  # pragma: no cover - optional
-    Image = None  # type: ignore
+import requests
+from PIL import Image, ImageDraw, ImageFont
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -72,49 +61,16 @@ TEAM_ABBREVIATIONS: tuple[str, ...] = (
 
 DEFAULT_SIZE = 256
 
-# Simple 5x7 bitmap font for uppercase letters
-FONT_5X7 = {
-    "A": ["  #  ", " # # ", "#   #", "#####", "#   #", "#   #", "#   #"],
-    "B": ["#### ", "#   #", "#   #", "#### ", "#   #", "#   #", "#### "],
-    "C": [" ### ", "#   #", "#    ", "#    ", "#    ", "#   #", " ### "],
-    "D": ["#### ", "#   #", "#   #", "#   #", "#   #", "#   #", "#### "],
-    "E": ["#####", "#    ", "#    ", "#### ", "#    ", "#    ", "#####"],
-    "F": ["#####", "#    ", "#    ", "#### ", "#    ", "#    ", "#    "],
-    "G": [" ### ", "#   #", "#    ", "# ###", "#   #", "#   #", " ### "],
-    "H": ["#   #", "#   #", "#   #", "#####", "#   #", "#   #", "#   #"],
-    "I": ["#####", "  #  ", "  #  ", "  #  ", "  #  ", "  #  ", "#####"],
-    "J": ["#####", "    #", "    #", "    #", "#   #", "#   #", " ### "],
-    "K": ["#   #", "#  # ", "# #  ", "##   ", "# #  ", "#  # ", "#   #"],
-    "L": ["#    ", "#    ", "#    ", "#    ", "#    ", "#    ", "#####"],
-    "M": ["#   #", "## ##", "# # #", "#   #", "#   #", "#   #", "#   #"],
-    "N": ["#   #", "##  #", "# # #", "#  ##", "#   #", "#   #", "#   #"],
-    "O": [" ### ", "#   #", "#   #", "#   #", "#   #", "#   #", " ### "],
-    "P": ["#### ", "#   #", "#   #", "#### ", "#    ", "#    ", "#    "],
-    "Q": [" ### ", "#   #", "#   #", "#   #", "# # #", "#  # ", " ## #"],
-    "R": ["#### ", "#   #", "#   #", "#### ", "# #  ", "#  # ", "#   #"],
-    "S": [" ### ", "#   #", "#    ", " ### ", "    #", "#   #", " ### "],
-    "T": ["#####", "  #  ", "  #  ", "  #  ", "  #  ", "  #  ", "  #  "],
-    "U": ["#   #", "#   #", "#   #", "#   #", "#   #", "#   #", " ### "],
-    "V": ["#   #", "#   #", "#   #", "#   #", "#   #", " # # ", "  #  "],
-    "W": ["#   #", "#   #", "#   #", "# # #", "# # #", "## ##", "#   #"],
-    "X": ["#   #", "#   #", " # # ", "  #  ", " # # ", "#   #", "#   #"],
-    "Y": ["#   #", "#   #", " # # ", "  #  ", "  #  ", "  #  ", "  #  "],
-    "Z": ["#####", "    #", "   # ", "  #  ", " #   ", "#    ", "#####"],
-}
-
 
 def download_logo_bytes(team_abbr: str) -> Optional[bytes]:
-    """Attempt to download logo bytes using urllib or requests."""
+    """Attempt to download logo bytes using ``requests``."""
 
     url = logo_url(team_abbr, fmt="png")
     try:
-        if requests is not None:
-            response = requests.get(url, timeout=30)
-            response.raise_for_status()
-            return response.content
-        with urlopen(url) as response:
-            return response.read()
-    except (URLError, OSError, Exception):
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        return response.content
+    except requests.RequestException:
         return None
 
 
@@ -131,52 +87,35 @@ def standardized_logo(image: Image.Image, canvas_size: int) -> Image.Image:  # t
     return canvas
 
 
-def png_chunk(chunk_type: bytes, data: bytes) -> bytes:
-    return struct.pack(">I", len(data)) + chunk_type + data + struct.pack(">I", zlib.crc32(chunk_type + data) & 0xFFFFFFFF)
-
-
 def placeholder_logo(team_abbr: str, canvas_size: int) -> bytes:
     """Generate a simple placeholder PNG with the team abbreviation."""
 
-    glyph_width, glyph_height = 5, 7
-    text_width = len(team_abbr) * (glyph_width + 1) - 1
-    scale = max(4, min(canvas_size // (text_width + 2), canvas_size // (glyph_height + 2)))
+    canvas = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(canvas)
 
-    width = height = canvas_size
-    pixels = [[(0, 0, 0, 0) for _ in range(width)] for _ in range(height)]
-
-    # Background color derived from abbreviation hash for visual variety.
     hue = int(hashlib.sha256(team_abbr.encode()).hexdigest(), 16)
     base_r = (hue >> 16) & 0xFF
     base_g = (hue >> 8) & 0xFF
     base_b = hue & 0xFF
-    for y in range(height):
-        for x in range(width):
-            alpha = 200
-            pixels[y][x] = (base_r, base_g, base_b, alpha)
+    background = (base_r, base_g, base_b, 230)
+    draw.rectangle([(0, 0), (canvas_size, canvas_size)], fill=background)
 
-    start_x = max(0, (width - text_width * scale) // 2)
-    start_y = max(0, (height - glyph_height * scale) // 2)
+    try:
+        font = ImageFont.truetype("DejaVuSans-Bold.ttf", size=max(24, canvas_size // 4))
+    except OSError:
+        font = ImageFont.load_default()
 
-    abbr = team_abbr.upper()
-    for idx, char in enumerate(abbr):
-        pattern = FONT_5X7.get(char)
-        if not pattern:
-            continue
-        for row, line in enumerate(pattern):
-            for col, symbol in enumerate(line):
-                if symbol != "#":
-                    continue
-                for dy in range(scale):
-                    for dx in range(scale):
-                        px = start_x + (idx * (glyph_width + 1) + col) * scale + dx
-                        py = start_y + row * scale + dy
-                        if 0 <= px < width and 0 <= py < height:
-                            pixels[py][px] = (255, 255, 255, 255)
+    text = team_abbr.upper()
+    text_bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = text_bbox[2] - text_bbox[0]
+    text_height = text_bbox[3] - text_bbox[1]
+    x_offset = (canvas_size - text_width) // 2
+    y_offset = (canvas_size - text_height) // 2
 
-    raw_rows = b"".join(b"\x00" + bytes([c for pixel in row for c in pixel]) for row in pixels)
-    ihdr = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
-    return b"\x89PNG\r\n\x1a\n" + png_chunk(b"IHDR", ihdr) + png_chunk(b"IDAT", zlib.compress(raw_rows, 9)) + png_chunk(b"IEND", b"")
+    draw.text((x_offset, y_offset), text, fill=(255, 255, 255, 255), font=font)
+    buffer = BytesIO()
+    canvas.save(buffer, format="PNG")
+    return buffer.getvalue()
 
 
 def cache_team_logo(team_abbr: str, output_dir: Path, canvas_size: int) -> Path:
@@ -186,18 +125,15 @@ def cache_team_logo(team_abbr: str, output_dir: Path, canvas_size: int) -> Path:
     destination = output_dir / f"{team_abbr.upper()}.png"
 
     raw_bytes = download_logo_bytes(team_abbr)
-    if raw_bytes and Image is not None:
+    if raw_bytes:
         try:
             logo = Image.open(BytesIO(raw_bytes))
             normalized = standardized_logo(logo, canvas_size)
             normalized.save(destination, format="PNG")
             return destination
         except Exception:
-            pass
-
-    if raw_bytes:
-        destination.write_bytes(raw_bytes)
-        return destination
+            destination.write_bytes(raw_bytes)
+            return destination
 
     placeholder = placeholder_logo(team_abbr, canvas_size)
     destination.write_bytes(placeholder)
