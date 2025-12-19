@@ -5,7 +5,7 @@
 - `data/`: Raw downloads such as play-by-play CSVs.
 - `scripts/`: Reusable data fetch and cleaning utilities.
 - `plots/`: Generated visualizations and analysis outputs.
-- `assets/logos/`: Cached team logos (separated into `png/` and `svg/`).
+- `assets/logos/`: Local cache for team logos saved as `<TEAM>.png` with uniform sizing (generated, not committed).
 
 ## Environment
 
@@ -21,8 +21,11 @@ pip install -r requirements.txt
 
 ## Usage Notes
 
-- Download raw play-by-play data into `data/` and cache team logos under
+- Download raw play-by-play data into `data/` and populate team logos under
   `assets/logos/` using the helpers in `sources.py`.
+- Cache 256x256 transparent team logos with `scripts/download_logos.py`.
+  The script resizes downloaded assets when online and otherwise generates
+  labeled placeholders so plots always have consistent-sized logo files.
 - Place ad-hoc or scheduled ETL notebooks/scripts in `scripts/`.
 - Save generated figures and charts to `plots/` for easy sharing.
 
@@ -51,7 +54,7 @@ To support EPA reporting by team and time period, the ingest should capture:
 
 ## Notes
 - EPA calculations and team splits are derived from the nflfastR play-by-play dataset after download.
-- Logo filenames follow lowercase team abbreviations (e.g., `png/kc.png`); map identifiers accordingly.
+- Logo filenames now use uppercase team abbreviations (e.g., `assets/logos/KC.png`).
 
 ## Implementation Helpers
 Use `sources.py` to work with the documented endpoints directly:
@@ -63,9 +66,11 @@ from sources import download_epa_csv, download_team_logo
 # Download gzipped play-by-play CSV for 2023 into ./data
 epa_path = download_epa_csv(2023)
 
-# Download the Chiefs PNG logo into ./assets/logos/png
-logo_path = download_team_logo("KC", fmt="png")
+# Download and normalize all logos to ./assets/logos
+from scripts.download_logos import cache_all_logos, TEAM_ABBREVIATIONS
+
+cache_all_logos(TEAM_ABBREVIATIONS, Path("assets") / "logos", canvas_size=256)
 
 print("EPA file saved to", epa_path)
-print("Logo saved to", logo_path)
+print("Logos saved to assets/logos")
 ```
