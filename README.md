@@ -113,6 +113,27 @@ make refresh SEASON=2023    # Run all the above in order
 The Make targets use `python -m scripts.<task>` so they work in both virtual
 environments and system installs.
 
+## Generate the chart via GitHub Actions
+
+Trigger the `Generate EPA chart` workflow manually from the GitHub Actions tab
+to produce a fresh plot and aggregate CSV without running anything locally.
+
+Inputs you can customize when dispatching:
+- **season** (default `2025`): Season year to download and chart.
+- **week_start/week_end** (optional): Limit the data to a week range before
+  aggregation.
+- **min_wp/max_wp** (optional): Filter plays by win probability bounds.
+- **include_playoffs** (default `false`): Include postseason plays in the
+  aggregation.
+- **week_label** (optional): Subtitle text describing the week window on the
+  plot.
+- **invert_y** (default `true`): Invert the defensive EPA axis so better
+  defenses trend upward.
+
+The workflow installs dependencies, caches logos, fetches the EPA data, renders
+the plot (defaulting to `plots/epa_scatter.png`), and uploads both the plot and
+`data/team_epa_<season>.csv` as downloadable workflow artifacts.
+
 ## Required Data Fields
 To support EPA reporting by team and time period, the ingest should capture:
 - **Team identifier:** Club code matching nflfastR team abbreviations (e.g., `KC`, `PHI`).

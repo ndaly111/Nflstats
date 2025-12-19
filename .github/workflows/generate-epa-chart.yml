@@ -1,0 +1,81 @@
+name: Generate EPA chart
+
+on:
+  workflow_dispatch:
+    inputs:
+      season:
+        description: "Season year to download and chart (e.g., 2025)"
+        required: true
+        default: "2025"
+      week_start:
+        description: "Optional starting week to include"
+        required: false
+      week_end:
+        description: "Optional ending week to include"
+        required: false
+      min_wp:
+        description: "Minimum win probability filter (0-1)"
+        required: false
+      max_wp:
+        description: "Maximum win probability filter (0-1)"
+        required: false
+      include_playoffs:
+        description: "Include postseason plays"
+        required: false
+        default: "false"
+        type: boolean
+      week_label:
+        description: "Custom subtitle label for the week range"
+        required: false
+      invert_y:
+        description: "Invert defensive EPA axis so better defenses trend upward"
+        required: false
+        default: "true"
+        type: boolean
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Build EPA dataset and chart
+        env:
+          SEASON: ${{ inputs.season }}
+          WEEK_START: ${{ inputs.week_start }}
+          WEEK_END: ${{ inputs.week_end }}
+          MIN_WP: ${{ inputs.min_wp }}
+          MAX_WP: ${{ inputs.max_wp }}
+          WEEK_LABEL: ${{ inputs.week_label }}
+        run: |
+          set -e
+          if [ "${{ inputs.include_playoffs }}" = "true" ]; then
+            export INCLUDE_PLAYOFFS=1
+          fi
+          if [ "${{ inputs.invert_y }}" = "true" ]; then
+            export INVERT_Y=1
+          fi
+
+          make logos
+          make fetch-epa
+          make plot-epa
+
+      - name: Upload EPA chart artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: epa-chart-${{ inputs.season }}
+          path: |
+            data/team_epa_${{ inputs.season }}.csv
+            plots/epa_scatter.png
