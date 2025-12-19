@@ -6,6 +6,7 @@ used to avoid extra runtime dependencies.
 """
 from pathlib import Path
 from typing import Literal
+from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 import shutil
 
@@ -49,8 +50,17 @@ def download_file(url: str, destination: Path) -> Path:
     CSV files.
     """
     destination.parent.mkdir(parents=True, exist_ok=True)
-    with urlopen(url) as response, destination.open("wb") as output:
-        shutil.copyfileobj(response, output)
+
+    try:
+        with urlopen(url) as response, destination.open("wb") as output:
+            shutil.copyfileobj(response, output)
+    except HTTPError as exc:
+        if exc.code == 404:
+            raise FileNotFoundError(f"Remote file not found at {url}") from exc
+        raise
+    except URLError as exc:
+        raise ConnectionError(f"Failed to reach {url}: {exc.reason}") from exc
+
     return destination
 
 

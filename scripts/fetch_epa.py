@@ -210,7 +210,12 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
-    epa_path = ensure_epa_file(args.season, args.data_dir, force=args.force_download)
+    try:
+        epa_path = ensure_epa_file(args.season, args.data_dir, force=args.force_download)
+    except (FileNotFoundError, ConnectionError) as exc:
+        print(f"Unable to download play-by-play data: {exc}")
+        sys.exit(1)
+
     print(f"Loading play-by-play data from {epa_path}...")
 
     df = pd.read_csv(epa_path, compression="gzip", low_memory=False)
