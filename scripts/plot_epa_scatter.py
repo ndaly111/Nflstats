@@ -15,6 +15,14 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
+from io import BytesIO
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
+
+from scripts.download_logos import placeholder_logo
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -104,10 +112,31 @@ def draw_logos(ax: plt.Axes, df: pd.DataFrame, logos_dir: Path, zoom: float = 0.
         if image:
             ab = AnnotationBbox(image, (x, y), frameon=False)
             ax.add_artist(ab)
-        else:
-            ax.scatter(x, y, color="black", s=20, zorder=5)
-            ax.text(x, y, team, fontsize=8, ha="center", va="center")
-
+    else:
+        if Image is not None:
+            try:
+                placeholder_img = placeholder_logo(team)
+                buf = BytesIO()
+                placeholder_img.save(buf, format="PNG")
+                buf.seek(0)
+                img_arr = plt.imread(buf)
+                image = OffsetImage(img_arr, zoom=zoom)
+                ab = AnnotationBbox(image, (x, y), frameon=False)
+                ax.add_artist(ab)
+                continue
+            except Exception:
+                pass
+                    ax.scatter(x, y, color="black", s=20, zorder=5)
+                    ax.text(x, y, team, fontsize=8, ha="center", va=center")u
+            img_arr = plt.imread(buf)
+            image = OffsetImage(img_arr, zoom=zoom)
+            ab = AnnotationBbox(image, (x, y), frameon=False)
+            ax.add_artist(ab)
+            continue
+        except Exception:
+            pass
+    ax.scatter(x, y, color="black", s=20, zorder=5)
+    ax.text(x, y, team, fontsize=8, ha="center", va="center")
 
 def add_reference_lines(ax: plt.Axes, df: pd.DataFrame) -> tuple[float, float]:
     """Draw league-average reference lines for offense and defense."""
