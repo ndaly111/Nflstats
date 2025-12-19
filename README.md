@@ -19,13 +19,18 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+If you prefer a one-command workflow, the provided `Makefile` exposes common
+targets (see [Run end-to-end](#run-end-to-end)).
+
 ## Usage Notes
 
 - Download raw play-by-play data into `data/` and populate team logos under
-  `assets/logos/` using the helpers in `sources.py`.
-- Cache 256x256 transparent team logos with `scripts/download_logos.py`.
-  The script resizes downloaded assets when online and otherwise generates
-  labeled placeholders so plots always have consistent-sized logo files.
+  `assets/logos/` using the helpers in `sources.py` or the convenience scripts
+  below.
+- Cache 256x256 transparent team logos with `scripts/download_logos.py` (or the
+  [`make logos`](#run-end-to-end) target). The script resizes downloaded assets
+  when online and otherwise generates labeled placeholders so plots always have
+  consistent-sized logo files.
 - Place ad-hoc or scheduled ETL notebooks/scripts in `scripts/`.
 - Save generated figures and charts to `plots/` for easy sharing.
 
@@ -43,6 +48,52 @@ pip install -r requirements.txt
 - **Source:** GitHub-hosted SVG/PNG set from `https://github.com/ryanmcdermott/nfl-logos`.
 - **Access:** Direct raw file URLs under `https://raw.githubusercontent.com/ryanmcdermott/nfl-logos/master/` (e.g., `png/<team>.png` or `svg/<team>.svg`).
 - **Attribution/Licensing:** Repository notes assets are for informational/educational use and originate from public logo vectors; verify trademark usage before production deployment.
+
+## Setup and data refresh
+
+Fetch a season of play-by-play data and aggregate EPA/play by team:
+
+```bash
+python -m scripts.fetch_epa --season 2023
+```
+
+Download or synthesize normalized team logos for plotting:
+
+```bash
+python -m scripts.download_logos --output-dir assets/logos --size 256
+```
+
+Both commands default to saving under `data/` and `assets/logos/`. Re-run them
+when a new nflfastR release drops to refresh the source data.
+
+## Generate the EPA scatter plot
+
+With the aggregated data and logos in place, render the offense vs defense
+scatter chart:
+
+```bash
+python -m scripts.plot_epa_scatter --season 2023 --week "Weeks 1-10" --output plots/epa_scatter.png
+```
+
+The script will read `data/team_epa_<season>.csv` by default and saves PNG
+output to `plots/epa_scatter.png`, optionally alongside SVG/PDF copies via
+`--svg`/`--pdf`. Use `--invert-y` to flip the defensive EPA axis so better
+defenses appear higher on the chart.
+
+## Run end-to-end
+
+A lightweight `Makefile` provides shortcuts for common tasks. Override the
+`SEASON` variable on the command line to switch years.
+
+```bash
+make logos                # Cache logos into assets/logos (placeholders if offline)
+make fetch-epa SEASON=2023  # Download + summarize play-by-play into data/team_epa_<season>.csv
+make plot-epa SEASON=2023   # Render plots/epa_scatter.png from the aggregated CSV
+make refresh SEASON=2023    # Run all the above in order
+```
+
+The Make targets use `python -m scripts.<task>` so they work in both virtual
+environments and system installs.
 
 ## Required Data Fields
 To support EPA reporting by team and time period, the ingest should capture:
