@@ -1,0 +1,5 @@
+season_type,week,posteam,defteam,epa,wp
+REG,1,KC,DET,0.5,0.6
+REG,1,DET,KC,-0.3,0.4
+REG,2,PHI,DAL,0.1,0.55
+REG,2,DAL,PHI,-0.2,0.45
