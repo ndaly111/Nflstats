@@ -1,5 +1,31 @@
 # Nflstats
 
+## Project Structure
+
+- `data/`: Raw downloads such as play-by-play CSVs.
+- `scripts/`: Reusable data fetch and cleaning utilities.
+- `plots/`: Generated visualizations and analysis outputs.
+- `assets/logos/`: Cached team logos (separated into `png/` and `svg/`).
+
+## Environment
+
+This project uses Python with `pandas`, `matplotlib`, and `seaborn` for data
+exploration and plotting. Install dependencies into a virtual environment of
+your choice:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Usage Notes
+
+- Download raw play-by-play data into `data/` and cache team logos under
+  `assets/logos/` using the helpers in `sources.py`.
+- Place ad-hoc or scheduled ETL notebooks/scripts in `scripts/`.
+- Save generated figures and charts to `plots/` for easy sharing.
+
 ## Data Sources
 
 ### Expected Points Added (EPA)
@@ -37,7 +63,7 @@ from sources import download_epa_csv, download_team_logo
 # Download gzipped play-by-play CSV for 2023 into ./data
 epa_path = download_epa_csv(2023)
 
-# Download the Chiefs PNG logo into ./logos/png
+# Download the Chiefs PNG logo into ./assets/logos/png
 logo_path = download_team_logo("KC", fmt="png")
 
 print("EPA file saved to", epa_path)
