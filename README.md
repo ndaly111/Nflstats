@@ -37,8 +37,10 @@ targets (see [Run end-to-end](#run-end-to-end)).
 ## Data Sources
 
 ### Expected Points Added (EPA)
-- **Provider:** nflfastR weekly CSVs via GitHub Releases (public data snapshot).
-- **Endpoint:** `https://github.com/guga31bb/nflfastR-data/tree/master/data` with per-season play-by-play files (e.g., `https://raw.githubusercontent.com/guga31bb/nflfastR-data/master/data/play_by_play_2023.csv.gz`).
+- **Provider:** nflfastR weekly CSVs via the maintained `nflverse-data` snapshot on GitHub.
+- **Endpoint:** `https://github.com/nflverse/nflverse-data/tree/master/data` with per-season play-by-play files (e.g., `https://raw.githubusercontent.com/nflverse/nflverse-data/master/data/play_by_play_2023.csv.gz`).
+- **Offline fallback:** A minimal plain-text sample file lives at `data/play_by_play_sample.csv` and is gzipped on the fly when
+  the live download is unavailable (for example, in offline CI).
 - **Required parameters:**
   - Season year embedded in filename (e.g., `play_by_play_2023.csv.gz`).
   - Optional downstream filters applied after download (week, team, offense/defense splits).

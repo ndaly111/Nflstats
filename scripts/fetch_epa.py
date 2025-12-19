@@ -66,7 +66,12 @@ def normalize_team_abbr(raw_abbr: Optional[str]) -> Optional[str]:
     return TEAM_ABBREVIATION_ALIASES.get(trimmed, trimmed)
 
 
-def ensure_epa_file(season: int, data_dir: Path, force: bool = False) -> Path:
+FALLBACK_EPA_SAMPLE = REPO_ROOT / "data" / "play_by_play_sample.csv"
+
+
+def ensure_epa_file(
+    season: int, data_dir: Path, force: bool = False, fallback_sample: Optional[Path] = None
+) -> Path:
     """Ensure the season EPA CSV is present locally."""
 
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -76,7 +81,7 @@ def ensure_epa_file(season: int, data_dir: Path, force: bool = False) -> Path:
         return destination
 
     print(f"Downloading play-by-play data for {season} to {destination}...")
-    return download_epa_csv(season, target_dir=data_dir)
+    return download_epa_csv(season, target_dir=data_dir, fallback_sample=fallback_sample)
 
 
 def filter_plays(
@@ -203,14 +208,16 @@ def main() -> None:
     args = parse_args()
 
     try:
-        epa_path = ensure_epa_file(args.season, args.data_dir, force=args.force_download)
+        epa_path = ensure_epa_file(
+            args.season, args.data_dir, force=args.force_download, fallback_sample=FALLBACK_EPA_SAMPLE
+        )
     except (FileNotFoundError, ConnectionError) as exc:
         print(f"Unable to download play-by-play data: {exc}")
         sys.exit(1)
 
     print(f"Loading play-by-play data from {epa_path}...")
 
-    df = pd.read_csv(epa_path, compression="gzip", low_memory=False)
+    df = pd.read_csv(epa_path, compression="infer", low_memory=False)
     df = filter_plays(
         df,
         week_start=args.week_start,
