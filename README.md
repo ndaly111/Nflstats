@@ -98,6 +98,24 @@ mirror the example tiers chart:
 python -m scripts.plot_epa_scatter --season 2022 --week "Weeks 8-15 (win prob 10-90%)" --invert-y --output plots/epa_scatter_2022_w8_15.png
 ```
 
+### One-step team tiers chart (nflreadpy)
+
+For a single-command version that pulls play-by-play data through `nflreadpy`,
+filters competitive run/pass plays, aggregates EPA/play, and plots logos, run:
+
+```bash
+python team_tiers.py --season 2024 --week-start 8 --week-end 15 --output plots/team_tiers_2024.png
+```
+
+Key flags mirror the example tiers chart:
+
+- `--wp-min`/`--wp-max`: win-probability window (defaults to 10-90%).
+- `--play-types`: list of play types to include (defaults to `run pass`).
+- `--down-min`/`--down-max`: down filters (defaults to 1-4).
+- `--invert-y`/`--no-invert-y`: flip the defensive EPA axis so better defenses trend upward (default: inverted).
+
+Aggregated data is saved alongside the plot (default `data/team_epa_<season>_tiers.csv`).
+
 ## Run end-to-end
 
 A lightweight `Makefile` provides shortcuts for common tasks. Override the
