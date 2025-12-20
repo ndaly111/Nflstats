@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-import sys
 from typing import Optional
+import sys
 
 import pandas as pd
 
@@ -155,6 +155,23 @@ def compute_team_epa(df: pd.DataFrame) -> pd.DataFrame:
     return summary
 
 
+def load_sample_team_epa() -> pd.DataFrame:
+    """Load bundled sample EPA aggregates for offline fallbacks."""
+
+    sample_path = Path(__file__).resolve().parents[1] / "data" / "sample_team_epa.csv"
+    if not sample_path.exists():
+        raise FileNotFoundError(f"Sample data not found at {sample_path}")
+
+    df = pd.read_csv(sample_path)
+    required = {"team", "off_epa_per_play", "def_epa_per_play"}
+    missing = required - set(df.columns)
+    if missing:
+        columns = ", ".join(sorted(missing))
+        raise ValueError(f"Sample data is missing required columns: {columns}")
+
+    return df.copy()
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--season", type=int, required=True, help="Season year to download (e.g., 2023)")
@@ -210,27 +227,30 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
 
-    try:
-        epa_path = ensure_epa_file(args.season, args.data_dir, force=args.force_download)
-    except (FileNotFoundError, ConnectionError) as exc:
-        print(f"Unable to download play-by-play data: {exc}")
-        sys.exit(1)
-
-    print(f"Loading play-by-play data from {epa_path}...")
-
-    df = pd.read_csv(epa_path, compression="gzip", low_memory=False)
-    df = filter_plays(
-        df,
-        week_start=args.week_start,
-        week_end=args.week_end,
-        min_wp=args.min_wp,
-        max_wp=args.max_wp,
-        include_playoffs=args.include_playoffs,
-    )
-    summary = compute_team_epa(df)
-
     output_path = args.output or args.data_dir / f"team_epa_{args.season}.csv"
     output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        epa_path = ensure_epa_file(args.season, args.data_dir, force=args.force_download)
+        print(f"Loading play-by-play data from {epa_path}...")
+
+        df = pd.read_csv(epa_path, compression="gzip", low_memory=False)
+        df = filter_plays(
+            df,
+            week_start=args.week_start,
+            week_end=args.week_end,
+            min_wp=args.min_wp,
+            max_wp=args.max_wp,
+            include_playoffs=args.include_playoffs,
+        )
+        summary = compute_team_epa(df)
+    except Exception as exc:
+        print(
+            "Falling back to bundled sample aggregates because play-by-play "
+            f"download failed: {exc}"
+        )
+        summary = load_sample_team_epa()
+
     summary.to_csv(output_path, index=False)
 
     print(f"Saved team EPA summary to {output_path}")
