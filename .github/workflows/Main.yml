@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas nfl_data_py pyarrow
+          pip install pandas nfl_data_py pyarrow matplotlib
 
       - name: Run script
         env:
@@ -28,8 +28,13 @@ jobs:
         run: |
           python main.py
 
+      - name: Plot team color squares
+        run: python plot_team_color_squares.py
+
       - name: Upload CSV artifact
         uses: actions/upload-artifact@v4
         with:
           name: team_epa_csv
-          path: nfl_*_team_epa.csv
+          path: |
+            nfl_*_team_epa.csv
+            nfl_team_color_squares.png
