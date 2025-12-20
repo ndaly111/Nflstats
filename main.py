@@ -1,5 +1,6 @@
 import os
 from epa_od_fetcher import download_pbp, compute_team_epa
+from plotepa import plot_epa
 
 def main():
     year_str = os.getenv("NFL_SEASON", "2025").strip()
@@ -20,6 +21,10 @@ def main():
     out_csv = f"nfl_{year}_team_epa.csv"
     team_epa.to_csv(out_csv)
     print(f"\nSaved {out_csv}")
+
+    print("Generating EPA scatter plot ...")
+    output_plot = plot_epa(out_csv)
+    print(f"Saved plot to {output_plot}")
 
 if __name__ == "__main__":
     main()
