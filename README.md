@@ -98,6 +98,15 @@ mirror the example tiers chart:
 python -m scripts.plot_epa_scatter --season 2022 --week "Weeks 8-15 (win prob 10-90%)" --invert-y --output epa_scatter_2022_w8_15.png
 ```
 
+All scatter outputs matching `epa_scatter*.png`/`.svg`/`.pdf` are gitignored to
+keep the repository free of generated binaries. To avoid touching the working
+tree entirely, point the `--output` flag to `/tmp/` or invoke the make target
+with an override:
+
+```bash
+make plot-epa OUTPUT=/tmp/epa_scatter_test.png SEASON=2023 WEEK_LABEL="2023 Regular Season" INVERT_Y=1
+```
+
 ## Run end-to-end
 
 A lightweight `Makefile` provides shortcuts for common tasks. Override the

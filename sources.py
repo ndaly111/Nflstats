@@ -101,7 +101,37 @@ def download_team_logo(
 ) -> Path:
     """Download a team logo asset."""
 
-    directory = target_dir or Path("assets") / "logos" / fmt
+    base_dir = target_dir or Path("assets") / "logos"
+    directory = base_dir if fmt == "png" else base_dir / fmt
     url = logo_url(team_abbr, fmt)
-    destination = directory / f"{team_abbr.lower()}.{fmt}"
+    destination = directory / f"{team_abbr.upper()}.{fmt}"
     return download_file(url, destination)
+
+
+def find_team_logo(
+    team_abbr: str, fmt: LogoFormat = "png", search_dir: Path | None = None
+) -> Path:
+    """Locate a previously downloaded team logo on disk.
+
+    The search covers common directory conventions (``assets/logos`` and
+    ``assets/logos/<fmt>``) and accepts either uppercase or lowercase team
+    abbreviations. A :class:`FileNotFoundError` is raised when no matching
+    asset is found.
+    """
+
+    base_dir = search_dir or Path("assets") / "logos"
+    search_roots: tuple[Path, ...] = (
+        base_dir,
+        base_dir / fmt,
+    )
+    candidate_names = (team_abbr.upper(), team_abbr.lower())
+
+    for root in search_roots:
+        for name in candidate_names:
+            candidate = root / f"{name}.{fmt}"
+            if candidate.exists():
+                return candidate
+
+    raise FileNotFoundError(
+        f"Logo for {team_abbr} with format '{fmt}' not found under {base_dir}"
+    )
