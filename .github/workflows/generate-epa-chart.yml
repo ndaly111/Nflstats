@@ -83,7 +83,7 @@ jobs:
           <body>
             <h1>NFL Offense vs Defense Efficiency (EPA/play)</h1>
             <p>Season: ${{ inputs.season }}</p>
-            <img src="plots/epa_scatter.png" alt="EPA scatter plot" style="max-width: 100%; height: auto;">
+            <img src="epa_scatter.png" alt="EPA scatter plot" style="max-width: 100%; height: auto;">
           </body>
           </html>
           EOF
@@ -92,7 +92,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add plots/epa_scatter.png index.html
+          git add epa_scatter.png index.html
           git commit -m "Update EPA scatter plot and index.html"
           git push origin HEAD:main
         env:
@@ -104,4 +104,4 @@ jobs:
           name: epa-chart-${{ inputs.season }}
           path: |
             data/team_epa_${{ inputs.season }}.csv
-            plots/epa_scatter.png
+            epa_scatter.png
