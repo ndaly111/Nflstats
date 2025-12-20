@@ -89,19 +89,18 @@ python -m scripts.plot_epa_scatter --season 2023 --week "Weeks 1-10" --output ep
 ```
 
 The script will read `data/team_epa_<season>.csv` by default and saves PNG
-output to `epa_scatter.png`, optionally alongside SVG/PDF copies via
-`--svg`/`--pdf`. Use `--invert-y` to flip the defensive EPA axis so better
-defenses appear higher on the chart. Combine this with the filters above to
-mirror the example tiers chart:
+output to `epa_scatter.png` in the repository root (tracked for easy download
+or hosting), optionally alongside SVG/PDF copies via `--svg`/`--pdf`. Use
+`--invert-y` to flip the defensive EPA axis so better defenses appear higher on
+the chart. Combine this with the filters above to mirror the example tiers
+chart:
 
 ```bash
 python -m scripts.plot_epa_scatter --season 2022 --week "Weeks 8-15 (win prob 10-90%)" --invert-y --output epa_scatter_2022_w8_15.png
 ```
 
-All scatter outputs matching `epa_scatter*.png`/`.svg`/`.pdf` are gitignored to
-keep the repository free of generated binaries. To avoid touching the working
-tree entirely, point the `--output` flag to `/tmp/` or invoke the make target
-with an override:
+To avoid touching the working tree entirely, point the `--output` flag to
+`/tmp/` or invoke the make target with an override:
 
 ```bash
 make plot-epa OUTPUT=/tmp/epa_scatter_test.png SEASON=2023 WEEK_LABEL="2023 Regular Season" INVERT_Y=1
