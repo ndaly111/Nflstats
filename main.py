@@ -1,6 +1,7 @@
 import os
 from epa_od_fetcher import download_pbp, compute_team_epa
 from plotepa import plot_epa
+from plot_epa_offense_defense import plot_offense_vs_defense
 
 def main():
     year_str = os.getenv("NFL_SEASON", "2025").strip()
@@ -25,6 +26,10 @@ def main():
     print("Generating EPA scatter plot ...")
     output_plot = plot_epa(out_csv)
     print(f"Saved plot to {output_plot}")
+
+    print("Generating offense vs defense EPA chart ...")
+    off_def_plot = plot_offense_vs_defense(out_csv)
+    print(f"Saved plot to {off_def_plot}")
 
 if __name__ == "__main__":
     main()
