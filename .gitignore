@@ -1,9 +1,6 @@
 assets/logos/*.png
 assets/logos/*.svg
-# Generated visualizations and reports (keep repo free of binary artifacts)
+# Generated visualizations and reports (keep repo free of most binary artifacts)
 plots/*
-epa_scatter*.png
-epa_scatter*.svg
-epa_scatter*.pdf
 __pycache__/
 *.pyc
