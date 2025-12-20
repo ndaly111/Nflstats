@@ -27,7 +27,7 @@ def _team_color(team: str) -> str:
     return colors.get("primary", "#333333")
 
 
-def plot_epa(csv_path: Path | str, output_path: Path | str = Path("plots") / "epa_team_colors.png") -> Path:
+def plot_epa(csv_path: Path | str, output_path: Path | str = Path("epa_team_colors.png")) -> Path:
     """Generate a scatter plot of offensive vs defensive EPA per play.
 
     Points are rendered as small squares colored with each team's primary color.
