@@ -8,6 +8,7 @@ reference lines are drawn at league averages.
 from __future__ import annotations
 
 import argparse
+from io import BytesIO
 from pathlib import Path
 from typing import Optional
 
@@ -15,13 +16,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.offsetbox import AnnotationBbox, OffsetImage
 
-from io import BytesIO
 try:
-    from PIL import Image
-except ImportError:
-    Image = None
+    from PIL import Image  # type: ignore
+except ImportError:  # pragma: no cover - optional dependency
+    Image = None  # type: ignore
 
 from scripts.download_logos import placeholder_logo
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -98,7 +99,9 @@ def logo_image(path: Path, zoom: float = 0.2) -> Optional[OffsetImage]:
     return OffsetImage(image, zoom=zoom)
 
 
-def draw_logos(ax: plt.Axes, df: pd.DataFrame, logos_dir: Path, zoom: float = 0.2) -> None:
+def draw_logos(
+    ax: plt.Axes, df: pd.DataFrame, logos_dir: Path, zoom: float = 0.2
+) -> None:
     """Place team logos (or fallback text) at the provided coordinates."""
 
     for row in df.itertuples(index=False):
@@ -112,25 +115,32 @@ def draw_logos(ax: plt.Axes, df: pd.DataFrame, logos_dir: Path, zoom: float = 0.
         if image:
             ab = AnnotationBbox(image, (x, y), frameon=False)
             ax.add_artist(ab)
-    else:
-        if Image is not None:
-            try:
-                placeholder_img = placeholder_logo(team)
-                buf = BytesIO()
-                placeholder_img.save(buf, format="PNG")
-                buf.seek(0)
-                img_arr = plt.imread(buf)
-                image = OffsetImage(img_arr, zoom=zoom)
-                ab = AnnotationBbox(image, (x, y), frameon=False)
-                ax.add_artist(ab)
-                continue
-     except Exception:
-        pass
-          # Fallback to black square and team text when placeholder fails or PIL is unavailable
-        ax.scatter(x, y, color="black", s=20, zorder=5)
-        ax.text(x, y, team, fontsize=8, ha="center", va="center")
-        continuee
-   
+            continue
+
+        try:
+            placeholder_png = placeholder_logo(team, 256)
+            img_arr = plt.imread(BytesIO(placeholder_png))
+            image = OffsetImage(img_arr, zoom=zoom)
+            ab = AnnotationBbox(image, (x, y), frameon=False)
+            ax.add_artist(ab)
+            continue
+        except Exception:
+            pass
+
+        # Fallback to a bold text square when placeholder generation fails
+        ax.scatter(x, y, color="black", s=400, marker="s", zorder=5)
+        ax.text(
+            x,
+            y,
+            team,
+            fontsize=14,
+            fontweight="bold",
+            color="white",
+            ha="center",
+            va="center",
+            zorder=6,
+        )
+
 
 def add_reference_lines(ax: plt.Axes, df: pd.DataFrame) -> tuple[float, float]:
     """Draw league-average reference lines for offense and defense."""

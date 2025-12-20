@@ -1,9 +1,11 @@
-"""Utilities for accessing EPA and logo assets from documented sources.
+"""Utilities for accessing EPA play-by-play data and team logo assets.
 
-This module keeps code and documentation aligned by encapsulating the URLs
-and download helpers described in the README. Only the standard library is
-used to avoid extra runtime dependencies.
+This module centralizes URL construction and download helpers used across the
+project. Only the standard library is required unless the optional
+``nfl_data_py`` dependency is used to scrape in-progress seasons.
 """
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Literal
 from urllib.error import HTTPError, URLError
@@ -17,27 +19,14 @@ LogoFormat = Literal["png", "svg"]
 
 
 def epa_csv_url(season: int) -> str:
-    """Build the nflfastR play-by-play CSV URL for a season.
+    """Build the nflfastR play-by-play CSV URL for a season."""
 
-    Args:
-        season: Season year (e.g., 2023).
-
-    Returns:
-        Fully qualified HTTPS URL for the gzipped CSV file.
-    """
     return f"{EPA_BASE_URL}/play_by_play_{season}.csv.gz"
 
 
 def logo_url(team_abbr: str, fmt: LogoFormat = "png") -> str:
-    """Build the URL for a team logo asset.
+    """Build the URL for a team logo asset."""
 
-    Args:
-        team_abbr: Team abbreviation (e.g., "KC", "PHI").
-        fmt: File format extension (png or svg).
-
-    Returns:
-        HTTPS URL for the requested logo asset.
-    """
     normalized_team = team_abbr.lower()
     return f"{LOGO_BASE_URL}/{fmt}/{normalized_team}.{fmt}"
 
@@ -49,6 +38,7 @@ def download_file(url: str, destination: Path) -> Path:
     response directly to disk to keep memory usage predictable for large EPA
     CSV files.
     """
+
     destination.parent.mkdir(parents=True, exist_ok=True)
 
     try:
@@ -64,64 +54,53 @@ def download_file(url: str, destination: Path) -> Path:
     return destination
 
 
-def download_epa_csv(season: int, target_dir: Path | None = None) -> Path:
-    """Download a season's nflfastR play-by-play CSV.
-
-    Args:
-        season: Season year to retrieve.
-        target_dir: Optional directory for the downloaded file. Defaults to
-            a local "data" directory under the repository root.
-
-    Returns:
-        Path to the downloaded gzipped CSV file.
-    """
-    directory = target_dir or Path("data")
-url = epa_csv_url(season)
-    destination = directory / f"play_by_play_{season}.csv.gz"
-  
-        try:
-        return download_file(url, destination)
-    except FileNotFoundError as exc:
-        try:
-            return download_epa_csv_in_progress(season, target_dir)
-        except Exception:
-            raise FileNotFoundError(f"Remote file not found at {url}") from exc
-    # return download_file(url, destination)
-
-
-
-def download_team_logo(team_abbr: str, fmt: LogoFormat = "png", target_dir: Path | None = None) -> Path:
-    """Download a team logo asset.
-
-    Args:
-        team_abbr: Team abbreviation matching logo filenames (e.g., "KC").
-        fmt: Desired logo format (png or svg).
-        target_dir: Optional directory for downloaded logos. Defaults to the
-            "assets/logos" directory under the repository root.
-
-
 def download_epa_csv_in_progress(season: int, target_dir: Path | None = None) -> Path:
+    """Scrape play-by-play data for a season in progress using ``nfl_data_py``.
+
+    A gzipped CSV is written to the same location where the full-season file
+    would live so downstream consumers can remain agnostic of the data source.
     """
-    Scrape play-by-play data for seasons that are still in progress using
-    nfl_data_py.import_pbp_data. Writes a gzipped CSV to the same location
-    where a full-season file would live.
-    """
+
     try:
         from nfl_data_py import import_data
-    except Exception as exc:
+    except Exception as exc:  # pragma: no cover - optional dependency
         raise ImportError("nfl_data_py is required to scrape in-progress data") from exc
 
     directory = target_dir or Path("data")
     destination = directory / f"play_by_play_{season}.csv.gz"
+
     print(f"Scraping in-progress play-by-play data for {season}...")
     df = import_data.import_pbp_data([season])
     destination.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(destination, index=False, compression="gzip")
     return destination
 
-    Returns:
-        Path to the downloaded logo file.
+
+def download_epa_csv(season: int, target_dir: Path | None = None) -> Path:
+    """Download a season's nflfastR play-by-play CSV.
+
+    If the hosted file is unavailable (common for in-progress seasons), the
+    function falls back to scraping data via ``nfl_data_py``.
     """
+
+    directory = target_dir or Path("data")
+    destination = directory / f"play_by_play_{season}.csv.gz"
+    url = epa_csv_url(season)
+
+    try:
+        return download_file(url, destination)
+    except FileNotFoundError as exc:
+        try:
+            return download_epa_csv_in_progress(season, target_dir)
+        except Exception:
+            raise FileNotFoundError(f"Remote file not found at {url}") from exc
+
+
+def download_team_logo(
+    team_abbr: str, fmt: LogoFormat = "png", target_dir: Path | None = None
+) -> Path:
+    """Download a team logo asset."""
+
     directory = target_dir or Path("assets") / "logos" / fmt
     url = logo_url(team_abbr, fmt)
     destination = directory / f"{team_abbr.lower()}.{fmt}"
