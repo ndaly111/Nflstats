@@ -74,11 +74,10 @@ def download_epa_csv(season: int, target_dir: Path | None = None) -> Path:
 
     Returns:
         Path to the downloaded gzipped CSV file.
-    """
-    directory = target_dir or Path("data")
+        directory = target_dir or Path("data")
     url = epa_csv_url(season)
     destination = directory / f"play_by_play_{season}.csv.gz"
-      try:
+    try:
         return download_file(url, destination)
     except FileNotFoundError as exc:
         try:
@@ -86,7 +85,7 @@ def download_epa_csv(season: int, target_dir: Path | None = None) -> Path:
         except Exception:
             # Re-raise original error so upstream code sees the missing file
             raise FileNotFoundError(f"Remote file not found at {url}") from exc
-  # return download_file(url, destination)
+
 
 
 def download_team_logo(team_abbr: str, fmt: LogoFormat = "png", target_dir: Path | None = None) -> Path:
