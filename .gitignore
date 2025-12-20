@@ -1,6 +1,0 @@
-assets/logos/*.png
-assets/logos/*.svg
-# Generated visualizations and reports (keep repo free of most binary artifacts)
-plots/*
-__pycache__/
-*.pyc
