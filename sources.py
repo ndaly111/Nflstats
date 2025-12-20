@@ -116,11 +116,3 @@ def download_epa_csv_in_progress(season: int, target_dir: Path | None = None) ->
     destination.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(destination, index=False, compression="gzip")
     return destination
-
-    Returns:
-        Path to the downloaded logo file.
-    """
-    directory = target_dir or Path("assets") / "logos" / fmt
-    url = logo_url(team_abbr, fmt)
-    destination = directory / f"{team_abbr.lower()}.{fmt}"
-    return download_file(url, destination)
