@@ -1,6 +1,7 @@
 """Plot offense vs defense EPA per play for every NFL team."""
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 from typing import Iterable
 
@@ -9,7 +10,7 @@ import pandas as pd
 
 from plot_team_color_squares import NFL_TEAM_COLORS
 
-REQUIRED_COLUMNS = {"team", "EPA_off_per_play", "EPA_def_per_play"}
+REQUIRED_COLUMNS = {"team", "off_epa_per_play", "def_epa_per_play"}
 
 
 def _validate_input(df: pd.DataFrame) -> pd.DataFrame:
@@ -21,7 +22,7 @@ def _validate_input(df: pd.DataFrame) -> pd.DataFrame:
         raise ValueError(f"CSV is missing required columns: {missing_cols}")
 
     # Keep only rows that have both offensive and defensive EPA values.
-    return df.dropna(subset=["EPA_off_per_play", "EPA_def_per_play"]).copy()
+    return df.dropna(subset=["off_epa_per_play", "def_epa_per_play"]).copy()
 
 
 def _team_colors(teams: Iterable[str]) -> list[str]:
@@ -52,8 +53,8 @@ def plot_offense_vs_defense(
     colors = _team_colors(df["team"])
 
     ax.scatter(
-        df["EPA_off_per_play"],
-        df["EPA_def_per_play"],
+        df["off_epa_per_play"],
+        df["def_epa_per_play"],
         c=colors,
         edgecolors="black",
         linewidths=0.4,
@@ -62,8 +63,8 @@ def plot_offense_vs_defense(
 
     for row in df.itertuples(index=False):
         ax.text(
-            row.EPA_off_per_play,
-            row.EPA_def_per_play,
+            row.off_epa_per_play,
+            row.def_epa_per_play,
             str(row.team),
             fontsize=8,
             ha="center",
@@ -76,7 +77,7 @@ def plot_offense_vs_defense(
     ax.axvline(0, color="gray", linestyle="--", linewidth=0.6)
     ax.axhline(0, color="gray", linestyle="--", linewidth=0.6)
     ax.set_xlabel("Offensive EPA per play (higher is better)")
-    ax.set_ylabel("Defensive EPA per play (higher is better)")
+    ax.set_ylabel("Defensive EPA per play (lower is better)")
     ax.set_title("EPA per Play: Offense vs Defense")
     ax.grid(True, linestyle="--", linewidth=0.5, alpha=0.6)
 
@@ -87,8 +88,29 @@ def plot_offense_vs_defense(
     return output_path
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "csv",
+        type=Path,
+        help="CSV file containing team, off_epa_per_play, def_epa_per_play columns",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("epa_offense_vs_defense.png"),
+        help="Output path for the generated chart (PNG)",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
-    plot_offense_vs_defense(Path("nfl_2025_team_epa.csv"))
+    args = parse_args()
+    if not args.csv.exists():
+        raise FileNotFoundError(f"CSV not found: {args.csv}")
+
+    output_path = plot_offense_vs_defense(args.csv, args.output)
+    print(f"Saved plot to {output_path}")
 
 
 if __name__ == "__main__":
