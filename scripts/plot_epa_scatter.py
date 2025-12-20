@@ -53,7 +53,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("plots") / "epa_scatter.png",
+        # Save the plot in the repository root by default instead of under the plots/ directory.
+        default=Path("epa_scatter.png"),
         help="Output PNG path for the scatter plot",
     )
     parser.add_argument(

@@ -85,17 +85,17 @@ With the aggregated data and logos in place, render the offense vs defense
 scatter chart:
 
 ```bash
-python -m scripts.plot_epa_scatter --season 2023 --week "Weeks 1-10" --output plots/epa_scatter.png
+python -m scripts.plot_epa_scatter --season 2023 --week "Weeks 1-10" --output epa_scatter.png
 ```
 
 The script will read `data/team_epa_<season>.csv` by default and saves PNG
-output to `plots/epa_scatter.png`, optionally alongside SVG/PDF copies via
+output to `epa_scatter.png`, optionally alongside SVG/PDF copies via
 `--svg`/`--pdf`. Use `--invert-y` to flip the defensive EPA axis so better
 defenses appear higher on the chart. Combine this with the filters above to
 mirror the example tiers chart:
 
 ```bash
-python -m scripts.plot_epa_scatter --season 2022 --week "Weeks 8-15 (win prob 10-90%)" --invert-y --output plots/epa_scatter_2022_w8_15.png
+python -m scripts.plot_epa_scatter --season 2022 --week "Weeks 8-15 (win prob 10-90%)" --invert-y --output epa_scatter_2022_w8_15.png
 ```
 
 ## Run end-to-end
@@ -106,7 +106,7 @@ A lightweight `Makefile` provides shortcuts for common tasks. Override the
 ```bash
 make logos                # Cache logos into assets/logos (placeholders if offline)
 make fetch-epa SEASON=2023 WEEK_START=8 WEEK_END=15 MIN_WP=0.1 MAX_WP=0.9  # Download + summarize with filters
-make plot-epa SEASON=2023 WEEK_LABEL="Weeks 8-15 (win prob 10-90%)" INVERT_Y=1  # Render plots/epa_scatter.png with labels and inverted y-axis
+make plot-epa SEASON=2023 WEEK_LABEL="Weeks 8-15 (win prob 10-90%)" INVERT_Y=1  # Render epa_scatter.png with labels and inverted y-axis
 make refresh SEASON=2023    # Run all the above in order
 ```
 
@@ -131,7 +131,7 @@ Inputs you can customize when dispatching:
   defenses trend upward.
 
 The workflow installs dependencies, caches logos, fetches the EPA data, renders
-the plot (defaulting to `plots/epa_scatter.png`), and uploads both the plot and
+the plot (defaulting to `epa_scatter.png`), and uploads both the plot and
 `data/team_epa_<season>.csv` as downloadable workflow artifacts.
 
 ## Required Data Fields
