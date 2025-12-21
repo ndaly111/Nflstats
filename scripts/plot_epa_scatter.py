@@ -9,8 +9,9 @@ team abbreviation.  Two reference lines are drawn at the league‑average
 offensive and defensive EPA values.  The resulting chart is saved
 to ``epa_scatter.png`` in the repository root.
 
-Use ``--invert-y`` when lower defensive EPA values indicate better performance,
-so the axis direction matches your preferred interpretation.
+Defense EPA values from ``scripts.fetch_epa`` are already sign-flipped so
+"higher = better defense". Use ``--invert-y`` only if you are plotting legacy
+data that did not flip defensive EPA.
 
 Example usage::
 
@@ -63,7 +64,7 @@ def parse_args() -> argparse.Namespace:
         "--invert-y",
         action="store_true",
         default=False,
-        help="Invert the defensive EPA axis (useful when lower values are better).",
+        help="Invert defensive EPA axis (only for legacy, non-flipped data).",
     )
     parser.add_argument(
         "--logos-dir",
@@ -210,7 +211,8 @@ def plot_scatter(df: pd.DataFrame, week_label: Optional[str], invert_y: bool, lo
         Subtitle describing the week range (e.g., "Weeks 1–6").  If None, a default
         'Season to date' subtitle is used.
     invert_y : bool
-        If True, invert the y‑axis direction (useful when lower defensive values are better).
+        If True, invert the y-axis direction (only needed for legacy data where lower values
+        indicate better defense and no sign flip was applied).
     logos_dir : pathlib.Path
         Directory containing team logo PNG files.
     output_path : pathlib.Path
@@ -240,9 +242,9 @@ def plot_scatter(df: pd.DataFrame, week_label: Optional[str], invert_y: bool, lo
 
     # Label axes
     ax.set_xlabel("Offense EPA per play (higher = better offense)")
-    y_label = "Defense EPA per play"
+    y_label = "Defense EPA per play (higher = better defense)"
     if invert_y:
-        y_label += " (axis inverted)"
+        y_label += " — axis inverted for legacy data"
     ax.set_ylabel(y_label)
 
     # Title and subtitle
