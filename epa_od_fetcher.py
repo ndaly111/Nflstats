@@ -68,13 +68,11 @@ def compute_team_epa(pbp: pd.DataFrame) -> pd.DataFrame:
 
     team_epa = pd.concat([off, defn], axis=1).fillna(0)
 
-    # Nice consistent ordering
+    # Nice consistent ordering; keep team as an explicit column for downstream CSV/plots
     team_epa = team_epa.reset_index().rename(columns={"index": "team"})
     if "posteam" in team_epa.columns:
         team_epa = team_epa.rename(columns={"posteam": "team"})
     elif "defteam" in team_epa.columns:
         team_epa = team_epa.rename(columns={"defteam": "team"})
-
-    team_epa = team_epa.set_index("team")
 
     return team_epa
