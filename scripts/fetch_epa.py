@@ -1,259 +1,234 @@
-"""Download and summarize nflfastR EPA data for a season.
-
-The script downloads the season play-by-play CSV if it is not already cached
-locally, normalizes team abbreviations to align with logo filenames, and
-produces per-team offensive and defensive EPA/play aggregates. Optional flags
-restrict plays by week, win probability, and season type to mirror common
-analytics charts.
 """
-from __future__ import annotations
+Command-line script to download play-by-play data for a given NFL season,
+filter it by week range, win probability and season type, and compute
+per‑team offensive and defensive EPA statistics.
+
+This module uses the helper functions from ``epa_od_fetcher`` to download
+play‑by‑play data and compute team EPA values.  The resulting per‑team
+statistics are saved into a CSV file under the ``data/`` directory as
+``team_epa_<season>.csv``.  Subsequent plotting scripts can consume
+this CSV to generate visualisations.
+
+Usage (from the repository root):
+
+    python -m scripts.fetch_epa --season 2025 --week-start 1 --week-end 6 \
+        --min-wp 0.10 --max-wp 0.90 --include-playoffs
+
+The optional arguments allow you to restrict the data to a particular
+week range (inclusive) and win probability window, and to include
+postseason plays if desired.
+"""
 
 import argparse
 from pathlib import Path
 from typing import Optional
-import sys
 
 import pandas as pd
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from sources import download_epa_csv
-
-# Mapping of alternate or historical team abbreviations to current canon values
-# used by logo filenames.
-TEAM_ABBREVIATION_ALIASES = {
-    "ARZ": "ARI",
-    "BLT": "BAL",
-    "CLV": "CLE",
-    "GNB": "GB",
-    "HST": "HOU",
-    "JAC": "JAX",
-    "KCC": "KC",
-    "LAC": "LAC",
-    "LAR": "LAR",
-    "LA": "LAR",
-    "OAK": "LV",
-    "SD": "LAC",
-    "SDG": "LAC",
-    "STL": "LAR",
-    "TAM": "TB",
-    "WAS": "WAS",
-    "WSH": "WAS",
-    "WFT": "WAS",
-}
+try:
+    # When executed as: python -m scripts.fetch_epa
+    from .epa_od_fetcher import download_pbp, compute_team_epa
+except ImportError:  # pragma: no cover
+    try:
+        # Fallback for different module layout
+        from epa_od_fetcher import download_pbp, compute_team_epa
+    except ImportError:  # pragma: no cover
+        # Allow `python scripts/fetch_epa.py` when helpers live at repo root.
+        import sys
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        from epa_od_fetcher import download_pbp, compute_team_epa
 
 
-def normalize_team_abbr(raw_abbr: Optional[str]) -> Optional[str]:
-    """Normalize team abbreviations to match logo filenames.
+def parse_args() -> argparse.Namespace:
+    """Define and parse command‑line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Download NFL play‑by‑play data and compute team EPA stats.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--season",
+        type=int,
+        required=True,
+        help="Season year to download (e.g. 2025)",
+    )
+    parser.add_argument(
+        "--week-start",
+        type=int,
+        default=None,
+        dest="week_start",
+        help="Optional starting week to include (inclusive)",
+    )
+    parser.add_argument(
+        "--week-end",
+        type=int,
+        default=None,
+        dest="week_end",
+        help="Optional ending week to include (inclusive)",
+    )
+    parser.add_argument(
+        "--min-wp",
+        type=float,
+        default=None,
+        dest="min_wp",
+        help="Minimum win probability filter (0–1). Plays with win probability below this value are excluded.",
+    )
+    parser.add_argument(
+        "--max-wp",
+        type=float,
+        default=None,
+        dest="max_wp",
+        help="Maximum win probability filter (0–1). Plays with win probability above this value are excluded.",
+    )
+    parser.add_argument(
+        "--include-playoffs",
+        action="store_true",
+        default=False,
+        dest="include_playoffs",
+        help="Include postseason plays in addition to regular season plays.",
+    )
+    return parser.parse_args()
 
-    Args:
-        raw_abbr: Team abbreviation from the dataset.
 
-    Returns:
-        Canonical three-letter abbreviation in uppercase, or ``None`` when the
-        input is missing.
-    """
-
-    if raw_abbr is None:
-        return None
-
-    trimmed = str(raw_abbr).strip().upper()
-    if not trimmed:
-        return None
-
-    return TEAM_ABBREVIATION_ALIASES.get(trimmed, trimmed)
-
-
-def ensure_epa_file(season: int, data_dir: Path, force: bool = False) -> Path:
-    """Ensure the season EPA CSV is present locally."""
-
-    data_dir.mkdir(parents=True, exist_ok=True)
-    destination = data_dir / f"play_by_play_{season}.csv.gz"
-
-    if destination.exists() and not force:
-        return destination
-
-    print(f"Downloading play-by-play data for {season} to {destination}...")
-    return download_epa_csv(season, target_dir=data_dir)
-
-
-def filter_plays(
-    df: pd.DataFrame,
-    *,
+def filter_pbp(
+    pbp: pd.DataFrame,
     week_start: Optional[int] = None,
     week_end: Optional[int] = None,
     min_wp: Optional[float] = None,
     max_wp: Optional[float] = None,
     include_playoffs: bool = False,
 ) -> pd.DataFrame:
-    """Apply optional filters before aggregating EPA."""
-
-    working = df.copy()
-
-    if not include_playoffs and "season_type" in working.columns:
-        working = working[working["season_type"].astype(str).str.upper() == "REG"]
-
-    if week_start is not None or week_end is not None:
-        if "week" not in working.columns:
-            raise ValueError("Input data is missing the 'week' column required for week filtering")
-        working["week"] = pd.to_numeric(working.get("week"), errors="coerce")
-        start = week_start if week_start is not None else working["week"].min()
-        end = week_end if week_end is not None else working["week"].max()
-        working = working[working["week"].between(start, end, inclusive="both")]
-
-    if min_wp is not None or max_wp is not None:
-        if "wp" not in working.columns:
-            raise ValueError("Input data is missing the 'wp' column required for win-probability filtering")
-        working["wp"] = pd.to_numeric(working.get("wp"), errors="coerce")
-        if min_wp is not None:
-            working = working[working["wp"] >= min_wp]
-        if max_wp is not None:
-            working = working[working["wp"] <= max_wp]
-
-    return working
-
-
-def compute_team_epa(df: pd.DataFrame) -> pd.DataFrame:
-    """Compute offensive and defensive EPA/play per team.
-
-    Missing teams or EPA values are ignored to keep the aggregates robust.
     """
+    Apply filters to the play‑by‑play dataframe.
 
-    working = df.copy()
-    working["epa"] = pd.to_numeric(working.get("epa"), errors="coerce")
-    working["offense_team"] = working.get("posteam").apply(normalize_team_abbr)
-    working["defense_team"] = working.get("defteam").apply(normalize_team_abbr)
+    Parameters
+    ----------
+    pbp : pd.DataFrame
+        Raw play‑by‑play data for a season.
+    week_start : int, optional
+        First week number to include (inclusive).
+    week_end : int, optional
+        Last week number to include (inclusive).
+    min_wp : float, optional
+        Minimum win probability (0–1). Plays with win probability below this
+        value are dropped.
+    max_wp : float, optional
+        Maximum win probability (0–1). Plays with win probability above this
+        value are dropped.
+    include_playoffs : bool
+        Whether to include postseason plays. If ``False``, only regular
+        season plays are kept (i.e., rows where ``season_type`` == ``'REG'``).
 
-    valid_offense = working.dropna(subset=["epa", "offense_team"])
-    valid_defense = working.dropna(subset=["epa", "defense_team"])
+    Returns
+    -------
+    pd.DataFrame
+        Filtered play‑by‑play data.
+    """
+    df = pbp.copy()
 
-    offense = (
-        valid_offense.groupby("offense_team")["epa"]
-        .mean()
-        .rename("off_epa_per_play")
-        .reset_index()
-    )
-    defense = (
-        valid_defense.groupby("defense_team")["epa"]
-        .mean()
-        .rename("def_epa_per_play")
-        .reset_index()
-    )
+    # Validate ranges early (fail fast)
+    if week_start is not None and week_end is not None and week_start > week_end:
+        raise ValueError(f"--week-start ({week_start}) cannot be greater than --week-end ({week_end})")
+    if min_wp is not None and not (0.0 <= min_wp <= 1.0):
+        raise ValueError(f"--min-wp must be between 0 and 1. Got {min_wp}")
+    if max_wp is not None and not (0.0 <= max_wp <= 1.0):
+        raise ValueError(f"--max-wp must be between 0 and 1. Got {max_wp}")
+    if min_wp is not None and max_wp is not None and min_wp > max_wp:
+        raise ValueError(f"--min-wp ({min_wp}) cannot be greater than --max-wp ({max_wp})")
 
-    merged = offense.merge(
-        defense,
-        how="outer",
-        left_on="offense_team",
-        right_on="defense_team",
-    )
-    merged["team"] = merged["offense_team"].combine_first(merged["defense_team"])
+    # Limit to regular season unless explicitly requested otherwise
+    if not include_playoffs:
+        if "season_type" in df.columns:
+            df = df[df["season_type"].astype(str).str.upper() == "REG"]
 
-    summary = merged[["team", "off_epa_per_play", "def_epa_per_play"]]
-    summary = summary.sort_values("team").reset_index(drop=True)
-    return summary
+    # Filter by week range if requested
+    if week_start is not None or week_end is not None:
+        if "week" not in df.columns:
+            raise ValueError("Play-by-play data is missing 'week', required for --week-start/--week-end filtering")
+        df["week"] = pd.to_numeric(df["week"], errors="coerce")
+        if week_start is not None:
+            df = df[df["week"] >= week_start]
+        if week_end is not None:
+            df = df[df["week"] <= week_end]
+
+    # Filter by win probability range if available
+    if min_wp is not None or max_wp is not None:
+        if "wp" not in df.columns:
+            raise ValueError("Play-by-play data is missing 'wp', required for --min-wp/--max-wp filtering")
+        df["wp"] = pd.to_numeric(df["wp"], errors="coerce")
+        if min_wp is not None:
+            df = df[df["wp"] >= min_wp]
+        if max_wp is not None:
+            df = df[df["wp"] <= max_wp]
+
+    return df
 
 
-def load_sample_team_epa() -> pd.DataFrame:
-    """Load bundled sample EPA aggregates for offline fallbacks."""
+def _standardize_team_epa(team_epa: pd.DataFrame) -> pd.DataFrame:
+    """
+    Coerce compute_team_epa() output into a consistent schema:
+        team, EPA_off_per_play, EPA_def_per_play
+    """
+    df = team_epa.copy()
 
-    sample_path = Path(__file__).resolve().parents[1] / "data" / "sample_team_epa.csv"
-    if not sample_path.exists():
-        raise FileNotFoundError(f"Sample data not found at {sample_path}")
+    # If team isn't a column, assume it's the index and promote it.
+    if "team" not in df.columns:
+        df = df.reset_index()
+        if "team" not in df.columns:
+            df = df.rename(columns={df.columns[0]: "team"})
 
-    df = pd.read_csv(sample_path)
-    required = {"team", "off_epa_per_play", "def_epa_per_play"}
+    # Normalize common column-name variants
+    rename_map = {}
+    if "off_epa_per_play" in df.columns and "EPA_off_per_play" not in df.columns:
+        rename_map["off_epa_per_play"] = "EPA_off_per_play"
+    if "def_epa_per_play" in df.columns and "EPA_def_per_play" not in df.columns:
+        rename_map["def_epa_per_play"] = "EPA_def_per_play"
+    if rename_map:
+        df = df.rename(columns=rename_map)
+
+    required = {"team", "EPA_off_per_play", "EPA_def_per_play"}
     missing = required - set(df.columns)
     if missing:
-        columns = ", ".join(sorted(missing))
-        raise ValueError(f"Sample data is missing required columns: {columns}")
+        raise ValueError(
+            "compute_team_epa returned unexpected columns. Missing: "
+            + ", ".join(sorted(missing))
+            + ". Present columns: "
+            + ", ".join(df.columns.astype(str))
+        )
 
-    return df.copy()
-
-
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--season", type=int, required=True, help="Season year to download (e.g., 2023)")
-    parser.add_argument(
-        "--data-dir",
-        type=Path,
-        default=Path("data"),
-        help="Directory to cache raw play-by-play downloads.",
-    )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=None,
-        help="Optional output CSV path for team EPA aggregates.",
-    )
-    parser.add_argument(
-        "--force-download",
-        action="store_true",
-        help="Re-download the play-by-play file even if a cached copy exists.",
-    )
-    parser.add_argument(
-        "--week-start",
-        type=int,
-        default=None,
-        help="First week to include (regular season numbering)",
-    )
-    parser.add_argument(
-        "--week-end",
-        type=int,
-        default=None,
-        help="Last week to include (regular season numbering)",
-    )
-    parser.add_argument(
-        "--min-wp",
-        type=float,
-        default=None,
-        help="Minimum in-play win probability to include (0-1). Useful for dropping blowouts.",
-    )
-    parser.add_argument(
-        "--max-wp",
-        type=float,
-        default=None,
-        help="Maximum in-play win probability to include (0-1). Useful for dropping blowouts.",
-    )
-    parser.add_argument(
-        "--include-playoffs",
-        action="store_true",
-        help="Include postseason plays when filtering by week.",
-    )
-    return parser.parse_args()
+    df = df[["team", "EPA_off_per_play", "EPA_def_per_play"]].copy()
+    df["team"] = df["team"].astype(str).str.strip().str.upper()
+    df = df.sort_values("team").reset_index(drop=True)
+    return df
 
 
 def main() -> None:
     args = parse_args()
+    season = args.season
 
-    output_path = args.output or args.data_dir / f"team_epa_{args.season}.csv"
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    # Download play‑by‑play data for the season
+    pbp = download_pbp(season)
 
-    try:
-        epa_path = ensure_epa_file(args.season, args.data_dir, force=args.force_download)
-        print(f"Loading play-by-play data from {epa_path}...")
+    # Apply filters
+    pbp = filter_pbp(
+        pbp,
+        week_start=args.week_start,
+        week_end=args.week_end,
+        min_wp=args.min_wp,
+        max_wp=args.max_wp,
+        include_playoffs=args.include_playoffs,
+    )
 
-        df = pd.read_csv(epa_path, compression="gzip", low_memory=False)
-        df = filter_plays(
-            df,
-            week_start=args.week_start,
-            week_end=args.week_end,
-            min_wp=args.min_wp,
-            max_wp=args.max_wp,
-            include_playoffs=args.include_playoffs,
-        )
-        summary = compute_team_epa(df)
-    except Exception as exc:
-        print(
-            "Falling back to bundled sample aggregates because play-by-play "
-            f"download failed: {exc}"
-        )
-        summary = load_sample_team_epa()
+    # Compute team EPA statistics
+    team_epa = _standardize_team_epa(compute_team_epa(pbp))
 
-    summary.to_csv(output_path, index=False)
+    # Ensure output directory exists
+    output_dir = Path("data")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / f"team_epa_{season}.csv"
 
-    print(f"Saved team EPA summary to {output_path}")
+    # Save to CSV
+    team_epa.to_csv(output_path, index=False)
+    print(f"Saved team EPA data to {output_path}")
 
 
 if __name__ == "__main__":
