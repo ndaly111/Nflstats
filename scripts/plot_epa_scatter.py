@@ -21,10 +21,14 @@ import argparse
 from pathlib import Path
 from typing import Optional
 
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pandas as pd
 from PIL import Image
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 try:
     # When executed as: python -m scripts.plot_epa_scatter
@@ -34,7 +38,7 @@ except ImportError:  # pragma: no cover
         from plot_team_color_squares import NFL_TEAM_COLORS, pick_text_color
     except ImportError:  # pragma: no cover
         import sys
-        sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+        sys.path.insert(0, str(REPO_ROOT))
         from plot_team_color_squares import NFL_TEAM_COLORS, pick_text_color
 
 
@@ -90,7 +94,7 @@ def load_team_epa(season: int) -> pd.DataFrame:
     pd.DataFrame
         Team EPA metrics indexed by team.
     """
-    csv_path = Path("data") / f"team_epa_{season}.csv"
+    csv_path = REPO_ROOT / "data" / f"team_epa_{season}.csv"
     if not csv_path.exists():
         raise FileNotFoundError(
             f"EPA data file not found: {csv_path}. Did you run scripts.fetch_epa first?"
@@ -270,7 +274,12 @@ def main() -> None:
     week_label = args.week
     invert_y = args.invert_y
     logos_dir = Path(args.logos_dir)
+    if not logos_dir.is_absolute():
+        logos_dir = REPO_ROOT / logos_dir
+
     output_path = Path(args.output)
+    if not output_path.is_absolute():
+        output_path = REPO_ROOT / output_path
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     df = load_team_epa(season)
