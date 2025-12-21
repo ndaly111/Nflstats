@@ -24,7 +24,7 @@ jobs:
 
       - name: Sanity check imports
         run: |
-          python -c "import pandas, matplotlib, seaborn, requests, polars, pyarrow; from PIL import Image; import nflreadpy; print('deps ok')"
+          python -c "import pandas, matplotlib, requests, polars, pyarrow; from PIL import Image; import nflreadpy; print('deps ok')"
 
       - name: Run script
         env:
@@ -41,4 +41,4 @@ jobs:
           name: team_epa_csv
           path: |
             data/team_epa_*.csv
-            plots/epa_scatter.png
+            epa_scatter.png
