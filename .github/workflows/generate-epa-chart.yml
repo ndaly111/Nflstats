@@ -30,7 +30,7 @@ on:
       invert_y:
         description: "Invert defensive EPA axis so better defenses trend upward"
         required: false
-        default: "true"
+        default: "false"
         type: boolean
 
 jobs:
@@ -67,6 +67,10 @@ jobs:
           if [ -n "${{ inputs.max_wp }}" ]; then args="$args --max-wp ${{ inputs.max_wp }}"; fi
           if [ "${{ inputs.include_playoffs }}" = "true" ]; then args="$args --include-playoffs"; fi
           python -m scripts.fetch_epa --season ${{ inputs.season }} $args
+
+      - name: Confirm team EPA CSV exists
+        run: |
+          ls -la data/team_epa_*.csv
 
       - name: Plot offense vs defense EPA scatter
         run: |
