@@ -1,25 +1,25 @@
 import pandas as pd
-import nfl_data_py as nfl
+import nflreadpy as nfl
 
 REQUIRED_COLS = {"epa", "posteam", "defteam"}
 
 def download_pbp(year: int) -> pd.DataFrame:
     """
-    Download play-by-play data for a given season year using nfl_data_py.
-    Fails fast with a clear message if data isn't available or didn't load correctly.
+    Download play-by-play data for a given season year using nflreadpy.
+    Converts the returned Polars dataframe to pandas and validates required columns.
     """
     try:
-        pbp = nfl.import_pbp_data(years=[year], cache=False)
-    except Exception as e:
+        pbp_polars = nfl.load_pbp(seasons=year)
+        pbp = pbp_polars.to_pandas()
+    except Exception as e:  # pragma: no cover - network/cache issues
         raise RuntimeError(
-            f"Failed to download/read PBP data for {year}. "
-            f"This is often a dependency issue (pyarrow) or a transient download problem. "
+            f"Failed to download/read PBP data for {year} using nflreadpy. "
             f"Original error: {e}"
         ) from e
 
     # Validate we actually got what we need
     if not isinstance(pbp, pd.DataFrame):
-        raise RuntimeError(f"Unexpected return type from import_pbp_data: {type(pbp)}")
+        raise RuntimeError(f"Unexpected return type from load_pbp: {type(pbp)}")
 
     if pbp.empty:
         raise RuntimeError(
@@ -37,8 +37,7 @@ def download_pbp(year: int) -> pd.DataFrame:
 
         raise RuntimeError(
             f"PBP data loaded for {year}, but required columns are missing: {sorted(list(missing))}. "
-            f"This usually means the data file didn't load correctly (often missing pyarrow), "
-            f"or you did not get nflverse pbp parquet data."
+            f"This usually means the data file didn't load correctly or returned unexpected schema."
         )
 
     return pbp
