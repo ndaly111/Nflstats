@@ -96,35 +96,46 @@ def apply_filters(pbp: pd.DataFrame, filters: PbpFilters) -> pd.DataFrame:
 
 def compute_team_epa(pbp: pd.DataFrame) -> pd.DataFrame:
     """
-    Compute EPA per play for each team's offense and defense. Defense EPA is sign-flipped so higher is better.
+    Compute EPA per play for each team's offense and defense.
+    Defense EPA is sign-flipped so higher is better (i.e., lower EPA allowed -> higher).
+    Returns columns: team, EPA_off_per_play, EPA_def_per_play
     """
-    pbp = pbp[pbp["epa"].notna()].copy()
+    df = pbp.copy()
+    df["epa"] = pd.to_numeric(df["epa"], errors="coerce")
+    df = df.dropna(subset=["epa"])
 
     off = (
-        pbp.groupby("posteam")["epa"]
-        .agg(["sum", "count"])
-        .rename(columns={"sum": "EPA_off_total", "count": "Plays_off"})
+        df.dropna(subset=["posteam"])
+        .groupby("posteam")["epa"]
+        .mean()
+        .rename("EPA_off_per_play")
+        .reset_index()
+        .rename(columns={"posteam": "team"})
     )
-    off["EPA_off_per_play"] = off["EPA_off_total"] / off["Plays_off"]
 
-    defn = (
-        pbp.groupby("defteam")["epa"]
-        .agg(["sum", "count"])
-        .rename(columns={"sum": "EPA_def_total", "count": "Plays_def"})
+    deff = (
+        df.dropna(subset=["defteam"])
+        .groupby("defteam")["epa"]
+        .mean()
+        .rename("EPA_def_per_play")
+        .reset_index()
+        .rename(columns={"defteam": "team"})
     )
-    defn["EPA_def_per_play"] = -defn["EPA_def_total"] / defn["Plays_def"]
 
-    team_epa = pd.concat([off, defn], axis=1).fillna(0)
-    team_epa = team_epa.reset_index().rename(columns={"index": "team"})
-    if "posteam" in team_epa.columns:
-        team_epa = team_epa.rename(columns={"posteam": "team"})
-    elif "defteam" in team_epa.columns:
-        team_epa = team_epa.rename(columns={"defteam": "team"})
+    # Flip sign so higher = better defense
+    deff["EPA_def_per_play"] = -deff["EPA_def_per_play"]
 
-    return team_epa
+    merged = pd.merge(off, deff, on="team", how="outer")
+    merged["team"] = merged["team"].astype(str).str.strip().str.upper()
+
+    return merged[["team", "EPA_off_per_play", "EPA_def_per_play"]].sort_values("team").reset_index(
+        drop=True
+    )
 
 
-def build_team_epa(season: int, filters: PbpFilters) -> pd.DataFrame:
+def build_team_epa(season: int, filters: Optional[PbpFilters] = None) -> pd.DataFrame:
+    filters = filters or PbpFilters()
+
     pbp = load_pbp_pandas(season)
     filtered = apply_filters(pbp, filters)
     team_epa = compute_team_epa(filtered)
