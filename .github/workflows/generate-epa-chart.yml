@@ -50,6 +50,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
+      - name: Sanity check imports
+        run: |
+          python -c "import pandas, matplotlib, seaborn, requests, polars, pyarrow; from PIL import Image; import nflreadpy; print('deps ok')"
+
       - name: Generate team logos
         run: |
           python -m scripts.download_logos --output-dir assets/logos --size 256
