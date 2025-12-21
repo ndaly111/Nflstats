@@ -26,11 +26,16 @@ jobs:
         run: |
           python -c "import pandas, matplotlib, requests, polars, pyarrow; from PIL import Image; import nflreadpy; print('deps ok')"
 
-      - name: Run script
-        env:
-          NFL_SEASON: "2025"
+      - name: Ensure data directory
+        run: mkdir -p data
+
+      - name: Build team EPA CSV
         run: |
-          python main.py
+          python -m scripts.fetch_epa --season 2025 --include-playoffs
+
+      - name: Plot EPA scatter
+        run: |
+          python -m scripts.plot_epa_scatter --season 2025
 
       - name: Plot team color squares
         run: python plot_team_color_squares.py
