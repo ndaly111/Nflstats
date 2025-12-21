@@ -1,8 +1,9 @@
 import os
+from pathlib import Path
+
 from epa_od_fetcher import download_pbp, compute_team_epa
 from plotepa import plot_epa
-from plot_epa_offense_defense import plot_offense_vs_defense
-from plot_epa_bar_chart import plot_offense_bar_chart
+
 
 def main():
     year_str = os.getenv("NFL_SEASON", "2025").strip()
@@ -20,21 +21,16 @@ def main():
     print("\n=== TEAM EPA (Offense + Defense) ===")
     print(team_epa.sort_values("EPA_off_per_play", ascending=False).to_string())
 
-    out_csv = f"nfl_{year}_team_epa.csv"
-    team_epa.to_csv(out_csv)
+    data_dir = Path("data")
+    data_dir.mkdir(parents=True, exist_ok=True)
+    out_csv = data_dir / f"team_epa_{year}.csv"
+    team_epa.to_csv(out_csv, index=False)
     print(f"\nSaved {out_csv}")
 
     print("Generating EPA scatter plot ...")
     output_plot = plot_epa(out_csv)
     print(f"Saved plot to {output_plot}")
 
-    print("Generating offense vs defense EPA chart ...")
-    off_def_plot = plot_offense_vs_defense(out_csv)
-    print(f"Saved plot to {off_def_plot}")
-
-    print("Generating offensive EPA bar chart ...")
-    bar_chart_path = plot_offense_bar_chart(out_csv)
-    print(f"Saved plot to {bar_chart_path}")
 
 if __name__ == "__main__":
     main()
