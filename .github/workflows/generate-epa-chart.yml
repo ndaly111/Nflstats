@@ -54,11 +54,7 @@ jobs:
         run: |
           python -c "import pandas, matplotlib, requests, polars, pyarrow; from PIL import Image; import nflreadpy; print('deps ok')"
 
-      - name: Generate team logos
-        run: |
-          python -m scripts.download_logos --output-dir assets/logos --size 256
-
-      - name: Build team EPA data
+      - name: Build team EPA database
         run: |
           args=""
           if [ -n "${{ inputs.week_start }}" ]; then args="$args --week-start ${{ inputs.week_start }}"; fi
@@ -68,48 +64,31 @@ jobs:
           if [ "${{ inputs.include_playoffs }}" = "true" ]; then args="$args --include-playoffs"; fi
           python -m scripts.fetch_epa --season ${{ inputs.season }} $args
 
-      - name: Confirm team EPA CSV exists
-        run: |
-          ls -la data/team_epa_*.csv
-
       - name: Plot offense vs defense EPA scatter
         run: |
           plot_args=""
-          if [ -n "${{ inputs.week_label }}" ]; then plot_args="$plot_args --week \"${{ inputs.week_label }}\""; fi
+          if [ -n "${{ inputs.week_start }}" ]; then plot_args="$plot_args --week-start ${{ inputs.week_start }}"; fi
+          if [ -n "${{ inputs.week_end }}" ]; then plot_args="$plot_args --week-end ${{ inputs.week_end }}"; fi
           if [ "${{ inputs.invert_y }}" = "true" ]; then plot_args="$plot_args --invert-y"; fi
-          python -m scripts.plot_epa_scatter --season ${{ inputs.season }} $plot_args
+          python -m scripts.plot_epa_scatter --season ${{ inputs.season }} $plot_args --output site/epa_scatter.png
 
-      - name: Create/update index.html
+      - name: Build static site
         run: |
-          cat > index.html <<'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="UTF-8">
-            <title>NFL EPA Scatter Plot</title>
-          </head>
-          <body>
-            <h1>NFL Offense vs Defense Efficiency (EPA/play)</h1>
-            <p>Season: ${{ inputs.season }}</p>
-            <img src="epa_scatter.png" alt="EPA scatter plot" style="max-width: 100%; height: auto;">
-          </body>
-          </html>
-          EOF
-
-      - name: Commit and push updated chart and index.html
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add epa_scatter.png index.html
-          git commit -m "Update EPA scatter plot and index.html"
-          git push origin HEAD:main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          build_args=""
+          if [ -n "${{ inputs.week_start }}" ]; then build_args="$build_args --week-start ${{ inputs.week_start }}"; fi
+          if [ -n "${{ inputs.week_end }}" ]; then build_args="$build_args --week-end ${{ inputs.week_end }}"; fi
+          python -m scripts.build_static_site --season ${{ inputs.season }} $build_args --chart site/epa_scatter.png --output-dir site
 
       - name: Upload EPA chart artifacts
         uses: actions/upload-artifact@v4
         with:
           name: epa-chart-${{ inputs.season }}
           path: |
-            data/team_epa_${{ inputs.season }}.csv
-            epa_scatter.png
+            nflstats.db
+            site/epa_scatter.png
+            site/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
