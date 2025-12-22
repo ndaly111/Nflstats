@@ -1,12 +1,13 @@
 """
 Create an offense‑vs‑defense EPA scatter plot for NFL teams.
 
-This script reads per‑team offensive and defensive EPA per play. Each team is drawn as a
-coloured hex‑style square using primary/secondary colours defined in
+This script reads per‑team offensive and defensive EPA per play from the SQLite
+cache populated by ``scripts.fetch_epa``. Each team is drawn as a coloured
+hex‑style square using primary/secondary colours defined in
 ``plot_team_color_squares.NFL_TEAM_COLORS`` and labelled with the team
-city/region name (e.g., "Washington" for WAS). Two reference lines are drawn
-at the league‑average offensive and defensive EPA values.  The resulting
-chart is saved to ``epa_scatter.png`` in the repository root.
+city/region name (e.g., "Washington" for WAS). Two reference lines are drawn at
+the league‑average offensive and defensive EPA values. The resulting chart can
+be saved to disk or streamed directly (used by the Flask app).
 
 Defense EPA values from ``scripts.fetch_epa`` are already sign-flipped so
 "higher = better defense". Use ``--invert-y`` only if you are plotting legacy
@@ -14,14 +15,15 @@ data that did not flip defensive EPA.
 
 Example usage::
 
-    python -m scripts.plot_epa_scatter --season 2025 --week "Weeks 1–6" --invert-y
+    python -m scripts.plot_epa_scatter --season 2025 --week-start 1 --week-end 6
 """
 
 import argparse
 from pathlib import Path
-from typing import Optional
+from typing import IO, Optional
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -46,6 +48,7 @@ except ImportError:  # pragma: no cover
         from plot_team_color_squares import NFL_TEAM_COLORS, pick_text_color
     except ImportError:  # pragma: no cover
         import sys
+
         sys.path.insert(0, str(REPO_ROOT))
         from plot_team_color_squares import NFL_TEAM_COLORS, pick_text_color
 
@@ -62,16 +65,22 @@ def parse_args() -> argparse.Namespace:
         help="Season year for the EPA snapshot",
     )
     parser.add_argument(
-        "--week",
+        "--week-label",
         type=str,
         default=None,
         help="Optional subtitle describing the week range (e.g., 'Weeks 1–6')",
     )
     parser.add_argument(
-        "--week-through",
+        "--week-start",
         type=int,
         default=None,
-        help="Use the EPA snapshot through this week (defaults to the latest cached week).",
+        help="Start week (defaults to first cached week)",
+    )
+    parser.add_argument(
+        "--week-end",
+        type=int,
+        default=None,
+        help="End week (defaults to latest cached week)",
     )
     parser.add_argument(
         "--invert-y",
@@ -126,18 +135,9 @@ TEAM_DISPLAY_NAMES = {
 
 
 def _normalize_team_epa_df(df: pd.DataFrame, source_desc: str) -> pd.DataFrame:
-    """Normalize column names and index for plotting.
+    """Normalize column names and index for plotting."""
 
-    This shared routine keeps CSV- and DB-sourced data consistent.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        Input data containing team, offensive EPA, and defensive EPA columns.
-    source_desc : str
-        Description of the source for clearer error reporting.
-    """
-    # Handle legacy CSVs that may include a numeric index column
+    # Handle legacy dataframes that may include a numeric index column
     if "team" not in df.columns:
         unnamed = [c for c in df.columns if str(c).lower().startswith("unnamed")]
         if unnamed:
@@ -166,17 +166,22 @@ def _normalize_team_epa_df(df: pd.DataFrame, source_desc: str) -> pd.DataFrame:
     return df.set_index("team")
 
 
-def load_team_epa(season: int, week: Optional[int] = None) -> pd.DataFrame:
+def load_team_epa(
+    season: int, week_start: Optional[int] = None, week_end: Optional[int] = None
+) -> pd.DataFrame:
     """
-    Load per‑team EPA data from the SQLite cache.
+    Load per‑team EPA data from the SQLite cache and normalise for plotting.
 
     Parameters
     ----------
     season : int
-        Season year used to construct the CSV filename and DB key.
-    week : int, optional
-        Week number for the cumulative snapshot to use. When omitted, the latest cached week
-        is selected automatically.
+        Season year used to query the SQLite cache.
+    week_start : int, optional
+        Week number marking the start of the aggregation window. Defaults to the
+        first cached week for the season.
+    week_end : int, optional
+        Week number marking the end of the aggregation window. Defaults to the
+        latest cached week for the season.
     Returns
     -------
     pd.DataFrame
@@ -185,16 +190,17 @@ def load_team_epa(season: int, week: Optional[int] = None) -> pd.DataFrame:
     if load_team_epa_from_db is None:
         raise RuntimeError("Database support is unavailable; cannot load team EPA data.")
 
-    df_db = load_team_epa_from_db(season, week=week)
+    df_db = load_team_epa_from_db(season, week_start=week_start, week_end=week_end)
     if df_db is None:
         raise FileNotFoundError(
             f"No EPA data found for season {season} in SQLite cache at {DB_PATH}. "
             "Run the fetch workflow to populate the database first."
         )
     normalized = _normalize_team_epa_df(df_db, f"SQLite cache at {DB_PATH}")
-    resolved_week = df_db.attrs.get("week")
-    if resolved_week is not None:
-        normalized.attrs["week"] = resolved_week
+    normalized.attrs["week_start"] = df_db.attrs.get("week_start")
+    normalized.attrs["week_end"] = df_db.attrs.get("week_end")
+    if "week" in df_db.attrs:
+        normalized.attrs["week"] = df_db.attrs["week"]
     return normalized
 
 
@@ -209,16 +215,8 @@ def add_team_marker(
 
     A coloured square with the team's city/region name is drawn using
     primary/secondary colours defined in ``NFL_TEAM_COLORS``.
-
-    Parameters
-    ----------
-    ax : plt.Axes
-        Matplotlib axes on which to draw.
-    x, y : float
-        Coordinates for the centre of the marker.
-    team : str
-        Three‑letter team abbreviation (e.g., ``'BUF'``).
     """
+
     colours = NFL_TEAM_COLORS.get(team, {"primary": "#777777", "secondary": "#FFFFFF"})
     primary = colours["primary"]
     secondary = colours["secondary"]
@@ -248,7 +246,13 @@ def add_team_marker(
     )
 
 
-def plot_scatter(df: pd.DataFrame, week_label: Optional[str], invert_y: bool, output_path: Path, season: int) -> None:
+def plot_scatter(
+    df: pd.DataFrame,
+    week_label: Optional[str],
+    invert_y: bool,
+    output: Path | IO[bytes],
+    season: int,
+) -> None:
     """
     Create and save the offense vs defence scatter plot.
 
@@ -262,8 +266,8 @@ def plot_scatter(df: pd.DataFrame, week_label: Optional[str], invert_y: bool, ou
     invert_y : bool
         If True, invert the y-axis direction (only needed for legacy data where lower values
         indicate better defense and no sign flip was applied).
-    output_path : pathlib.Path
-        Where to write the PNG file.
+    output : pathlib.Path or binary IO
+        Where to write the PNG file or buffer.
     season : int
         Season year for labelling.
     """
@@ -313,14 +317,15 @@ def plot_scatter(df: pd.DataFrame, week_label: Optional[str], invert_y: bool, ou
         ax.set_ylim(y_min, y_max)
 
     plt.tight_layout()
-    fig.savefig(output_path, dpi=200)
-    print(f"Saved scatter plot to {output_path}")
+    fig.savefig(output, dpi=200, format="png")
+    if isinstance(output, (str, Path)):
+        print(f"Saved scatter plot to {output}")
 
 
 def main() -> None:
     args = parse_args()
     season = args.season
-    week_label = args.week
+    week_label = args.week_label
     invert_y = args.invert_y
 
     output_path = Path(args.output)
@@ -328,10 +333,14 @@ def main() -> None:
         output_path = REPO_ROOT / output_path
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    df = load_team_epa(season, week=args.week_through)
-    resolved_week = df.attrs.get("week")
-    if week_label is None and resolved_week is not None:
-        week_label = f"Weeks 1–{resolved_week}" if resolved_week > 1 else f"Week {resolved_week}"
+    df = load_team_epa(season, week_start=args.week_start, week_end=args.week_end)
+    start = df.attrs.get("week_start")
+    end = df.attrs.get("week_end")
+    if week_label is None and start is not None and end is not None:
+        if start == end:
+            week_label = f"Week {end}"
+        else:
+            week_label = f"Weeks {start}–{end}"
     plot_scatter(df, week_label, invert_y, output_path, season)
 
 

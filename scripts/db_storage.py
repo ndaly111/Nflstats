@@ -1,9 +1,9 @@
-"""Simple SQLite storage for team EPA outputs.
+"""SQLite storage for team EPA snapshots.
 
 This module stores per-team EPA snapshots in SQLite so charts can be built from
-cached data without touching CSV files.  A weekly snapshot table tracks EPA
-values through each week of a season so downstream code can render charts for a
-specific week or always use the latest available snapshot.
+cached data without touching CSV files. A weekly snapshot table tracks EPA
+values for each week of a season so downstream code can render charts for a
+specific week or aggregate a range of weeks.
 """
 
 from __future__ import annotations
@@ -62,53 +62,76 @@ def get_cached_weeks(season: int, db_path: Path | str = DB_PATH) -> list[int]:
 
 
 def load_team_epa_from_db(
-    season: int, week: Optional[int] = None, db_path: Path | str = DB_PATH
+    season: int,
+    week: Optional[int] = None,
+    week_start: Optional[int] = None,
+    week_end: Optional[int] = None,
+    db_path: Path | str = DB_PATH,
 ) -> Optional[pd.DataFrame]:
     """
-    Load team EPA values for a specific week snapshot.
+    Load team EPA values for a specific week or range of weeks.
 
-    If ``week`` is omitted, the latest cached week for the season is used.
-    The returned dataframe includes a ``week`` attribute for caller context.
+    When ``week_start``/``week_end`` are omitted, the latest cached week is
+    used. If only ``week`` is provided, the snapshot for that exact week is
+    returned. For week ranges, the EPA values are averaged across the selected
+    weeks.
     """
 
     conn = init_db(db_path)
-    target_week: Optional[int] = week
-    if target_week is None:
-        row = conn.execute(
-            "SELECT MAX(week) FROM team_epa_weekly WHERE season = ?", (season,)
-        ).fetchone()
-        if row and row[0] is not None:
-            target_week = int(row[0])
+    target_start: Optional[int] = week_start
+    target_end: Optional[int] = week_end
 
-    if target_week is None:
+    if target_start is None and target_end is None:
+        if week is not None:
+            target_start = target_end = week
+        else:
+            row = conn.execute(
+                "SELECT MAX(week) FROM team_epa_weekly WHERE season = ?", (season,)
+            ).fetchone()
+            if row and row[0] is not None:
+                target_start = target_end = int(row[0])
+
+    if target_start is None or target_end is None:
         conn.close()
         return None
 
     query = """
-        SELECT team, EPA_off_per_play, EPA_def_per_play
+        SELECT team, week, EPA_off_per_play, EPA_def_per_play
         FROM team_epa_weekly
-        WHERE season = ? AND week = ?
-        ORDER BY team
+        WHERE season = ? AND week BETWEEN ? AND ?
+        ORDER BY week, team
     """
-    df = pd.read_sql_query(query, conn, params=(season, target_week))
+    df = pd.read_sql_query(query, conn, params=(season, target_start, target_end))
     conn.close()
     if df.empty:
         return None
 
-    # Attach context for downstream callers without altering shape
-    df.attrs["week"] = target_week
-    return df
+    grouped = (
+        df.groupby("team", as_index=False)[["EPA_off_per_play", "EPA_def_per_play"]]
+        .mean()
+        .sort_values("team")
+        .reset_index(drop=True)
+    )
+
+    grouped.attrs["week_start"] = int(target_start)
+    grouped.attrs["week_end"] = int(target_end)
+    if target_start == target_end:
+        grouped.attrs["week"] = int(target_end)
+
+    return grouped
 
 
 def save_team_epa_snapshot(
     df: pd.DataFrame, season: int, week: int, db_path: Path | str = DB_PATH
 ) -> None:
-    """Persist a weekly EPA snapshot for a season."""
+    """Persist a per-week EPA snapshot for a season."""
 
     required = {"team", "EPA_off_per_play", "EPA_def_per_play"}
     missing = required - set(df.columns)
     if missing:
-        raise ValueError(f"Team EPA dataframe missing columns required for DB storage: {sorted(missing)}")
+        raise ValueError(
+            f"Team EPA dataframe missing columns required for DB storage: {sorted(missing)}"
+        )
 
     conn = init_db(db_path)
     with conn:

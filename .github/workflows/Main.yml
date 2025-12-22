@@ -11,6 +11,8 @@ on:
 jobs:
   run:
     runs-on: ubuntu-latest
+    env:
+      SEASON: "2025"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,61 +31,28 @@ jobs:
         run: |
           python -c "import pandas, matplotlib, requests, polars, pyarrow; from PIL import Image; import nflreadpy; print('deps ok')"
 
-      - name: Ensure data directory
-        run: mkdir -p data
-
-      - name: Generate logos (optional but recommended)
+      - name: Fetch weekly EPA into SQLite
         run: |
-          python -m scripts.download_logos --output-dir assets/logos --size 256
+          python -m scripts.fetch_epa --season ${SEASON} --include-playoffs
 
-      - name: Build team EPA CSV
+      - name: Plot EPA scatter from SQLite
         run: |
-          python -m scripts.fetch_epa --season 2025 --include-playoffs
+          python -m scripts.plot_epa_scatter --season ${SEASON} --output site/epa_scatter.png
 
-      - name: Confirm team EPA CSV exists
+      - name: Build static page
         run: |
-          ls -la data/team_epa_*.csv
+          python -m scripts.build_static_site --season ${SEASON} --chart site/epa_scatter.png --output-dir site
 
-      - name: Plot EPA scatter
-        run: |
-          python -m scripts.plot_epa_scatter --season 2025
-
-      - name: Confirm chart exists
-        run: |
-          ls -la epa_scatter.png
-
-      - name: Create/update index.html
-        run: |
-          cat > index.html <<'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="UTF-8">
-            <title>NFL EPA Scatter Plot</title>
-          </head>
-          <body>
-            <h1>NFL Offense vs Defense Efficiency (EPA/play)</h1>
-            <p>Season: 2025</p>
-            <img src="epa_scatter.png" alt="EPA scatter plot" style="max-width: 100%; height: auto;">
-          </body>
-          </html>
-          EOF
-
-      - name: Commit and push updated chart
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add epa_scatter.png index.html data/team_epa_*.csv
-          git commit -m "Daily EPA chart update" || echo "No changes to commit"
-          git push origin HEAD:main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload artifacts
+      - name: Upload EPA artifacts
         uses: actions/upload-artifact@v4
         with:
           name: epa_outputs
           path: |
-            data/team_epa_*.csv
-            epa_scatter.png
-            index.html
+            nflstats.db
+            site/epa_scatter.png
+            site/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
