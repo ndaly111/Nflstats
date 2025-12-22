@@ -1,11 +1,347 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>NFL EPA Explorer</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NFL EPA Explorer (Static)</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #475569;
+      --panel: #f8fafc;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      margin: 0;
+      padding: 2rem 1.5rem 3rem;
+      background: #ffffff;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.9rem;
+    }
+
+    p.lead {
+      margin: 0 0 1rem;
+      color: var(--muted);
+    }
+
+    .controls {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1rem 0 1.5rem;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    select, button {
+      width: 100%;
+      padding: 0.6rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
+      background: white;
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border: none;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.2);
+    }
+
+    canvas {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.75rem;
+      background: #fff;
+    }
+
+    .notice {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      color: #9a3412;
+    }
+
+    footer {
+      margin-top: 1.5rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+  </style>
 </head>
 <body>
-  <h1>NFL Offense vs Defense Efficiency (EPA/play)</h1>
-  <p>This project now renders charts directly from the SQLite database. Start the Flask app (<code>python app.py</code>) and browse to <code>http://localhost:5000</code> to pick a season and week range.</p>
+  <main>
+    <h1>NFL Offense vs Defense Efficiency</h1>
+    <p class="lead">Explore team EPA/play without running a server. Pick your season and week range to redraw the chart in-place.</p>
+    <div id="status" class="notice" hidden></div>
+    <section class="controls">
+      <div>
+        <label for="season-select">Season</label>
+        <select id="season-select"></select>
+      </div>
+      <div>
+        <label for="week-start">Start week</label>
+        <select id="week-start"></select>
+      </div>
+      <div>
+        <label for="week-end">End week</label>
+        <select id="week-end"></select>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button id="update-btn">Update chart</button>
+      </div>
+    </section>
+
+    <canvas id="epa-chart" width="1000" height="620" aria-label="EPA scatter chart" role="img"></canvas>
+
+    <footer>
+      <p><strong>Tip:</strong> values shown come from a bundled sample dataset (data/epa_sample.json). Replace that file with your own weekly EPA snapshots to publish updated charts on GitHub Pages.</p>
+    </footer>
+  </main>
+
+  <script>
+    const TEAM_COLORS = {
+      ARI: '#97233F', ATL: '#A71930', BAL: '#241773', BUF: '#00338D', CAR: '#0085CA', CHI: '#0B162A',
+      CIN: '#FB4F14', CLE: '#311D00', DAL: '#003594', DEN: '#FB4F14', DET: '#0076B6', GB: '#203731',
+      HOU: '#03202F', IND: '#002C5F', JAX: '#101820', KC: '#E31837', LAC: '#0080C6', LAR: '#003594',
+      LV: '#000000', MIA: '#008E97', MIN: '#4F2683', NE: '#002244', NO: '#D3BC8D', NYG: '#0B2265',
+      NYJ: '#125740', PHI: '#004C54', PIT: '#101820', SEA: '#002244', SF: '#AA0000', TB: '#D50A0A',
+      TEN: '#4B92DB', WAS: '#5A1414'
+    };
+
+    const statusEl = document.getElementById('status');
+    const seasonSelect = document.getElementById('season-select');
+    const weekStartSelect = document.getElementById('week-start');
+    const weekEndSelect = document.getElementById('week-end');
+    const updateBtn = document.getElementById('update-btn');
+    const ctx = document.getElementById('epa-chart').getContext('2d');
+    let chart;
+    let seasonData = {};
+
+    function showStatus(message, variant = 'info') {
+      statusEl.textContent = message;
+      statusEl.style.display = 'block';
+      statusEl.hidden = false;
+      statusEl.style.borderColor = variant === 'error' ? '#f97316' : '#fed7aa';
+      statusEl.style.background = variant === 'error' ? '#fff1f2' : '#fff7ed';
+      statusEl.style.color = variant === 'error' ? '#9f1239' : '#9a3412';
+    }
+
+    function hideStatus() {
+      statusEl.hidden = true;
+      statusEl.textContent = '';
+    }
+
+    function fillWeekSelect(selectEl, weeks) {
+      selectEl.innerHTML = '';
+      weeks.forEach((week) => {
+        const option = document.createElement('option');
+        option.value = week;
+        option.textContent = `Week ${week}`;
+        selectEl.appendChild(option);
+      });
+    }
+
+    function averageWeeks(teamWeeks, start, end) {
+      let offTotal = 0;
+      let defTotal = 0;
+      let count = 0;
+      for (let w = start; w <= end; w += 1) {
+        const payload = teamWeeks[w];
+        if (payload && typeof payload.off === 'number' && typeof payload.def === 'number') {
+          offTotal += payload.off;
+          defTotal += payload.def;
+          count += 1;
+        }
+      }
+      if (count === 0) return null;
+      return { off: offTotal / count, def: defTotal / count };
+    }
+
+    function computePoints(selectedSeason, startWeek, endWeek) {
+      const season = seasonData[selectedSeason];
+      if (!season) return [];
+      return season.teams
+        .map((teamEntry) => {
+          const weeks = {};
+          Object.entries(teamEntry.weeks).forEach(([week, values]) => {
+            weeks[Number(week)] = values;
+          });
+          const averaged = averageWeeks(weeks, startWeek, endWeek);
+          if (!averaged) return null;
+          return {
+            x: averaged.off,
+            y: averaged.def,
+            label: teamEntry.team,
+            backgroundColor: TEAM_COLORS[teamEntry.team] || '#0f172a',
+            borderColor: '#0f172a',
+          };
+        })
+        .filter(Boolean);
+    }
+
+    function renderChart(points, seasonLabel, startWeek, endWeek) {
+      if (chart) chart.destroy();
+      const subtitle = startWeek === endWeek ? `Week ${startWeek}` : `Weeks ${startWeek}–${endWeek}`;
+      chart = new Chart(ctx, {
+        type: 'scatter',
+        data: { datasets: [{
+          label: 'EPA per play',
+          data: points,
+          pointRadius: 12,
+          pointHoverRadius: 14,
+          pointBackgroundColor: points.map((p) => p.backgroundColor),
+          pointBorderColor: points.map((p) => p.borderColor),
+          pointBorderWidth: 1.5,
+        }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: 10 },
+          plugins: {
+            legend: { display: false },
+            title: {
+              display: true,
+              text: `NFL Team Efficiency (EPA/play) · ${seasonLabel}`,
+              font: { size: 18, weight: 'bold' },
+              padding: { bottom: 10 },
+            },
+            subtitle: {
+              display: true,
+              text: subtitle,
+              color: '#475569',
+              font: { size: 14 },
+              padding: { bottom: 12 },
+            },
+            datalabels: {
+              color: '#fff',
+              formatter: (value) => value.label,
+              font: { weight: 'bold', size: 10 },
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const { x, y, label } = ctx.raw;
+                  return `${label}: Off ${x.toFixed(3)}, Def ${y.toFixed(3)}`;
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Offense EPA per play (higher = better offense)' },
+              grid: { color: '#e2e8f0' },
+            },
+            y: {
+              title: { display: true, text: 'Defense EPA per play (higher = better defense)' },
+              grid: { color: '#e2e8f0' },
+            },
+          },
+        },
+        plugins: [ChartDataLabels],
+      });
+    }
+
+    function syncWeekRange(startWeek, endWeek) {
+      const start = Number(startWeekSelect.value);
+      const end = Number(endWeekSelect.value);
+      if (start > end) {
+        weekEndSelect.value = start;
+        return { start, end: start };
+      }
+      return { start, end };
+    }
+
+    function refreshChart() {
+      hideStatus();
+      const season = seasonSelect.value;
+      const { start, end } = syncWeekRange();
+      const points = computePoints(season, start, end);
+      if (points.length === 0) {
+        showStatus('No EPA points available for that range. Try a different week selection.', 'error');
+        if (chart) chart.destroy();
+        return;
+      }
+      renderChart(points, season, start, end);
+    }
+
+    function populateSeasonControls(data) {
+      seasonSelect.innerHTML = '';
+      Object.keys(data).sort().forEach((seasonKey) => {
+        const opt = document.createElement('option');
+        opt.value = seasonKey;
+        opt.textContent = seasonKey;
+        seasonSelect.appendChild(opt);
+      });
+      seasonSelect.value = Object.keys(data).sort().pop();
+      const selected = data[seasonSelect.value];
+      fillWeekSelect(weekStartSelect, selected.weeks);
+      fillWeekSelect(weekEndSelect, selected.weeks);
+      weekEndSelect.value = selected.weeks[selected.weeks.length - 1];
+    }
+
+    async function bootstrap() {
+      try {
+        const res = await fetch('data/epa_sample.json');
+        if (!res.ok) throw new Error(`Failed to load sample data (${res.status})`);
+        const json = await res.json();
+        seasonData = json.seasons || {};
+        if (!Object.keys(seasonData).length) throw new Error('No seasons found in sample data');
+        populateSeasonControls(seasonData);
+        refreshChart();
+      } catch (err) {
+        console.error(err);
+        showStatus(`Unable to load data: ${err.message}`, 'error');
+      }
+    }
+
+    seasonSelect.addEventListener('change', () => {
+      const selected = seasonData[seasonSelect.value];
+      if (!selected) return;
+      fillWeekSelect(weekStartSelect, selected.weeks);
+      fillWeekSelect(weekEndSelect, selected.weeks);
+      weekEndSelect.value = selected.weeks[selected.weeks.length - 1];
+      refreshChart();
+    });
+
+    weekStartSelect.addEventListener('change', () => syncWeekRange());
+    weekEndSelect.addEventListener('change', () => syncWeekRange());
+    updateBtn.addEventListener('click', refreshChart);
+
+    bootstrap();
+  </script>
 </body>
 </html>

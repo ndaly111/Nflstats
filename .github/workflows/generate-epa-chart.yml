@@ -64,29 +64,17 @@ jobs:
           if [ "${{ inputs.include_playoffs }}" = "true" ]; then args="$args --include-playoffs"; fi
           python -m scripts.fetch_epa --season ${{ inputs.season }} $args
 
-      - name: Plot offense vs defense EPA scatter
+      - name: Export Chart.js JSON payload
         run: |
-          plot_args=""
-          if [ -n "${{ inputs.week_start }}" ]; then plot_args="$plot_args --week-start ${{ inputs.week_start }}"; fi
-          if [ -n "${{ inputs.week_end }}" ]; then plot_args="$plot_args --week-end ${{ inputs.week_end }}"; fi
-          if [ "${{ inputs.invert_y }}" = "true" ]; then plot_args="$plot_args --invert-y"; fi
-          python -m scripts.plot_epa_scatter --season ${{ inputs.season }} $plot_args --output site/epa_scatter.png
+          mkdir -p site/data
+          python -m scripts.export_epa_json --season ${{ inputs.season }} --output site/data/epa_sample.json
 
-      - name: Build static site
+      - name: Assemble static site
         run: |
-          build_args=""
-          if [ -n "${{ inputs.week_start }}" ]; then build_args="$build_args --week-start ${{ inputs.week_start }}"; fi
-          if [ -n "${{ inputs.week_end }}" ]; then build_args="$build_args --week-end ${{ inputs.week_end }}"; fi
-          python -m scripts.build_static_site --season ${{ inputs.season }} $build_args --chart site/epa_scatter.png --output-dir site
-
-      - name: Upload EPA chart artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: epa-chart-${{ inputs.season }}
-          path: |
-            nflstats.db
-            site/epa_scatter.png
-            site/index.html
+          mkdir -p site/data
+          cp index.html site/index.html
+          # keep a copy of the raw export alongside any other bundled data files
+          cp site/data/epa_sample.json data/epa_sample.json
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
