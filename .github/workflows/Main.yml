@@ -35,22 +35,17 @@ jobs:
         run: |
           python -m scripts.fetch_epa --season ${SEASON} --include-playoffs
 
-      - name: Plot EPA scatter from SQLite
+      - name: Export Chart.js JSON payload
         run: |
-          python -m scripts.plot_epa_scatter --season ${SEASON} --output site/epa_scatter.png
+          mkdir -p site/data
+          python -m scripts.export_epa_json --season ${SEASON} --output site/data/epa_sample.json
 
-      - name: Build static page
+      - name: Assemble static site
         run: |
-          python -m scripts.build_static_site --season ${SEASON} --chart site/epa_scatter.png --output-dir site
-
-      - name: Upload EPA artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: epa_outputs
-          path: |
-            nflstats.db
-            site/epa_scatter.png
-            site/index.html
+          mkdir -p site/data
+          cp index.html site/index.html
+          # keep a copy of the raw export alongside any other bundled data files
+          cp site/data/epa_sample.json data/epa_sample.json
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
