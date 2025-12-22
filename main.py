@@ -43,9 +43,8 @@ def main() -> None:
     print(f"Saved CSV: {out_csv}")
 
     # Build the EXACT chart your index.html expects: repo-root epa_scatter.png
-    print("Generating EPA scatter chart (team squares/logos) ...")
+    print("Generating EPA scatter chart (team squares) ...")
     df = load_team_epa(season)  # reads the CSV we just wrote and normalizes columns
-    logos_dir = REPO_ROOT / "assets" / "logos"
     output_path = REPO_ROOT / "epa_scatter.png"
 
     # NOTE: Defense EPA is already sign-flipped in scripts/epa_od_fetcher.compute_team_epa
@@ -54,7 +53,6 @@ def main() -> None:
         df=df,
         week_label=None,
         invert_y=False,
-        logos_dir=logos_dir,
         output_path=output_path,
         season=season,
     )

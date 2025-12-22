@@ -2,12 +2,12 @@
 Create an offense‑vs‑defense EPA scatter plot for NFL teams.
 
 This script reads a CSV file produced by ``scripts.fetch_epa`` containing
-per‑team offensive and defensive EPA per play.  It then creates a
-scatter plot where each team is represented by either its logo (if
-available in ``assets/logos/<team>.png``) or a coloured square with the
-team abbreviation.  Two reference lines are drawn at the league‑average
-offensive and defensive EPA values.  The resulting chart is saved
-to ``epa_scatter.png`` in the repository root.
+per‑team offensive and defensive EPA per play.  Each team is drawn as a
+coloured hex‑style square using primary/secondary colours defined in
+``plot_team_color_squares.NFL_TEAM_COLORS`` and labelled with the team
+city/region name (e.g., "Washington" for WAS). Two reference lines are drawn
+at the league‑average offensive and defensive EPA values.  The resulting
+chart is saved to ``epa_scatter.png`` in the repository root.
 
 Defense EPA values from ``scripts.fetch_epa`` are already sign-flipped so
 "higher = better defense". Use ``--invert-y`` only if you are plotting legacy
@@ -25,9 +25,7 @@ from typing import Optional
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import pandas as pd
-from PIL import Image
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -67,18 +65,49 @@ def parse_args() -> argparse.Namespace:
         help="Invert defensive EPA axis (only for legacy, non-flipped data).",
     )
     parser.add_argument(
-        "--logos-dir",
-        type=str,
-        default="assets/logos",
-        help="Directory containing team logo PNG files named <team>.png",
-    )
-    parser.add_argument(
         "--output",
         type=str,
         default="epa_scatter.png",
         help="File path to save the resulting PNG chart",
     )
     return parser.parse_args()
+
+
+# City/region labels for each team abbreviation
+TEAM_DISPLAY_NAMES = {
+    "ARI": "Arizona",
+    "ATL": "Atlanta",
+    "BAL": "Baltimore",
+    "BUF": "Buffalo",
+    "CAR": "Carolina",
+    "CHI": "Chicago",
+    "CIN": "Cincinnati",
+    "CLE": "Cleveland",
+    "DAL": "Dallas",
+    "DEN": "Denver",
+    "DET": "Detroit",
+    "GB": "Green Bay",
+    "HOU": "Houston",
+    "IND": "Indianapolis",
+    "JAX": "Jacksonville",
+    "KC": "Kansas City",
+    "LAC": "Los Angeles (Chargers)",
+    "LAR": "Los Angeles (Rams)",
+    "LV": "Las Vegas",
+    "MIA": "Miami",
+    "MIN": "Minnesota",
+    "NE": "New England",
+    "NO": "New Orleans",
+    "NYG": "New York (Giants)",
+    "NYJ": "New York (Jets)",
+    "PHI": "Philadelphia",
+    "PIT": "Pittsburgh",
+    "SEA": "Seattle",
+    "SF": "San Francisco",
+    "TB": "Tampa Bay",
+    "TEN": "Tennessee",
+    "WAS": "Washington",
+}
 
 
 def load_team_epa(season: int) -> pd.DataFrame:
@@ -136,15 +165,12 @@ def add_team_marker(
     x: float,
     y: float,
     team: str,
-    logos_dir: Path,
 ) -> None:
     """
     Draw a team marker at the specified coordinates.
 
-    If a logo PNG exists in ``logos_dir/<team>.png``, it is placed at the
-    coordinate.  Otherwise a coloured square with the team's abbreviation
-    is drawn using primary/secondary colours defined in
-    ``NFL_TEAM_COLORS``.
+    A coloured square with the team's city/region name is drawn using
+    primary/secondary colours defined in ``NFL_TEAM_COLORS``.
 
     Parameters
     ----------
@@ -154,27 +180,12 @@ def add_team_marker(
         Coordinates for the centre of the marker.
     team : str
         Three‑letter team abbreviation (e.g., ``'BUF'``).
-    logos_dir : pathlib.Path
-        Directory containing team logos named ``<team>.png``.
     """
-    logo_path = logos_dir / f"{team}.png"
-    if logo_path.exists():
-        try:
-            img = Image.open(logo_path)
-            # Use a consistent scaling factor relative to the figure size
-            imagebox = OffsetImage(img, zoom=0.5)
-            ab = AnnotationBbox(imagebox, (x, y), frameon=False, pad=0.0)
-            ax.add_artist(ab)
-            return
-        except Exception:
-            # Fall back to coloured square if loading fails
-            pass
-
-    # Fallback: coloured square with team abbreviation
     colours = NFL_TEAM_COLORS.get(team, {"primary": "#777777", "secondary": "#FFFFFF"})
     primary = colours["primary"]
     secondary = colours["secondary"]
     text_color = pick_text_color(primary, secondary)
+    label = TEAM_DISPLAY_NAMES.get(team, team)
     # Draw square marker
     ax.scatter(
         [x],
@@ -189,7 +200,7 @@ def add_team_marker(
     ax.text(
         x,
         y,
-        team,
+        label,
         ha="center",
         va="center",
         fontsize=8,
@@ -199,7 +210,7 @@ def add_team_marker(
     )
 
 
-def plot_scatter(df: pd.DataFrame, week_label: Optional[str], invert_y: bool, logos_dir: Path, output_path: Path, season: int) -> None:
+def plot_scatter(df: pd.DataFrame, week_label: Optional[str], invert_y: bool, output_path: Path, season: int) -> None:
     """
     Create and save the offense vs defence scatter plot.
 
@@ -213,8 +224,6 @@ def plot_scatter(df: pd.DataFrame, week_label: Optional[str], invert_y: bool, lo
     invert_y : bool
         If True, invert the y-axis direction (only needed for legacy data where lower values
         indicate better defense and no sign flip was applied).
-    logos_dir : pathlib.Path
-        Directory containing team logo PNG files.
     output_path : pathlib.Path
         Where to write the PNG file.
     season : int
@@ -234,7 +243,7 @@ def plot_scatter(df: pd.DataFrame, week_label: Optional[str], invert_y: bool, lo
 
     # Plot each team
     for team, row in df.iterrows():
-        add_team_marker(ax, row["EPA_off_per_play"], row["EPA_def_per_play"], team, logos_dir)
+        add_team_marker(ax, row["EPA_off_per_play"], row["EPA_def_per_play"], team)
 
     # Draw reference lines at league averages
     ax.axvline(x_avg, color="grey", linestyle="--", linewidth=1.0, zorder=1)
@@ -275,9 +284,6 @@ def main() -> None:
     season = args.season
     week_label = args.week
     invert_y = args.invert_y
-    logos_dir = Path(args.logos_dir)
-    if not logos_dir.is_absolute():
-        logos_dir = REPO_ROOT / logos_dir
 
     output_path = Path(args.output)
     if not output_path.is_absolute():
@@ -285,7 +291,7 @@ def main() -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     df = load_team_epa(season)
-    plot_scatter(df, week_label, invert_y, logos_dir, output_path, season)
+    plot_scatter(df, week_label, invert_y, output_path, season)
 
 
 if __name__ == "__main__":
