@@ -1,44 +1,43 @@
-name: Generate EPA chart
+name: Build charts
 
 on:
   workflow_dispatch:
     inputs:
-      season:
-        description: "Season year to download and chart (e.g., 2025)"
-        required: true
-        default: "2025"
-      week_start:
-        description: "Optional starting week to include"
-        required: false
-      week_end:
-        description: "Optional ending week to include"
-        required: false
-      min_wp:
-        description: "Minimum win probability filter (0-1)"
-        required: false
-      max_wp:
-        description: "Maximum win probability filter (0-1)"
-        required: false
-      include_playoffs:
-        description: "Include postseason plays"
+      refresh_current:
+        description: "Refresh current season data before exporting charts"
         required: false
         default: "false"
         type: boolean
-      week_label:
-        description: "Custom subtitle label for the week range"
-        required: false
-      invert_y:
-        description: "Invert defensive EPA axis so better defenses trend upward"
-        required: false
-        default: "false"
-        type: boolean
+  workflow_run:
+    workflows:
+      - Refresh current season data
+      - Seed database
+    types:
+      - completed
 
 jobs:
   generate:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Restore cached database (latest)
+        id: cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: nflstats.db
+          key: nflstats-db-${{ github.run_id }}
+          restore-keys: |
+            nflstats-db-
+
+      - name: Ensure database exists
+        run: |
+          if [ ! -f nflstats.db ]; then
+            echo "Database not found. Run the Seed database workflow first." >&2
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -50,33 +49,43 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-      - name: Sanity check imports
+      - name: Optionally refresh current season data
+        if: ${{ inputs.refresh_current == 'true' || github.event_name == 'workflow_run' }}
         run: |
-          python -c "import pandas, matplotlib, requests, polars, pyarrow; from PIL import Image; import nflreadpy; print('deps ok')"
-
-      - name: Build team EPA database
-        run: |
-          args=""
-          if [ -n "${{ inputs.week_start }}" ]; then args="$args --week-start ${{ inputs.week_start }}"; fi
-          if [ -n "${{ inputs.week_end }}" ]; then args="$args --week-end ${{ inputs.week_end }}"; fi
-          if [ -n "${{ inputs.min_wp }}" ]; then args="$args --min-wp ${{ inputs.min_wp }}"; fi
-          if [ -n "${{ inputs.max_wp }}" ]; then args="$args --max-wp ${{ inputs.max_wp }}"; fi
-          if [ "${{ inputs.include_playoffs }}" = "true" ]; then args="$args --include-playoffs"; fi
-          python -m scripts.fetch_epa --season ${{ inputs.season }} $args
+          current_year=$(date -u +%Y)
+          current_month=$(date -u +%m)
+          if [ "$current_month" -lt 3 ]; then
+            season=$((current_year - 1))
+          else
+            season=$current_year
+          fi
+          echo "Refreshing cached data for season $season before exporting charts"
+          python -m scripts.fetch_epa --season $season --include-playoffs
 
       - name: Export Chart.js JSON payload
         run: |
-          mkdir -p site/data
-          python -m scripts.export_epa_json --season ${{ inputs.season }} --output site/data/epa_sample.json
+          mkdir -p data
+          python -m scripts.export_epa_json --output data/epa_sample.json
 
       - name: Assemble static site
         run: |
-          mkdir -p site/data
-          cp index.html site/index.html
-          # keep a copy of the raw export alongside any other bundled data files
-          cp site/data/epa_sample.json data/epa_sample.json
+          python -m scripts.prepare_site --site-dir site --index index.html --data-dir data
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
+
+      - name: Save updated database cache
+        if: ${{ inputs.refresh_current == 'true' || github.event_name == 'workflow_run' }}
+        uses: actions/cache/save@v4
+        with:
+          path: nflstats.db
+          key: nflstats-db-${{ github.run_id }}
+
+      - name: Upload database artifact
+        if: ${{ inputs.refresh_current == 'true' || github.event_name == 'workflow_run' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nflstats-db
+          path: nflstats.db

@@ -3,8 +3,7 @@ name: Deploy Pages
 on:
   workflow_run:
     workflows:
-      - Generate EPA chart
-      - Main
+      - Build charts
     types:
       - completed
 
