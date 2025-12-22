@@ -6,16 +6,23 @@ once the data is bundled.
 
 ## Update the data using GitHub Actions (no local runs needed)
 
-1. Go to the **Actions** tab in GitHub and run the "Generate EPA chart" workflow
-   using **Run workflow**. Choose your season and optional week range. The job
-   will:
-   - install Python deps
-   - fetch weekly EPA snapshots into `nflstats.db`
-   - export `site/data/epa_sample.json` (the Chart.js payload)
-   - bundle `index.html` + `data/` into a Pages artifact
-2. The companion "Deploy Pages" workflow publishes the artifact automatically
-   to GitHub Pages when "Generate EPA chart" succeeds. You can also schedule or
-   rerun the "Main" workflow for daily refreshes with the default season.
+1. **Seed database** (one-time backfill): Run the "Seed database" workflow from
+the Actions tab. It restores the latest cached `nflstats.db`, backfills the
+season range you specify (defaults to 1999 through the current season), and
+uploads the refreshed database as both a cache entry and an artifact.
+
+2. **Refresh in-season data** (scheduled): The "Refresh current season data"
+workflow runs automatically at 11:30 UTC on Monday, Tuesday, and Friday during
+the season. It restores the cached database, recomputes the latest weekly EPA
+snapshots for the current season, and re-caches/uploads the updated database.
+You can also run it manually with an optional season override.
+
+3. **Build charts** (publish): The "Build charts" workflow restores the cached
+`nflstats.db`, optionally refreshes the current season again, exports the
+Chart.js payload to `data/epa_sample.json`, and assembles the static site bundle
+with `scripts.prepare_site`. It runs automatically whenever either data workflow
+finishes successfully or can be started manually. The companion "Deploy Pages"
+workflow publishes the resulting artifact to GitHub Pages.
 
 ## Preview locally (optional)
 
