@@ -60,12 +60,14 @@ jobs:
           INPUT_START="${{ github.event.inputs.season_start }}"
           INPUT_END="${{ github.event.inputs.season_end }}"
 
-          current_season=$(python - <<'PY'
-from datetime import datetime
-now = datetime.utcnow()
-print(now.year if now.month >= 9 else now.year - 1)
-PY
-)
+         # compute current season: if current month >= 9 -> current year else previous year
+    current_year=$(date -u +%Y)
+    current_month=$(date -u +%m)
+    if [ "$current_month" -ge 9 ]; then
+      current_season="$current_year"
+    else
+      current_season=$((current_year - 1))
+    fi
 
           if [ "$MODE" = "backfill_season" ]; then
             if [ -z "$INPUT_SEASON" ]; then
