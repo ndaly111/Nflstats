@@ -19,12 +19,14 @@ can also be triggered manually with three modes:
 Each run downloads play-by-play data with `nflreadpy`, aggregates weekly team
 EPA into `data/epa.sqlite`, exports the JSON consumed by the static chart to
 `data/epa_sample.json`, and commits the updated artifacts back to the
-repository.
-
-Make sure GitHub Pages is configured to **Deploy from a branch** (root folder)
-so the latest `index.html` and `data/epa_sample.json` are served directly from
-the repository. The GitHub Actions UI shows **Run workflow** only after the
+repository. The GitHub Actions UI shows **Run workflow** only after the
 workflow file exists on the default branch (and you have write access).
+
+## GitHub Pages Settings
+
+Open **Settings → Pages** and select **Deploy from a branch → main → /(root)**
+so GitHub Pages serves `index.html` and `data/epa_sample.json` directly from the
+repository without an extra build step.
 
 ### Run the update locally
 
@@ -41,10 +43,9 @@ Swap in the season you need, then open `index.html` (or visit
 
 - `update_current`: runs weekly automatically.
 - `backfill_season`: run manually once per season (provide `season`).
-- `backfill_range`: run with `season_start=2000` and leave `season_end` blank to
-  rebuild 2000→current in one go, or split into smaller ranges (e.g.,
-  `season_start=2000`, `season_end=2010`, then `2011` onward) if runtime is a
-  concern.
+- `backfill_range`: use shorter ranges to avoid long-running jobs (e.g.,
+  `season_start=2000`, `season_end=2004`, then `2005-2009`, and so on) instead
+  of attempting a single 2000→current backfill.
 
 ## Preview locally (optional)
 
