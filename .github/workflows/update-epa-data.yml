@@ -4,6 +4,7 @@ on:
   schedule:
     - cron: '0 12 * * TUE'
   workflow_dispatch:
+    description: "Run EPA data refresh on demand"
     inputs:
       mode:
         description: "Choose update_current to refresh active season; backfill_season for historical rebuild"
