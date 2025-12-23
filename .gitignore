@@ -6,3 +6,5 @@ __pycache__/
 data/epa.sqlite-wal
 data/epa.sqlite-shm
 
+data/*.sqlite-wal
+data/*.sqlite-shm
