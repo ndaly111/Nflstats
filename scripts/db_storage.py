@@ -50,7 +50,7 @@ def init_db(db_path: Path | str = DB_PATH) -> sqlite3.Connection:
     db_path = Path(db_path)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
-    conn.execute("PRAGMA journal_mode=WAL;")
+    conn.execute("PRAGMA journal_mode=DELETE;")
     conn.execute(TEAM_EPA_SCHEMA)
     conn.execute(TEAM_EPA_WEEKLY_SCHEMA)
     _migrate_weekly_schema(conn)
@@ -75,7 +75,7 @@ def _migrate_weekly_schema(conn: sqlite3.Connection) -> None:
         ("def_plays", "INTEGER", "0"),
         ("EPA_off_per_play", "REAL", "0"),
         ("EPA_def_per_play", "REAL", "0"),
-        ("updated_at", "TEXT", "(strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))"),
+        ("updated_at", "TEXT", "''"),
     ]
 
     for name, col_type, default in migrations:
