@@ -176,19 +176,35 @@
     }
 
     function averageWeeks(teamWeeks, start, end) {
-      let offTotal = 0;
-      let defTotal = 0;
+      let offWeighted = 0;
+      let offPlays = 0;
+      let offSimple = 0;
+      let defWeighted = 0;
+      let defPlays = 0;
+      let defSimple = 0;
       let count = 0;
       for (let w = start; w <= end; w += 1) {
         const payload = teamWeeks[w];
         if (payload && typeof payload.off === 'number' && typeof payload.def === 'number') {
-          offTotal += payload.off;
-          defTotal += payload.def;
           count += 1;
+          offSimple += payload.off;
+          defSimple += payload.def;
+          const offWeekPlays = Number(payload.off_plays ?? 0);
+          const defWeekPlays = Number(payload.def_plays ?? 0);
+          if (Number.isFinite(offWeekPlays) && offWeekPlays > 0) {
+            offWeighted += payload.off * offWeekPlays;
+            offPlays += offWeekPlays;
+          }
+          if (Number.isFinite(defWeekPlays) && defWeekPlays > 0) {
+            defWeighted += payload.def * defWeekPlays;
+            defPlays += defWeekPlays;
+          }
         }
       }
       if (count === 0) return null;
-      return { off: offTotal / count, def: defTotal / count };
+      const off = offPlays > 0 ? offWeighted / offPlays : offSimple / count;
+      const def = defPlays > 0 ? defWeighted / defPlays : defSimple / count;
+      return { off, def };
     }
 
     function computePoints(selectedSeason, startWeek, endWeek) {
@@ -277,7 +293,7 @@
 
     function syncWeekRange(startWeek, endWeek) {
       const start = Number(weekStartSelect.value);
-      const end = Number(endWeekSelect.value);
+      const end = Number(weekEndSelect.value);
       if (start > end) {
         weekEndSelect.value = start;
         return { start, end: start };

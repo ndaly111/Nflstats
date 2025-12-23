@@ -18,6 +18,7 @@ def parse_args() -> argparse.Namespace:
         )
     )
     parser.add_argument("--season", type=int, required=True, help="Season year (e.g., 2025)")
+    parser.add_argument("--db", type=Path, default=DB_PATH, help="Path to SQLite cache")
     parser.add_argument("--week-start", type=int, default=None, dest="week_start")
     parser.add_argument("--week-end", type=int, default=None, dest="week_end")
     parser.add_argument("--min-wp", type=float, default=None, dest="min_wp")
@@ -77,8 +78,8 @@ def main() -> None:
         if weekly_epa.empty:
             raise SystemExit(f"Computed empty EPA snapshot for week {week_num}; cannot store in DB.")
 
-        save_team_epa_snapshot(weekly_epa, season, week_num)
-        print(f"Stored team EPA for week {week_num} in SQLite database: {DB_PATH}")
+        save_team_epa_snapshot(weekly_epa, season, week_num, db_path=args.db)
+        print(f"Stored team EPA for week {week_num} in SQLite database: {args.db}")
 
     print("All requested weeks stored in SQLite cache ✅")
 

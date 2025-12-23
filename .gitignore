@@ -1,0 +1,8 @@
+# Bytecode and cache directories
+__pycache__/
+*.pyc
+
+# SQLite write-ahead logging artifacts
+data/epa.sqlite-wal
+data/epa.sqlite-shm
+
