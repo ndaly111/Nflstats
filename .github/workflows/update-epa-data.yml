@@ -60,9 +60,9 @@ jobs:
           INPUT_START="${{ github.event.inputs.season_start }}"
           INPUT_END="${{ github.event.inputs.season_end }}"
 
-         # compute current season: if current month >= 9 -> current year else previous year
-    current_year=$(date -u +%Y)
-    current_month=$(date -u +%m)
+  t      # compute current season: if current month >= 9 -> current year else previous year
+     current_year="$(date -u '+%Y')"
+    current_month="$(date -u '+%m')"
     if [ "$current_month" -ge 9 ]; then
       current_season="$current_year"
     else
