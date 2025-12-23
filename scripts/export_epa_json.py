@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+from datetime import datetime, timezone
 import sqlite3
 from pathlib import Path
 from typing import Iterable
@@ -73,8 +75,15 @@ def export_json(db_path: Path, output_path: Path, seasons: Iterable[int] | None)
         for season in season_keys:
             payload = fetch_season_payload(conn, season)
             if payload is None:
+             
                 continue
             snapshot["seasons"][str(season)] = payload
+
+        # Add metadata fields for generation timestamp and git SHA
+    snapshot["generated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    sha = os.getenv("GITHUB_SHA")
+    if sha:
+        snapshot["git_sha"] = sha
     finally:
         conn.close()
 
