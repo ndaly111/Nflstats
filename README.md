@@ -7,11 +7,14 @@ once the data is bundled.
 ## Update the data using GitHub Actions (no local runs needed)
 
 Use the **"Update EPA data"** workflow. It runs automatically once per week and
-can also be triggered manually with two modes:
+can also be triggered manually with three modes:
 
 - `update_current` (default): refreshes the in-progress NFL season (January–August
   runs target the previous calendar year).
 - `backfill_season`: rebuilds a specific season passed via the `season` input.
+- `backfill_range`: loops from `season_start` to `season_end` (inclusive) to
+  rebuild multiple seasons in one run; leave `season_end` blank to stop at the
+  current season.
 
 Each run downloads play-by-play data with `nflreadpy`, aggregates weekly team
 EPA into `data/epa.sqlite`, exports the JSON consumed by the static chart to
@@ -20,16 +23,28 @@ repository.
 
 Make sure GitHub Pages is configured to **Deploy from a branch** (root folder)
 so the latest `index.html` and `data/epa_sample.json` are served directly from
-the repository.
+the repository. The GitHub Actions UI shows **Run workflow** only after the
+workflow file exists on the default branch (and you have write access).
 
 ### Run the update locally
 
 ```bash
 python -m scripts.fetch_epa --season 2024 --db data/epa.sqlite --include-playoffs
 python -m scripts.export_epa_json --db data/epa.sqlite --output data/epa_sample.json
+python -m http.server 8000
 ```
 
-Swap in the season you need, then open `index.html` to see the refreshed data.
+Swap in the season you need, then open `index.html` (or visit
+`http://localhost:8000`) to see the refreshed data.
+
+### Workflow usage examples
+
+- `update_current`: runs weekly automatically.
+- `backfill_season`: run manually once per season (provide `season`).
+- `backfill_range`: run with `season_start=2000` and leave `season_end` blank to
+  rebuild 2000→current in one go, or split into smaller ranges (e.g.,
+  `season_start=2000`, `season_end=2010`, then `2011` onward) if runtime is a
+  concern.
 
 ## Preview locally (optional)
 

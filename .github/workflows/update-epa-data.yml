@@ -2,9 +2,8 @@ name: Update EPA data
 
 on:
   schedule:
-    - cron: '0 12 * * TUE'
+    - cron: '0 12 * * 2'
   workflow_dispatch:
-    description: "Run EPA data refresh on demand"
     inputs:
       mode:
         description: "Choose update_current to refresh active season; backfill_season for historical rebuild"
@@ -14,10 +13,21 @@ on:
         options:
           - update_current
           - backfill_season
+          - backfill_range
       season:
         description: "Season year (used when mode=backfill_season)"
         required: false
-        type: number
+      season_start:
+        description: "Start season year (used when mode=backfill_range)"
+        required: false
+        default: "2000"
+      season_end:
+        description: "End season year (optional; defaults to current season when mode=backfill_range)"
+        required: false
+
+concurrency:
+  group: epa-data
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -46,22 +56,57 @@ jobs:
         run: |
           MODE="${{ github.event.inputs.mode || 'update_current' }}"
           INPUT_SEASON="${{ github.event.inputs.season }}"
-          if [ "$MODE" = "backfill_season" ] && [ -n "$INPUT_SEASON" ]; then
-            season="$INPUT_SEASON"
-          else
-            season=$(python - <<'PY'
+          INPUT_START="${{ github.event.inputs.season_start }}"
+          INPUT_END="${{ github.event.inputs.season_end }}"
+
+          current_season=$(python - <<'PY'
 from datetime import datetime
 now = datetime.utcnow()
 print(now.year if now.month >= 9 else now.year - 1)
 PY
 )
+
+          if [ "$MODE" = "backfill_season" ]; then
+            if [ -z "$INPUT_SEASON" ]; then
+              echo "Season input is required when mode=backfill_season" >&2
+              exit 1
+            fi
+            season="$INPUT_SEASON"
+            season_start=""
+            season_end=""
+          elif [ "$MODE" = "backfill_range" ]; then
+            season_start="${INPUT_START:-2000}"
+            season_end="${INPUT_END:-$current_season}"
+            season="$season_end"
+            if [ "$season_start" -gt "$season_end" ]; then
+              echo "season_start ($season_start) cannot be greater than season_end ($season_end)" >&2
+              exit 1
+            fi
+          else
+            season="$current_season"
+            season_start=""
+            season_end=""
           fi
           echo "mode=$MODE" >> "$GITHUB_OUTPUT"
           echo "season=$season" >> "$GITHUB_OUTPUT"
+          echo "season_start=$season_start" >> "$GITHUB_OUTPUT"
+          echo "season_end=$season_end" >> "$GITHUB_OUTPUT"
 
       - name: Refresh SQLite cache
+        if: steps.season.outputs.mode != 'backfill_range'
         run: |
           python -m scripts.fetch_epa --season ${{ steps.season.outputs.season }} --db data/epa.sqlite --include-playoffs
+
+      - name: Refresh SQLite cache (range)
+        if: steps.season.outputs.mode == 'backfill_range'
+        run: |
+          set -euo pipefail
+          start=${{ steps.season.outputs.season_start }}
+          end=${{ steps.season.outputs.season_end }}
+          for season in $(seq $start $end); do
+            echo "Backfilling season $season"
+            python -m scripts.fetch_epa --season $season --db data/epa.sqlite --include-playoffs
+          done
 
       - name: Export static JSON
         run: |
@@ -69,7 +114,10 @@ PY
 
       - name: Validate exported payload
         run: |
-          SEASON=${{ steps.season.outputs.season }} python - <<'PY'
+          MODE=${{ steps.season.outputs.mode }} \
+          SEASON=${{ steps.season.outputs.season }} \
+          SEASON_START=${{ steps.season.outputs.season_start }} \
+          SEASON_END=${{ steps.season.outputs.season_end }} python - <<'PY'
 import json
 import os
 from pathlib import Path
@@ -77,13 +125,24 @@ payload = json.loads(Path('data/epa_sample.json').read_text())
 seasons = payload.get('seasons', {})
 if not seasons:
     raise SystemExit('No seasons found in exported JSON')
-target_season = str(os.environ['SEASON'])
-if target_season not in seasons:
-    raise SystemExit(f'Target season {target_season} missing from export')
-teams = len(seasons[target_season].get('teams', []))
-if teams < 28:
-    raise SystemExit(f'Expected at least 28 teams for season {target_season}, found {teams}')
-print(f'Validated season {target_season} with {teams} team entries')
+mode = os.environ['MODE']
+if mode == 'backfill_range':
+    for env_key in ('SEASON_START', 'SEASON_END'):
+        target_season = str(os.environ[env_key])
+        if target_season not in seasons:
+            raise SystemExit(f'Target season {target_season} missing from export')
+        teams = len(seasons[target_season].get('teams', []))
+        if teams < 28:
+            raise SystemExit(f'Expected at least 28 teams for season {target_season}, found {teams}')
+        print(f'Validated season {target_season} with {teams} team entries')
+else:
+    target_season = str(os.environ['SEASON'])
+    if target_season not in seasons:
+        raise SystemExit(f'Target season {target_season} missing from export')
+    teams = len(seasons[target_season].get('teams', []))
+    if teams < 28:
+        raise SystemExit(f'Expected at least 28 teams for season {target_season}, found {teams}')
+    print(f'Validated season {target_season} with {teams} team entries')
 PY
 
       - name: Configure git
@@ -98,5 +157,13 @@ PY
             echo "No changes to commit."
             exit 0
           fi
-          git commit -m "chore: refresh EPA data for season ${{ steps.season.outputs.season }}"
+          mode="${{ steps.season.outputs.mode }}"
+          season="${{ steps.season.outputs.season }}"
+          season_start="${{ steps.season.outputs.season_start }}"
+          season_end="${{ steps.season.outputs.season_end }}"
+          if [ "$mode" = "backfill_range" ]; then
+            git commit -m "chore: backfill EPA data seasons ${season_start}-${season_end}"
+          else
+            git commit -m "chore: refresh EPA data for season ${season}"
+          fi
           git push
