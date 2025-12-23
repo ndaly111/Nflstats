@@ -6,23 +6,30 @@ once the data is bundled.
 
 ## Update the data using GitHub Actions (no local runs needed)
 
-1. **Seed database** (one-time backfill): Run the "Seed database" workflow from
-the Actions tab. It restores the latest cached `nflstats.db`, backfills the
-season range you specify (defaults to 1999 through the current season), and
-uploads the refreshed database as both a cache entry and an artifact.
+Use the **"Update EPA data"** workflow. It runs automatically once per week and
+can also be triggered manually with two modes:
 
-2. **Refresh in-season data** (scheduled): The "Refresh current season data"
-workflow runs automatically at 11:30 UTC on Monday, Tuesday, and Friday during
-the season. It restores the cached database, recomputes the latest weekly EPA
-snapshots for the current season, and re-caches/uploads the updated database.
-You can also run it manually with an optional season override.
+- `update_current` (default): refreshes the in-progress NFL season (January–August
+  runs target the previous calendar year).
+- `backfill_season`: rebuilds a specific season passed via the `season` input.
 
-3. **Build charts** (publish): The "Build charts" workflow restores the cached
-`nflstats.db`, optionally refreshes the current season again, exports the
-Chart.js payload to `data/epa_sample.json`, and assembles the static site bundle
-with `scripts.prepare_site`. It runs automatically whenever either data workflow
-finishes successfully or can be started manually. The companion "Deploy Pages"
-workflow publishes the resulting artifact to GitHub Pages.
+Each run downloads play-by-play data with `nflreadpy`, aggregates weekly team
+EPA into `data/epa.sqlite`, exports the JSON consumed by the static chart to
+`data/epa_sample.json`, and commits the updated artifacts back to the
+repository.
+
+Make sure GitHub Pages is configured to **Deploy from a branch** (root folder)
+so the latest `index.html` and `data/epa_sample.json` are served directly from
+the repository.
+
+### Run the update locally
+
+```bash
+python -m scripts.fetch_epa --season 2024 --db data/epa.sqlite --include-playoffs
+python -m scripts.export_epa_json --db data/epa.sqlite --output data/epa_sample.json
+```
+
+Swap in the season you need, then open `index.html` to see the refreshed data.
 
 ## Preview locally (optional)
 

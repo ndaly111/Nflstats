@@ -1,0 +1,101 @@
+name: Update EPA data
+
+on:
+  schedule:
+    - cron: '0 12 * * TUE'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Choose update_current to refresh active season; backfill_season for historical rebuild"
+        required: true
+        default: update_current
+        type: choice
+        options:
+          - update_current
+          - backfill_season
+      season:
+        description: "Season year (used when mode=backfill_season)"
+        required: false
+        type: number
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Determine season target
+        id: season
+        run: |
+          MODE="${{ github.event.inputs.mode || 'update_current' }}"
+          INPUT_SEASON="${{ github.event.inputs.season }}"
+          if [ "$MODE" = "backfill_season" ] && [ -n "$INPUT_SEASON" ]; then
+            season="$INPUT_SEASON"
+          else
+            season=$(python - <<'PY'
+from datetime import datetime
+now = datetime.utcnow()
+print(now.year if now.month >= 9 else now.year - 1)
+PY
+)
+          fi
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "season=$season" >> "$GITHUB_OUTPUT"
+
+      - name: Refresh SQLite cache
+        run: |
+          python -m scripts.fetch_epa --season ${{ steps.season.outputs.season }} --db data/epa.sqlite --include-playoffs
+
+      - name: Export static JSON
+        run: |
+          python -m scripts.export_epa_json --db data/epa.sqlite --output data/epa_sample.json
+
+      - name: Validate exported payload
+        run: |
+          SEASON=${{ steps.season.outputs.season }} python - <<'PY'
+import json
+import os
+from pathlib import Path
+payload = json.loads(Path('data/epa_sample.json').read_text())
+seasons = payload.get('seasons', {})
+if not seasons:
+    raise SystemExit('No seasons found in exported JSON')
+target_season = str(os.environ['SEASON'])
+if target_season not in seasons:
+    raise SystemExit(f'Target season {target_season} missing from export')
+teams = len(seasons[target_season].get('teams', []))
+if teams < 28:
+    raise SystemExit(f'Expected at least 28 teams for season {target_season}, found {teams}')
+print(f'Validated season {target_season} with {teams} team entries')
+PY
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push updates
+        run: |
+          git add data/epa.sqlite data/epa_sample.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: refresh EPA data for season ${{ steps.season.outputs.season }}"
+          git push

@@ -1,6 +1,6 @@
 """Export cached team EPA to the static JSON format used by index.html.
 
-Run this after populating ``nflstats.db`` with ``scripts.fetch_epa``. The
+Run this after populating ``data/epa.sqlite`` with ``scripts.fetch_epa``. The
 output JSON mirrors ``data/epa_sample.json`` so it can be dropped into GitHub
 Pages (or any static host) for the interactive Chart.js page to consume.
 """
@@ -26,7 +26,7 @@ def collect_seasons(conn: sqlite3.Connection, seasons: Iterable[int] | None) -> 
 def fetch_season_payload(conn: sqlite3.Connection, season: int) -> dict | None:
     rows = conn.execute(
         """
-        SELECT team, week, EPA_off_per_play, EPA_def_per_play
+        SELECT team, week, off_epa_sum, off_plays, def_epa_sum, def_plays
         FROM team_epa_weekly
         WHERE season = ?
         ORDER BY week, team
@@ -37,12 +37,23 @@ def fetch_season_payload(conn: sqlite3.Connection, season: int) -> dict | None:
         return None
 
     weeks: list[int] = []
-    teams: dict[str, dict[int, dict[str, float]]] = {}
+    teams: dict[str, dict[int, dict[str, float | int]]] = {}
 
-    for team, week, off, deff in rows:
+    for team, week, off_sum, off_plays, def_sum, def_plays in rows:
         if week not in weeks:
             weeks.append(int(week))
-        teams.setdefault(team, {})[int(week)] = {"off": float(off), "def": float(deff)}
+        off_play_count = int(off_plays)
+        def_play_count = int(def_plays)
+        off_value = float(off_sum) / off_play_count if off_play_count else None
+        def_value = float(def_sum) / def_play_count if def_play_count else None
+        week_payload = {}
+        if off_value is not None:
+            week_payload["off"] = off_value
+            week_payload["off_plays"] = off_play_count
+        if def_value is not None:
+            week_payload["def"] = def_value
+            week_payload["def_plays"] = def_play_count
+        teams.setdefault(team, {})[int(week)] = week_payload
 
     payload = {
         "weeks": weeks,
@@ -79,7 +90,7 @@ def export_json(db_path: Path, output_path: Path, seasons: Iterable[int] | None)
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--db", type=Path, default=DB_PATH, help="Path to nflstats SQLite database (default: nflstats.db)",
+        "--db", type=Path, default=DB_PATH, help="Path to SQLite database (default: data/epa.sqlite)",
     )
     parser.add_argument(
         "--output", type=Path, default=Path("data/epa_sample.json"),
