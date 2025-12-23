@@ -1,0 +1,43 @@
+name: Smoke test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Fetch sample EPA data
+        run: |
+          python -m scripts.fetch_epa --season 2024 --db data/epa.sqlite --week-start 1 --week-end 1
+
+      - name: Export sample EPA JSON
+        run: |
+          python -m scripts.export_epa_json --db data/epa.sqlite --output data/epa_sample.json
+
+      - name: Validate JSON contains 2024
+        run: |
+          python - <<'PY'
+import json
+from pathlib import Path
+payload = json.loads(Path('data/epa_sample.json').read_text())
+if '2024' not in payload.get('seasons', {}):
+    raise SystemExit('Season 2024 missing from exported JSON')
+print('Validated season 2024 presence in data/epa_sample.json')
+PY
