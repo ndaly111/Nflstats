@@ -413,7 +413,7 @@
                 size: 10,
               },
               formatter: (value) => value.label,
-              backgroundColor: (context) => context.raw.backgroundColor,
+              backgroundColor: (context) => context?.raw?.backgroundColor || '#0f172a',
               borderColor: '#0f172a',
               borderWidth: 1,
               borderRadius: 6,
