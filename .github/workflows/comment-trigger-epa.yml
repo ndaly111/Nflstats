@@ -1,0 +1,98 @@
+name: Comment-triggered EPA update
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  dispatch:
+    if: startsWith(github.event.comment.body, '/update-epa') && (
+          github.event.comment.author_association == 'OWNER' ||
+          github.event.comment.author_association == 'MEMBER' ||
+          github.event.comment.author_association == 'COLLABORATOR'
+        )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse command and trigger workflow
+        id: trigger
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const raw = (context.payload.comment.body || '').trim();
+            const tokens = raw.split(/\s+/).slice(1);
+            const inputs = {
+              mode: 'update_current',
+              season: '',
+              season_start: '',
+              season_end: '',
+            };
+
+            for (const token of tokens) {
+              const [key, value = ''] = token.split('=', 2);
+              if (key in inputs) {
+                inputs[key] = value;
+              }
+            }
+
+            const ref = context.payload.repository?.default_branch || 'main';
+
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'update-epa-data.yml',
+              ref,
+              inputs,
+            });
+
+            core.setOutput('inputs', JSON.stringify(inputs));
+
+      - name: Acknowledge trigger
+        uses: actions/github-script@v7
+        env:
+          COMMAND_INPUTS: ${{ steps.trigger.outputs.inputs }}
+        with:
+          script: |
+            const inputs = JSON.parse(process.env.COMMAND_INPUTS || '{}');
+            const target = [
+              `mode=${inputs.mode || 'update_current'}`,
+              inputs.season ? `season=${inputs.season}` : null,
+              inputs.season_start ? `season_start=${inputs.season_start}` : null,
+              inputs.season_end ? `season_end=${inputs.season_end}` : null,
+            ].filter(Boolean).join(', ');
+
+            const body = [
+              '✅ Triggered **Update EPA data** via workflow dispatch.',
+              target ? `Inputs: ${target}` : 'Inputs: mode=update_current',
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });
+
+  unauthorized:
+    if: startsWith(github.event.comment.body, '/update-epa') && !(
+          github.event.comment.author_association == 'OWNER' ||
+          github.event.comment.author_association == 'MEMBER' ||
+          github.event.comment.author_association == 'COLLABORATOR'
+        )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reply with permissions warning
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '❌ `/update-epa` is limited to repository collaborators. Please ask a maintainer to run it.',
+            });
