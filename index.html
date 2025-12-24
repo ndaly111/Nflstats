@@ -446,7 +446,9 @@
             title: { display: false },
             subtitle: { display: false },
             datalabels: {
-              display: false,
+              color: '#fff',
+              formatter: (value) => value.label,
+              font: { weight: 'bold', size: 10 },
             },
             tooltip: {
               callbacks: {
