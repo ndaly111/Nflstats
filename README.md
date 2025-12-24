@@ -48,6 +48,17 @@ Swap in the season you need, then open `index.html` (or visit
   `season_start=2000`, `season_end=2004`, then `2005-2009`, and so on) instead
   of attempting a single 2000→current backfill.
 
+### Manually run a full backfill (2000–2025)
+
+To regenerate every season from 2000 through 2025 in one go:
+
+1. Open **Actions → Update EPA data → Run workflow**.
+2. Set `mode` to `backfill_range`.
+3. Enter `season_start: 2000` and `season_end: 2025`.
+
+The workflow will iterate through each season, rebuild the SQLite cache, and
+export an updated `data/epa.json` covering the full range.
+
 ### Architecture notes
 
 - `data/epa.sqlite` stores cached weekly play-by-play aggregates used during

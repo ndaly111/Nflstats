@@ -39,6 +39,7 @@ permissions:
 env:
   # Always start backfilling from the year 2000
   SEASON_START: "2000"
+  AUTO_BACKFILL_BATCH: "5"
 
 jobs:
   update:
@@ -83,7 +84,8 @@ db_path.parent.mkdir(parents=True, exist_ok=True)
 
 now = datetime.utcnow()
 current_season = now.year if now.month >= 9 else now.year - 1
-start_season = 2000
+start_season = int(os.environ.get("SEASON_START", "2000"))
+batch_size = max(int(os.environ.get("AUTO_BACKFILL_BATCH", "5")), 1)
 
 seasons_in_db = set()
 if db_path.exists():
@@ -102,21 +104,18 @@ if db_path.exists():
         conn.close()
 
 missing = [s for s in range(start_season, current_season + 1) if s not in seasons_in_db]
-
-# Pick newest missing first so you reach 2025 quickly, but skip current season to avoid duplicate work
-missing_hist = [s for s in missing if s != current_season]
-season_to_fetch = max(missing_hist) if missing_hist else None
+seasons_to_fetch = sorted(missing, reverse=True)[:batch_size]
 
 out = Path(os.environ["GITHUB_OUTPUT"])
 with out.open("a", encoding="utf-8") as f:
-    if season_to_fetch is None:
+    if not seasons_to_fetch:
         f.write("did_find_season=false\n")
     else:
         f.write("did_find_season=true\n")
-        f.write(f"season_to_fetch={season_to_fetch}\n")
+        f.write("seasons_to_fetch=" + ",".join(str(s) for s in seasons_to_fetch) + "\n")
 
 print("seasons_in_db_count=", len(seasons_in_db))
-print("season_to_fetch=", season_to_fetch)
+print("seasons_to_fetch=", ",".join(str(s) for s in seasons_to_fetch))
 PY
 
       - name: Determine season target
@@ -205,15 +204,17 @@ PY
             rm -f data/epa.sqlite-wal data/epa.sqlite-shm
           done
 
-      - name: Fetch next missing season (scheduled)
+      - name: Fetch next missing seasons (scheduled)
         if: ${{ github.event_name == 'schedule' && steps.auto.outputs.did_find_season == 'true' }}
         run: |
           set -euo pipefail
-          season="${{ steps.auto.outputs.season_to_fetch }}"
-          echo "Auto-backfilling missing season: $season"
-          python -m scripts.fetch_epa --season "$season" --db data/epa.sqlite --include-playoffs
-          python -c "import sqlite3; c=sqlite3.connect('data/epa.sqlite'); c.execute('PRAGMA wal_checkpoint(TRUNCATE);'); c.close()"
-          rm -f data/epa.sqlite-wal data/epa.sqlite-shm
+          IFS=',' read -ra seasons <<< "${{ steps.auto.outputs.seasons_to_fetch }}"
+          for season in "${seasons[@]}"; do
+            echo "Auto-backfilling missing season: $season"
+            python -m scripts.fetch_epa --season "$season" --db data/epa.sqlite --include-playoffs
+            python -c "import sqlite3; c=sqlite3.connect('data/epa.sqlite'); c.execute('PRAGMA wal_checkpoint(TRUNCATE);'); c.close()"
+            rm -f data/epa.sqlite-wal data/epa.sqlite-shm
+          done
 
       - name: Export static JSON
         run: |
@@ -225,7 +226,7 @@ PY
           TARGET_SEASON: ${{ steps.season.outputs.season }}
           RANGE_START: ${{ steps.season.outputs.season_start }}
           RANGE_END: ${{ steps.season.outputs.season_end }}
-          SEASON_TO_FETCH: ${{ steps.auto.outputs.season_to_fetch }}
+          SEASONS_TO_FETCH: ${{ steps.auto.outputs.seasons_to_fetch }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
           python - <<'PY'
@@ -243,7 +244,7 @@ target = os.environ.get("TARGET_SEASON", "")
 start = os.environ.get("RANGE_START", "")
 end = os.environ.get("RANGE_END", "")
 event = os.environ.get("EVENT_NAME", "")
-season_to_fetch = os.environ.get("SEASON_TO_FETCH", "").strip()
+seasons_to_fetch = [s.strip() for s in os.environ.get("SEASONS_TO_FETCH", "").split(",") if s.strip()]
 
 # Validate what *this run* claims to have generated
 if mode == "backfill_range":
@@ -257,10 +258,11 @@ else:
     if target and str(target) not in seasons:
         raise SystemExit(f"Target season {target} missing from export")
 
-# If scheduled run also backfilled a season, validate that too
-if event == "schedule" and season_to_fetch:
-    if season_to_fetch not in seasons:
-        raise SystemExit(f"Scheduled backfill expected season {season_to_fetch} in export")
+# If scheduled run also backfilled seasons, validate those too
+if event == "schedule" and seasons_to_fetch:
+    missing_scheduled = [s for s in seasons_to_fetch if s not in seasons]
+    if missing_scheduled:
+        raise SystemExit("Scheduled backfill expected seasons in export: " + ", ".join(missing_scheduled))
 
 print("Export validation passed")
 PY
