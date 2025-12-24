@@ -44,15 +44,15 @@ PAGE_TEMPLATE = """
 
     <label for="week_start">Week start</label>
     <select name="week_start" id="week_start">
-      {% for wk in weeks %}
-        <option value="{{ wk }}" {% if wk == week_start %}selected{% endif %}>Week {{ wk }}</option>
+      {% for wk in week_options %}
+        <option value="{{ wk.value }}" {% if wk.value == week_start %}selected{% endif %}>{{ wk.label }}</option>
       {% endfor %}
     </select>
 
     <label for="week_end">Week end</label>
     <select name="week_end" id="week_end">
-      {% for wk in weeks %}
-        <option value="{{ wk }}" {% if wk == week_end %}selected{% endif %}>Week {{ wk }}</option>
+      {% for wk in week_options %}
+        <option value="{{ wk.value }}" {% if wk.value == week_end %}selected{% endif %}>{{ wk.label }}</option>
       {% endfor %}
     </select>
 
@@ -157,6 +157,18 @@ def _parse_int(arg: str, default: Optional[int]) -> Optional[int]:
         return default
 
 
+def _format_week_options(weeks: list[int]) -> list[dict[str, int | str]]:
+    playoff_labels = ["Super Bowl", "Conf. Round", "Divisional Round", "Wild Card Round"]
+    total_weeks = len(weeks)
+    formatted = []
+    for idx, week in enumerate(weeks):
+        offset_from_end = total_weeks - 1 - idx
+        playoff_label = playoff_labels[offset_from_end] if offset_from_end < len(playoff_labels) else None
+        label = playoff_label or f"Week {week}"
+        formatted.append({"value": week, "label": label})
+    return formatted
+
+
 @app.route("/")
 def index() -> str:
     season = _parse_int(request.args.get("season"), datetime.date.today().year)
@@ -167,6 +179,7 @@ def index() -> str:
             db_path=DB_PATH,
             season=season,
             weeks=[],
+            week_options=[],
             week_start=None,
             week_end=None,
             chart_url=None,
@@ -205,6 +218,7 @@ def index() -> str:
         db_path=DB_PATH,
         season=season,
         weeks=weeks,
+        week_options=_format_week_options(weeks),
         week_start=week_start,
         week_end=week_end,
         chart_url=chart_url,
