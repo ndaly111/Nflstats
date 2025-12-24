@@ -96,6 +96,18 @@
       overflow: hidden;
     }
 
+    .chart-legend {
+      position: absolute;
+      inset: auto 0 0 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem 0.1rem;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.9));
+      pointer-events: none;
+      justify-content: center;
+    }
+
     .chart-wrap canvas {
       display: block;
       width: 100% !important;
@@ -140,6 +152,31 @@
       margin: 0 0 0.75rem;
       color: var(--muted);
     }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: 999px;
+      background: white;
+      border: 1px solid var(--border);
+    }
+
+    .legend-swatch {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #cbd5e1;
+      border: 1px solid #cbd5e1;
+    }
+
+    .legend-positive-positive .legend-swatch { background: #22c55e; border-color: #22c55e; }
+    .legend-positive-negative .legend-swatch { background: #38bdf8; border-color: #38bdf8; }
+    .legend-negative-positive .legend-swatch { background: #a855f7; border-color: #a855f7; }
+    .legend-negative-negative .legend-swatch { background: #ef4444; border-color: #ef4444; }
 
     .table-scroll {
       overflow-x: auto;
@@ -206,6 +243,12 @@
 
       <div class="chart-wrap">
         <canvas id="epa-chart" aria-label="EPA scatter chart" role="img"></canvas>
+        <div class="chart-legend" aria-hidden="true">
+          <span class="legend-item legend-positive-positive"><span class="legend-swatch"></span>Positive Offense, Positive Defense</span>
+          <span class="legend-item legend-positive-negative"><span class="legend-swatch"></span>Positive Offense, Negative Defense</span>
+          <span class="legend-item legend-negative-positive"><span class="legend-swatch"></span>Negative Offense, Positive Defense</span>
+          <span class="legend-item legend-negative-negative"><span class="legend-swatch"></span>Negative Offense, Negative Defense</span>
+        </div>
       </div>
 
       <section id="table-section" class="table-wrapper" hidden>
@@ -403,26 +446,7 @@
             title: { display: false },
             subtitle: { display: false },
             datalabels: {
-              display: true,
-              align: 'center',
-              anchor: 'center',
-              clamp: true,
-              color: '#ffffff',
-              font: {
-                weight: '700',
-                size: 10,
-              },
-              formatter: (value) => value.label,
-              backgroundColor: (context) => context.raw.backgroundColor,
-              borderColor: '#0f172a',
-              borderWidth: 1,
-              borderRadius: 6,
-              padding: {
-                top: 2,
-                bottom: 2,
-                left: 4,
-                right: 4,
-              },
+              display: false,
             },
             tooltip: {
               callbacks: {
