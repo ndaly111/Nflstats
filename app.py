@@ -7,7 +7,7 @@ from typing import Optional
 from flask import Flask, abort, make_response, render_template_string, request, send_file, url_for
 
 from scripts.db_storage import DB_PATH, get_cached_weeks
-from scripts.plot_epa_scatter import load_team_epa, plot_scatter
+from scripts.plot_epa_scatter import TEAM_DISPLAY_NAMES, load_team_epa, plot_scatter
 
 app = Flask(__name__)
 
@@ -17,14 +17,23 @@ PAGE_TEMPLATE = """
 <head>
   <meta charset="utf-8">
   <title>NFL EPA Explorer</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 2rem auto; max-width: 960px; }
-    form { margin-bottom: 1rem; padding: 1rem; border: 1px solid #ddd; border-radius: 6px; }
-    label { display: block; margin: 0.5rem 0 0.2rem; font-weight: bold; }
-    input, select { padding: 0.4rem; }
-    .chart { text-align: center; margin-top: 1rem; }
-    .notice { color: #b32d00; }
-  </style>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 2rem auto; max-width: 960px; }
+      form { margin-bottom: 1rem; padding: 1rem; border: 1px solid #ddd; border-radius: 6px; }
+      label { display: block; margin: 0.5rem 0 0.2rem; font-weight: bold; }
+      input, select { padding: 0.4rem; }
+      .chart { text-align: center; margin-top: 1rem; }
+      .notice { color: #b32d00; }
+      .table-wrapper { margin-top: 1.5rem; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { padding: 0.5rem; border: 1px solid #ddd; text-align: left; }
+      th { cursor: pointer; background-color: #f4f4f4; user-select: none; }
+      th.sorted-asc::after { content: " \2191"; }
+      th.sorted-desc::after { content: " \2193"; }
+      tbody tr:nth-child(odd) { background-color: #fbfbfb; }
+      tbody tr:nth-child(even) { background-color: #f1f1f1; }
+      .table-note { margin: 0.3rem 0 0.6rem; color: #444; font-size: 0.95rem; }
+    </style>
 </head>
 <body>
   <h1>NFL Offense vs Defense Efficiency (EPA/play)</h1>
@@ -58,7 +67,82 @@ PAGE_TEMPLATE = """
     <div class="chart">
       <img src="{{ chart_url }}" alt="EPA scatter plot" style="max-width: 100%; height: auto;">
     </div>
+    {% if table_rows %}
+      <div class="table-wrapper">
+        <h2>EPA/play table</h2>
+        <p class="table-note">Click any column header to sort. Values match the chart above.</p>
+        <table id="epa-table">
+          <thead>
+            <tr>
+              <th data-type="string">Team</th>
+              <th data-type="number">Combined EPA/play</th>
+              <th data-type="number">Offense EPA/play</th>
+              <th data-type="number">Defense EPA/play</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in table_rows %}
+              <tr>
+                <td data-value="{{ row.team }}">{{ row.display_name }} ({{ row.team }})</td>
+                <td data-value="{{ "%.6f"|format(row.combined) }}">{{ "%.3f"|format(row.combined) }}</td>
+                <td data-value="{{ "%.6f"|format(row.offense) }}">{{ "%.3f"|format(row.offense) }}</td>
+                <td data-value="{{ "%.6f"|format(row.defense) }}">{{ "%.3f"|format(row.defense) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
   {% endif %}
+  <script>
+    (function() {
+      const table = document.getElementById('epa-table');
+      if (!table) return;
+
+      const tbody = table.querySelector('tbody');
+      const headers = table.querySelectorAll('th');
+      const sortState = { column: null, direction: 'asc' };
+
+      const getCellValue = (cell, type) => {
+        const raw = cell.dataset.value ?? cell.textContent.trim();
+        if (type === 'number') {
+          const parsed = parseFloat(raw);
+          return Number.isNaN(parsed) ? -Infinity : parsed;
+        }
+        return raw.toLowerCase();
+      };
+
+      const updateHeaderState = (activeHeader, direction) => {
+        headers.forEach((header) => header.classList.remove('sorted-asc', 'sorted-desc'));
+        activeHeader.classList.add(direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+      };
+
+      headers.forEach((header, index) => {
+        header.addEventListener('click', () => {
+          const type = header.dataset.type || 'string';
+          const isSameColumn = sortState.column === index;
+          sortState.direction = isSameColumn && sortState.direction === 'asc' ? 'desc' : 'asc';
+          sortState.column = index;
+
+          const rows = Array.from(tbody.querySelectorAll('tr'));
+          rows.sort((a, b) => {
+            const aValue = getCellValue(a.children[index], type);
+            const bValue = getCellValue(b.children[index], type);
+
+            if (aValue === bValue) return 0;
+            if (sortState.direction === 'asc') {
+              return aValue > bValue ? 1 : -1;
+            }
+            return aValue < bValue ? 1 : -1;
+          });
+
+          tbody.innerHTML = '';
+          rows.forEach((row) => tbody.appendChild(row));
+          updateHeaderState(header, sortState.direction);
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
 """
@@ -86,12 +170,27 @@ def index() -> str:
             week_start=None,
             week_end=None,
             chart_url=None,
+            table_rows=[],
         )
 
     week_start = _parse_int(request.args.get("week_start"), weeks[0]) or weeks[0]
     week_end = _parse_int(request.args.get("week_end"), weeks[-1]) or weeks[-1]
     if week_start > week_end:
         week_start, week_end = week_end, week_start
+
+    df = load_team_epa(season, week_start=week_start, week_end=week_end)
+    data_for_table = df.dropna(subset=["EPA_off_per_play", "EPA_def_per_play"])
+    table_rows = []
+    for team, row in data_for_table.sort_index().iterrows():
+        table_rows.append(
+            {
+                "team": team,
+                "display_name": TEAM_DISPLAY_NAMES.get(team, team),
+                "combined": row["EPA_off_per_play"] + row["EPA_def_per_play"],
+                "offense": row["EPA_off_per_play"],
+                "defense": row["EPA_def_per_play"],
+            }
+        )
 
     chart_url = url_for(
         "chart",
@@ -109,6 +208,7 @@ def index() -> str:
         week_start=week_start,
         week_end=week_end,
         chart_url=chart_url,
+        table_rows=table_rows,
     )
 
 
