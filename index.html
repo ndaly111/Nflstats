@@ -123,6 +123,55 @@
       color: var(--muted);
       font-size: 0.95rem;
     }
+
+    .table-wrapper {
+      margin-top: 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      background: var(--panel);
+    }
+
+    .table-wrapper h2 {
+      margin: 0 0 0.35rem;
+    }
+
+    .table-note {
+      margin: 0 0 0.75rem;
+      color: var(--muted);
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 0.55rem 0.65rem;
+      border: 1px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #f8fafc;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    th.sorted-asc::after { content: " \2191"; }
+    th.sorted-desc::after { content: " \2193"; }
+
+    tbody tr:nth-child(odd) { background: #f8fafc; }
+    tbody tr:nth-child(even) { background: #ffffff; }
   </style>
 </head>
 <body>
@@ -154,6 +203,24 @@
         <canvas id="epa-chart" aria-label="EPA scatter chart" role="img"></canvas>
       </div>
 
+      <section id="table-section" class="table-wrapper" hidden>
+        <h2>EPA/play table</h2>
+        <p class="table-note">Click any column header to sort. Values match the chart above.</p>
+        <div class="table-scroll">
+          <table id="epa-table">
+            <thead>
+              <tr>
+                <th data-type="string">Team</th>
+                <th data-type="number">Combined EPA/play</th>
+                <th data-type="number">Offense EPA/play</th>
+                <th data-type="number">Defense EPA/play</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
     <footer>
       <p><strong>Tip:</strong> values shown come from a bundled dataset (data/epa.json). Replace that file with your own weekly EPA snapshots to publish updated charts on GitHub Pages.</p>
     </footer>
@@ -169,6 +236,15 @@
       TEN: '#4B92DB', WAS: '#5A1414'
     };
 
+    const TEAM_DISPLAY_NAMES = {
+      ARI: 'Arizona', ATL: 'Atlanta', BAL: 'Baltimore', BUF: 'Buffalo', CAR: 'Carolina', CHI: 'Chicago',
+      CIN: 'Cincinnati', CLE: 'Cleveland', DAL: 'Dallas', DEN: 'Denver', DET: 'Detroit', GB: 'Green Bay',
+      HOU: 'Houston', IND: 'Indianapolis', JAX: 'Jacksonville', KC: 'Kansas City', LAC: 'Los Angeles (Chargers)',
+      LAR: 'Los Angeles (Rams)', LV: 'Las Vegas', MIA: 'Miami', MIN: 'Minnesota', NE: 'New England',
+      NO: 'New Orleans', NYG: 'NY Giants', NYJ: 'NY Jets', PHI: 'Philadelphia', PIT: 'Pittsburgh',
+      SEA: 'Seattle', SF: 'San Francisco', TB: 'Tampa Bay', TEN: 'Tennessee', WAS: 'Washington'
+    };
+
     const statusEl = document.getElementById('status');
     const metaEl = document.getElementById('data-meta');
     const seasonSelect = document.getElementById('season-select');
@@ -176,11 +252,16 @@
     const weekEndSelect = document.getElementById('week-end');
     const updateButton = document.getElementById('update-btn');
     const ctx = document.getElementById('epa-chart').getContext('2d');
+    const tableSection = document.getElementById('table-section');
+    const table = document.getElementById('epa-table');
+    const tableBody = table.querySelector('tbody');
+    const tableHeaders = table.querySelectorAll('th');
     const DATA_URL = new URL('data/epa.json', document.baseURI);
     DATA_URL.searchParams.set('v', Date.now().toString());
 
     let chart;
     let seasonData = {};
+    const sortState = { column: null, direction: 'asc' };
 
     function showStatus(message, variant = 'info') {
       statusEl.textContent = message;
@@ -332,6 +413,74 @@
       return { start, end };
     }
 
+    function formatNumber(value) {
+      return Number.isFinite(value) ? value.toFixed(3) : 'N/A';
+    }
+
+    function renderTable(rows) {
+      if (!rows.length) {
+        tableSection.hidden = true;
+        tableBody.innerHTML = '';
+        return;
+      }
+
+      tableBody.innerHTML = '';
+      rows.forEach((row) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td data-value="${row.team}">${row.displayName} (${row.team})</td>
+          <td data-value="${row.combined.toFixed(6)}">${formatNumber(row.combined)}</td>
+          <td data-value="${row.off.toFixed(6)}">${formatNumber(row.off)}</td>
+          <td data-value="${row.def.toFixed(6)}">${formatNumber(row.def)}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+
+      tableSection.hidden = false;
+    }
+
+    function getCellValue(cell, type) {
+      const raw = cell.dataset.value ?? cell.textContent.trim();
+      if (type === 'number') {
+        const parsed = parseFloat(raw);
+        return Number.isNaN(parsed) ? -Infinity : parsed;
+      }
+      return raw.toLowerCase();
+    }
+
+    function sortTable(columnIndex, toggle = true) {
+      const header = tableHeaders[columnIndex];
+      if (!header) return;
+
+      const type = header.dataset.type || 'string';
+      const isSameColumn = sortState.column === columnIndex;
+      const direction = toggle
+        ? (isSameColumn && sortState.direction === 'asc' ? 'desc' : 'asc')
+        : (sortState.direction || 'asc');
+
+      const rows = Array.from(tableBody.querySelectorAll('tr'));
+      rows.sort((a, b) => {
+        const aVal = getCellValue(a.children[columnIndex], type);
+        const bVal = getCellValue(b.children[columnIndex], type);
+        if (aVal === bVal) return 0;
+        if (direction === 'asc') return aVal > bVal ? 1 : -1;
+        return aVal < bVal ? 1 : -1;
+      });
+
+      tableBody.innerHTML = '';
+      rows.forEach((row) => tableBody.appendChild(row));
+
+      tableHeaders.forEach((th) => th.classList.remove('sorted-asc', 'sorted-desc'));
+      header.classList.add(direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+
+      sortState.column = columnIndex;
+      sortState.direction = direction;
+    }
+
+    tableHeaders.forEach((header, index) => {
+      header.addEventListener('click', () => sortTable(index));
+    });
+
     function refreshChart() {
       hideStatus();
       const season = seasonSelect.value;
@@ -340,9 +489,19 @@
       if (points.length === 0) {
         showStatus('No EPA points available for that range. Try a different week selection.', 'error');
         if (chart) chart.destroy();
+        renderTable([]);
         return;
       }
+      const tableRows = points.map((p) => ({
+        team: p.label,
+        displayName: TEAM_DISPLAY_NAMES[p.label] || p.label,
+        combined: p.x + p.y,
+        off: p.x,
+        def: p.y,
+      }));
       renderChart(points, season, start, end);
+      renderTable(tableRows);
+      sortTable(sortState.column ?? 0, false);
     }
 
     function populateSeasonControls(seasonsMap) {
