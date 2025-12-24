@@ -404,12 +404,14 @@
             title: { display: false },
             subtitle: { display: false },
             datalabels: {
-              backgroundColor: (ctx) => ctx.raw?.backgroundColor || '#0f172a',
-              borderRadius: 6,
-              color: '#fff',
+              backgroundColor: null,
+              borderWidth: 0,
+              color: '#0f172a',
               formatter: (value) => value.label,
-              font: { weight: 'bold', size: 10 },
-              padding: { top: 4, bottom: 4, left: 6, right: 6 },
+              font: { weight: 'bold', size: 11 },
+              padding: { top: 2, bottom: 2, left: 2, right: 2 },
+              textStrokeColor: '#fff',
+              textStrokeWidth: 3,
             },
             tooltip: {
               callbacks: {
