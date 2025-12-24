@@ -158,7 +158,7 @@ def _parse_int(arg: str, default: Optional[int]) -> Optional[int]:
 
 
 def _format_week_options(weeks: list[int]) -> list[dict[str, int | str]]:
-    playoff_labels = ["Super Bowl", "Conf. Round", "Divisional Round", "Wild Card Round"]
+    playoff_labels = ["Super Bowl", "Conference Round", "Divisional Round", "Wild Card Round"]
     total_weeks = len(weeks)
     formatted = []
     for idx, week in enumerate(weeks):
