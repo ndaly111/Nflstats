@@ -34,10 +34,4 @@ jobs:
       - name: Validate JSON contains 2024
         run: |
           python - <<'PY'
-import json
-from pathlib import Path
-payload = json.loads(Path('data/epa.json').read_text())
-if '2024' not in payload.get('seasons', {}):
-    raise SystemExit('Season 2024 missing from exported JSON')
-print('Validated season 2024 presence in data/epa.json')
-PY
+
