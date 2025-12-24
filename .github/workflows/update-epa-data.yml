@@ -212,9 +212,5 @@ PY
           else
             git commit -m "chore: refresh EPA data for season ${season}"
           fi
-          # Rebase onto any new upstream commits *after* committing (clean tree).
           branch="${GITHUB_REF_NAME}"
-          git fetch origin "$branch"
-          git pull --rebase origin "$branch"
-
           git push origin HEAD:"$branch"

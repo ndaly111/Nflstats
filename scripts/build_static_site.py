@@ -11,8 +11,8 @@ from .plot_epa_scatter import REPO_ROOT, load_team_epa
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Build a static HTML page that displays the EPA scatter chart for a "
-            "season and week range using the SQLite-backed cache."
+            "Build a static HTML snapshot (for offline use) that displays the EPA "
+            "scatter chart for a season and week range using the SQLite cache."
         )
     )
     parser.add_argument("--season", type=int, required=True, help="Season year (e.g., 2025)")
@@ -28,7 +28,7 @@ def parse_args() -> argparse.Namespace:
         "--output-dir",
         type=str,
         default=str(REPO_ROOT / "site"),
-        help="Directory where index.html and assets will be written",
+        help="Directory where index.html and assets will be written (legacy local bundle)",
     )
     return parser.parse_args()
 

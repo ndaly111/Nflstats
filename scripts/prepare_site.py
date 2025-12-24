@@ -1,9 +1,10 @@
-"""Build the static site bundle used for GitHub Pages.
+"""Assemble a legacy "site/" bundle for offline or archival use.
 
-The GitHub Actions workflows generate the EPA JSON into ``data/``. This
-utility copies the HTML shell and data payloads into ``site/`` so the Pages
-artifact is ready to publish. A ``.nojekyll`` marker is also written to
-prevent GitHub Pages from stripping the ``data/`` folder.
+The active GitHub Pages deployment serves ``index.html`` and ``data/epa.json``
+directly from the repository root, so this helper is no longer required for
+Pages. It remains available for anyone who still wants a mirrored ``site/``
+folder for local snapshots; a ``.nojekyll`` marker is written to match the
+root deployment.
 """
 
 from __future__ import annotations
