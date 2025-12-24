@@ -74,49 +74,48 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-import os
-import sqlite3
-from datetime import datetime
-from pathlib import Path
+          import os
+          import sqlite3
+          from datetime import datetime
+          from pathlib import Path
 
-db_path = Path("data/epa.sqlite")
-db_path.parent.mkdir(parents=True, exist_ok=True)
+          db_path = Path("data/epa.sqlite")
+          db_path.parent.mkdir(parents=True, exist_ok=True)
 
-now = datetime.utcnow()
-current_season = now.year if now.month >= 9 else now.year - 1
-start_season = int(os.environ.get("SEASON_START", "2000"))
-batch_size = max(int(os.environ.get("AUTO_BACKFILL_BATCH", "5")), 1)
+          now = datetime.utcnow()
+          current_season = now.year if now.month >= 9 else now.year - 1
+          start_season = int(os.environ.get("SEASON_START", "2000"))
+          batch_size = max(int(os.environ.get("AUTO_BACKFILL_BATCH", "5")), 1)
 
-seasons_in_db = set()
-if db_path.exists():
-    conn = sqlite3.connect(str(db_path))
-    try:
-        try:
-            rows = conn.execute("SELECT DISTINCT season FROM team_epa_weekly").fetchall()
-        except sqlite3.OperationalError as exc:
-            # If table doesn't exist yet, treat as empty.
-            if "no such table" in str(exc):
-                rows = []
-            else:
-                raise
-        seasons_in_db = {int(r[0]) for r in rows if r and r[0] is not None}
-    finally:
-        conn.close()
+          seasons_in_db = set()
+          if db_path.exists():
+              conn = sqlite3.connect(str(db_path))
+              try:
+                  try:
+                      rows = conn.execute("SELECT DISTINCT season FROM team_epa_weekly").fetchall()
+                  except sqlite3.OperationalError as exc:
+                      if "no such table" in str(exc):
+                          rows = []
+                      else:
+                          raise
+                  seasons_in_db = {int(r[0]) for r in rows if r and r[0] is not None}
+              finally:
+                  conn.close()
 
-missing = [s for s in range(start_season, current_season + 1) if s not in seasons_in_db]
-seasons_to_fetch = sorted(missing, reverse=True)[:batch_size]
+          missing = [s for s in range(start_season, current_season + 1) if s not in seasons_in_db]
+          seasons_to_fetch = sorted(missing, reverse=True)[:batch_size]
 
-out = Path(os.environ["GITHUB_OUTPUT"])
-with out.open("a", encoding="utf-8") as f:
-    if not seasons_to_fetch:
-        f.write("did_find_season=false\\n")
-    else:
-        f.write("did_find_season=true\\n")
-        f.write("seasons_to_fetch=" + ",".join(str(s) for s in seasons_to_fetch) + "\\n")
+          out = Path(os.environ["GITHUB_OUTPUT"])
+          with out.open("a", encoding="utf-8") as f:
+              if not seasons_to_fetch:
+                  f.write("did_find_season=false\n")
+              else:
+                  f.write("did_find_season=true\n")
+                  f.write("seasons_to_fetch=" + ",".join(str(s) for s in seasons_to_fetch) + "\n")
 
-print("seasons_in_db_count=", len(seasons_in_db))
-print("seasons_to_fetch=", ",".join(str(s) for s in seasons_to_fetch))
-PY
+          print("seasons_in_db_count=", len(seasons_in_db))
+          print("seasons_to_fetch=", ",".join(str(s) for s in seasons_to_fetch))
+          PY
 
       - name: Determine season target
         id: season
@@ -230,42 +229,40 @@ PY
           EVENT_NAME: ${{ github.event_name }}
         run: |
           python - <<'PY'
-import json
-import os
-from pathlib import Path
+          import json
+          import os
+          from pathlib import Path
 
-payload = json.loads(Path("data/epa.json").read_text())
-seasons = payload.get("seasons", {})
-if not seasons:
-    raise SystemExit("No seasons found in export")
+          payload = json.loads(Path("data/epa.json").read_text())
+          seasons = payload.get("seasons", {})
+          if not seasons:
+              raise SystemExit("No seasons found in export")
 
-mode = os.environ.get("MODE", "")
-target = os.environ.get("TARGET_SEASON", "")
-start = os.environ.get("RANGE_START", "")
-end = os.environ.get("RANGE_END", "")
-event = os.environ.get("EVENT_NAME", "")
-seasons_to_fetch = [s.strip() for s in os.environ.get("SEASONS_TO_FETCH", "").split(",") if s.strip()]
+          mode = os.environ.get("MODE", "")
+          target = os.environ.get("TARGET_SEASON", "")
+          start = os.environ.get("RANGE_START", "")
+          end = os.environ.get("RANGE_END", "")
+          event = os.environ.get("EVENT_NAME", "")
+          seasons_to_fetch = [s.strip() for s in os.environ.get("SEASONS_TO_FETCH", "").split(",") if s.strip()]
 
-# Validate what *this run* claims to have generated
-if mode == "backfill_range":
-    if not start or not end:
-        raise SystemExit("backfill_range requires RANGE_START and RANGE_END")
-    s = int(start); e = int(end)
-    missing = [str(y) for y in range(s, e + 1) if str(y) not in seasons]
-    if missing:
-        raise SystemExit(f"Missing seasons in export: {', '.join(missing)}")
-else:
-    if target and str(target) not in seasons:
-        raise SystemExit(f"Target season {target} missing from export")
+          if mode == "backfill_range":
+              if not start or not end:
+                  raise SystemExit("backfill_range requires RANGE_START and RANGE_END")
+              s = int(start); e = int(end)
+              missing = [str(y) for y in range(s, e + 1) if str(y) not in seasons]
+              if missing:
+                  raise SystemExit(f"Missing seasons in export: {', '.join(missing)}")
+          else:
+              if target and str(target) not in seasons:
+                  raise SystemExit(f"Target season {target} missing from export")
 
-# If scheduled run also backfilled seasons, validate those too
-if event == "schedule" and seasons_to_fetch:
-    missing_scheduled = [s for s in seasons_to_fetch if s not in seasons]
-    if missing_scheduled:
-        raise SystemExit("Scheduled backfill expected seasons in export: " + ", ".join(missing_scheduled))
+          if event == "schedule" and seasons_to_fetch:
+              missing_scheduled = [s for s in seasons_to_fetch if s not in seasons]
+              if missing_scheduled:
+                  raise SystemExit("Scheduled backfill expected seasons in export: " + ", ".join(missing_scheduled))
 
-print("Export validation passed")
-PY
+          print("Export validation passed")
+          PY
 
       - name: Final checkpoint before commit
         run: |
