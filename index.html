@@ -153,15 +153,6 @@
       color: var(--muted);
     }
 
-    .table-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      margin: 0.35rem 0 0.75rem;
-      font-size: 0.9rem;
-      color: var(--muted);
-    }
-
     .legend-item {
       display: inline-flex;
       align-items: center;
@@ -172,8 +163,7 @@
       border: 1px solid var(--border);
     }
 
-    .legend-swatch,
-    .category-pill::before {
+    .legend-swatch {
       content: '';
       display: inline-block;
       width: 10px;
@@ -183,28 +173,10 @@
       border: 1px solid #cbd5e1;
     }
 
-    .category-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      border: 1px solid var(--border);
-      background: #f8fafc;
-      color: var(--muted);
-    }
-
-    .category-positive-positive::before { background: #65a30d; border-color: #65a30d; }
-    .category-positive-negative::before { background: #2563eb; border-color: #2563eb; }
-    .category-negative-positive::before { background: #c026d3; border-color: #c026d3; }
-    .category-negative-negative::before { background: #94a3b8; border-color: #94a3b8; }
-
-    .legend-positive-positive .legend-swatch { background: #65a30d; border-color: #65a30d; }
-    .legend-positive-negative .legend-swatch { background: #2563eb; border-color: #2563eb; }
-    .legend-negative-positive .legend-swatch { background: #c026d3; border-color: #c026d3; }
-    .legend-negative-negative .legend-swatch { background: #94a3b8; border-color: #94a3b8; }
+    .legend-positive-positive .legend-swatch { background: #22c55e; border-color: #22c55e; }
+    .legend-positive-negative .legend-swatch { background: #38bdf8; border-color: #38bdf8; }
+    .legend-negative-positive .legend-swatch { background: #a855f7; border-color: #a855f7; }
+    .legend-negative-negative .legend-swatch { background: #ef4444; border-color: #ef4444; }
 
     .table-scroll {
       overflow-x: auto;
@@ -238,10 +210,10 @@
     tbody tr:nth-child(odd) { background: #f8fafc; }
     tbody tr:nth-child(even) { background: #ffffff; }
 
-    tbody tr.category-row-positive-positive { background: #f4fce3; }
-    tbody tr.category-row-positive-negative { background: #e8f0fe; }
-    tbody tr.category-row-negative-positive { background: #f5e1fa; }
-    tbody tr.category-row-negative-negative { background: #f8fafc; }
+    tbody tr.quadrant-positive-positive { background: #ecfdf3; color: #166534; }
+    tbody tr.quadrant-positive-negative { background: #e0f2fe; color: #1d4ed8; }
+    tbody tr.quadrant-negative-positive { background: #f5f3ff; color: #7c3aed; }
+    tbody tr.quadrant-negative-negative { background: #fef2f2; color: #b91c1c; }
   </style>
 </head>
 <body>
@@ -282,12 +254,6 @@
       <section id="table-section" class="table-wrapper" hidden>
         <h2>EPA/play table</h2>
         <p class="table-note">Click any column header to sort. Values match the chart above.</p>
-        <div class="table-legend" aria-hidden="true">
-          <span class="legend-item legend-positive-positive"><span class="legend-swatch"></span>Positive Offense, Positive Defense</span>
-          <span class="legend-item legend-positive-negative"><span class="legend-swatch"></span>Positive Offense, Negative Defense</span>
-          <span class="legend-item legend-negative-positive"><span class="legend-swatch"></span>Negative Offense, Positive Defense</span>
-          <span class="legend-item legend-negative-negative"><span class="legend-swatch"></span>Negative Offense, Negative Defense</span>
-        </div>
         <div class="table-scroll">
           <table id="epa-table">
             <thead>
@@ -322,17 +288,17 @@
     const TEAM_DISPLAY_NAMES = {
       ARI: 'Arizona', ATL: 'Atlanta', BAL: 'Baltimore', BUF: 'Buffalo', CAR: 'Carolina', CHI: 'Chicago',
       CIN: 'Cincinnati', CLE: 'Cleveland', DAL: 'Dallas', DEN: 'Denver', DET: 'Detroit', GB: 'Green Bay',
-      HOU: 'Houston', IND: 'Indianapolis', JAX: 'Jacksonville', KC: 'Kansas City', LAC: 'Los Angeles (Chargers)',
-      LAR: 'Los Angeles (Rams)', LV: 'Las Vegas', MIA: 'Miami', MIN: 'Minnesota', NE: 'New England',
+      HOU: 'Houston', IND: 'Indianapolis', JAX: 'Jacksonville', KC: 'Kansas City', LAC: 'LA Chargers',
+      LAR: 'LA Rams', LV: 'Las Vegas', MIA: 'Miami', MIN: 'Minnesota', NE: 'New England',
       NO: 'New Orleans', NYG: 'NY Giants', NYJ: 'NY Jets', PHI: 'Philadelphia', PIT: 'Pittsburgh',
       SEA: 'Seattle', SF: 'San Francisco', TB: 'Tampa Bay', TEN: 'Tennessee', WAS: 'Washington'
     };
 
     const QUADRANT_BACKGROUND_COLORS = {
-      'positive-positive': 'rgba(101, 163, 13, 0.09)',
-      'positive-negative': 'rgba(37, 99, 235, 0.08)',
-      'negative-positive': 'rgba(192, 38, 211, 0.08)',
-      'negative-negative': 'rgba(148, 163, 184, 0.07)'
+      'positive-positive': 'rgba(34, 197, 94, 0.12)',
+      'positive-negative': 'rgba(56, 189, 248, 0.12)',
+      'negative-positive': 'rgba(168, 85, 247, 0.12)',
+      'negative-negative': 'rgba(239, 68, 68, 0.12)'
     };
 
     const statusEl = document.getElementById('status');
@@ -477,19 +443,8 @@
           layout: { padding: 10 },
           plugins: {
             legend: { display: false },
-            title: {
-              display: true,
-              text: `NFL Team Efficiency (EPA/play) · ${seasonLabel}`,
-              font: { size: 18, weight: 'bold' },
-              padding: { bottom: 10 },
-            },
-            subtitle: {
-              display: true,
-              text: subtitle,
-              color: '#475569',
-              font: { size: 14 },
-              padding: { bottom: 12 },
-            },
+            title: { display: false },
+            subtitle: { display: false },
             datalabels: {
               color: '#fff',
               formatter: (value) => value.label,
@@ -553,10 +508,10 @@
       rows.forEach((row) => {
         const tr = document.createElement('tr');
         const quadrant = describeQuadrant(row.off, row.def);
-        tr.classList.add(`category-row-${quadrant.key}`);
+        tr.classList.add(`quadrant-${quadrant.key}`);
         tr.innerHTML = `
           <td data-value="${row.team}">${row.displayName} (${row.team})</td>
-          <td data-value="${quadrant.label}" aria-label="${quadrant.label}"><span class="category-pill category-${quadrant.key}">${quadrant.label}</span></td>
+          <td data-value="${quadrant.label}" aria-label="${quadrant.label}">${quadrant.label}</td>
           <td data-value="${row.combined.toFixed(6)}">${formatNumber(row.combined)}</td>
           <td data-value="${row.off.toFixed(6)}">${formatNumber(row.off)}</td>
           <td data-value="${row.def.toFixed(6)}">${formatNumber(row.def)}</td>
