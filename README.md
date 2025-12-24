@@ -31,6 +31,16 @@ repository without an extra build step.
 
 ### Run the update locally
 
+> **Heads up on network access**
+>
+> Both the local and GitHub Actions update paths download weekly play-by-play
+> parquet files from the `nflverse` releases on GitHub. If your environment
+> blocks outbound HTTPS (for example, via a corporate proxy that returns a
+> `403` when hitting `https://github.com`), the local commands will fail before
+> any SQLite or JSON artifacts are produced. In that case, trigger the
+> **Update EPA data** workflow from GitHub instead—Actions runners have internet
+> access and will refresh the data even when your local machine cannot.
+
 ```bash
 python -m scripts.fetch_epa --season 2024 --db data/epa.sqlite --include-playoffs
 python -m scripts.export_epa_json --db data/epa.sqlite --output data/epa.json
@@ -58,6 +68,32 @@ To regenerate every season from 2000 through 2025 in one go:
 
 The workflow will iterate through each season, rebuild the SQLite cache, and
 export an updated `data/epa.json` covering the full range.
+
+### Trigger the workflow from the CLI
+
+If the **Run workflow** button is hidden in the Actions UI, you can still kick
+off the job with the GitHub CLI (requires a token that permits `workflow`
+scope, e.g., `GH_TOKEN`):
+
+```bash
+./scripts/trigger_update_workflow.sh                          # update_current
+./scripts/trigger_update_workflow.sh backfill_season 2023     # specific season
+./scripts/trigger_update_workflow.sh backfill_range '' 2000 2024
+```
+
+### Trigger the workflow from a GitHub comment (no local shell)
+
+If you have write access but the Actions UI still hides the **Run workflow**
+control, comment on any issue or pull request with one of these commands:
+
+- `/update-epa` — runs with the default `update_current` mode on the default
+  branch.
+- `/update-epa mode=backfill_season season=2023` — rebuilds a specific season.
+- `/update-epa mode=backfill_range season_start=2000 season_end=2024` — bulk
+  backfill across a range.
+
+Only collaborators/maintainers can trigger runs this way; the bot replies on
+the thread to confirm whether it dispatched the workflow or lacked permission.
 
 ### Architecture notes
 
