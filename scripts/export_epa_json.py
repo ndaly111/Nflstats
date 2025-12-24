@@ -1,8 +1,8 @@
 """Export cached team EPA to the static JSON format used by index.html.
 
 Run this after populating ``data/epa.sqlite`` with ``scripts.fetch_epa``. The
-output JSON mirrors ``data/epa_sample.json`` so it can be dropped into GitHub
-Pages (or any static host) for the interactive Chart.js page to consume.
+exported payload is consumed directly by GitHub Pages (or any static host) so
+the browser can render the chart without touching SQLite.
 """
 
 from __future__ import annotations
@@ -57,14 +57,16 @@ def fetch_season_payload(conn: sqlite3.Connection, season: int) -> dict | None:
             week_payload["def_plays"] = def_play_count
         teams.setdefault(team, {})[int(week)] = week_payload
 
-    payload = {
-        "weeks": weeks,
+    return {
+        "weeks": sorted(weeks),
         "teams": [
-            {"team": team, "weeks": weeks_data}
+            {
+                "team": team,
+                "weeks": {str(week): payload for week, payload in sorted(weeks_data.items())},
+            }
             for team, weeks_data in sorted(teams.items())
         ],
     }
-    return payload
 
 
 def export_json(db_path: Path, output_path: Path, seasons: Iterable[int] | None) -> None:
@@ -75,15 +77,13 @@ def export_json(db_path: Path, output_path: Path, seasons: Iterable[int] | None)
         for season in season_keys:
             payload = fetch_season_payload(conn, season)
             if payload is None:
-             
                 continue
             snapshot["seasons"][str(season)] = payload
 
-        # Add metadata fields for generation timestamp and git SHA
-    snapshot["generated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    sha = os.getenv("GITHUB_SHA")
-    if sha:
-        snapshot["git_sha"] = sha
+        snapshot["generated_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        sha = os.getenv("GITHUB_SHA")
+        if sha:
+            snapshot["git_sha"] = sha
     finally:
         conn.close()
 
@@ -93,6 +93,7 @@ def export_json(db_path: Path, output_path: Path, seasons: Iterable[int] | None)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with output_path.open("w", encoding="utf-8") as fh:
         json.dump(snapshot, fh, indent=2)
+        fh.write("\n")
     print(f"Wrote {output_path} with {len(snapshot['seasons'])} season(s)")
 
 
@@ -102,7 +103,7 @@ def parse_args() -> argparse.Namespace:
         "--db", type=Path, default=DB_PATH, help="Path to SQLite database (default: data/epa.sqlite)",
     )
     parser.add_argument(
-        "--output", type=Path, default=Path("data/epa_sample.json"),
+        "--output", type=Path, default=Path("data/epa.json"),
         help="Where to write the Chart.js-friendly JSON payload",
     )
     parser.add_argument(

@@ -27,10 +27,16 @@ on:
 
 concurrency:
   group: epa-data
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: write
+
+env:
+  MODE: ${{ github.event.inputs.mode || 'update_current' }}
+  SEASON: ${{ github.event.inputs.season }}
+  SEASON_START: ${{ github.event.inputs.season_start || '2000' }}
+  SEASON_END: ${{ github.event.inputs.season_end }}
 
 jobs:
   update:
@@ -41,6 +47,13 @@ jobs:
         with:
           persist-credentials: true
           fetch-depth: 0
+
+      - name: Sync to latest branch HEAD
+        run: |
+          set -euo pipefail
+          branch="${GITHUB_REF_NAME}"
+          git fetch origin "$branch"
+          git checkout -B "$branch" "origin/$branch"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -54,20 +67,25 @@ jobs:
 
       - name: Determine season target
         id: season
+        env:
+          MODE: ${{ env.MODE }}
+          INPUT_SEASON: ${{ env.SEASON }}
+          INPUT_START: ${{ env.SEASON_START }}
+          INPUT_END: ${{ env.SEASON_END }}
         run: |
-          MODE="${{ github.event.inputs.mode || 'update_current' }}"
-          INPUT_SEASON="${{ github.event.inputs.season }}"
-          INPUT_START="${{ github.event.inputs.season_start }}"
-          INPUT_END="${{ github.event.inputs.season_end }}"
+          set -euo pipefail
+          MODE="${MODE:-update_current}"
+          INPUT_SEASON="${INPUT_SEASON:-}"
+          INPUT_START="${INPUT_START:-2000}"
+          INPUT_END="${INPUT_END:-}"
 
-        # compute current season: if current month >= 9 -> current year else previous year
-     current_year="$(date -u '+%Y')"
-    current_month="$(date -u '+%m')"
-  if [ "$current_month" -ge 9 ]; then
-      current_season="$current_year"
-    else
-      current_season=$((current_year - 1))
-    fi
+          current_year="$(date -u '+%Y')"
+          current_month="$(date -u '+%m')"
+          if [ "$current_month" -ge 9 ]; then
+            current_season="$current_year"
+          else
+            current_season=$((current_year - 1))
+          fi
 
           if [ "$MODE" = "backfill_season" ]; then
             if [ -z "$INPUT_SEASON" ]; then
@@ -78,16 +96,11 @@ jobs:
             season_start=""
             season_end=""
           elif [ "$MODE" = "backfill_range" ]; then
-            season_start="${INPUT_START:-2000}"
+            season_start="$INPUT_START"
             season_end="${INPUT_END:-$current_season}"
             season="$season_end"
             if [ "$season_start" -gt "$season_end" ]; then
               echo "season_start ($season_start) cannot be greater than season_end ($season_end)" >&2
-              exit 1
-            fi
-            if [ $((season_end - season_start)) -gt 10 ]; then
-              echo "Requested backfill range ${season_start}-${season_end} exceeds 10 seasons." >&2
-              echo "Re-run in smaller chunks (e.g., 5-year blocks) to avoid timeouts." >&2
               exit 1
             fi
           else
@@ -100,25 +113,38 @@ jobs:
           echo "season_start=$season_start" >> "$GITHUB_OUTPUT"
           echo "season_end=$season_end" >> "$GITHUB_OUTPUT"
 
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Refresh SQLite cache
         if: steps.season.outputs.mode != 'backfill_range'
         run: |
           python -m scripts.fetch_epa --season ${{ steps.season.outputs.season }} --db data/epa.sqlite --include-playoffs
-
+          
       - name: Refresh SQLite cache (range)
         if: steps.season.outputs.mode == 'backfill_range'
         run: |
           set -euo pipefail
           start=${{ steps.season.outputs.season_start }}
           end=${{ steps.season.outputs.season_end }}
+          max_span=10
+          span=$((end - start + 1))
+          if [ "$span" -gt "$max_span" ]; then
+            echo "Range too large (${span} seasons). Please backfill in batches of $max_span or fewer." >&2
+            exit 1
+          fi
           for season in $(seq $start $end); do
             echo "Backfilling season $season"
             python -m scripts.fetch_epa --season $season --db data/epa.sqlite --include-playoffs
+            python -c "import sqlite3; conn=sqlite3.connect('data/epa.sqlite'); conn.execute('PRAGMA wal_checkpoint(TRUNCATE);'); conn.close()"
+            rm -f data/epa.sqlite-wal data/epa.sqlite-shm
           done
 
       - name: Export static JSON
         run: |
-          python -m scripts.export_epa_json --db data/epa.sqlite --output data/epa_sample.json
+          python -m scripts.export_epa_json --db data/epa.sqlite --output data/epa.json
 
       - name: Validate exported payload
         run: |
@@ -129,43 +155,50 @@ jobs:
 import json
 import os
 from pathlib import Path
-payload = json.loads(Path('data/epa_sample.json').read_text())
+
+payload = json.loads(Path('data/epa.json').read_text())
 seasons = payload.get('seasons', {})
 if not seasons:
     raise SystemExit('No seasons found in exported JSON')
+
 mode = os.environ['MODE']
 if mode == 'backfill_range':
-    for env_key in ('SEASON_START', 'SEASON_END'):
-        target_season = str(os.environ[env_key])
-        if target_season not in seasons:
-            raise SystemExit(f'Target season {target_season} missing from export')
-        teams = len(seasons[target_season].get('teams', []))
+    start = int(os.environ['SEASON_START']) if os.environ['SEASON_START'] else None
+    end = int(os.environ['SEASON_END']) if os.environ['SEASON_END'] else None
+    if start is None or end is None:
+        raise SystemExit('Range mode requires SEASON_START and SEASON_END')
+    missing = []
+    for season_year in range(start, end + 1):
+        key = str(season_year)
+        if key not in seasons:
+            missing.append(key)
+            continue
+        teams = len(seasons[key].get('teams', []))
         if teams < 28:
-            raise SystemExit(f'Expected at least 28 teams for season {target_season}, found {teams}')
-        print(f'Validated season {target_season} with {teams} team entries')
-else:
+            raise SystemExit(f'Expected at least 28 teams for season {key}, found {teams}')
+    if missing:
+        raise SystemExit(f'Missing seasons in export: {", ".join(missing)}')
+elif mode in {'update_current', 'backfill_season'}:
     target_season = str(os.environ['SEASON'])
     if target_season not in seasons:
         raise SystemExit(f'Target season {target_season} missing from export')
     teams = len(seasons[target_season].get('teams', []))
     if teams < 28:
         raise SystemExit(f'Expected at least 28 teams for season {target_season}, found {teams}')
-    print(f'Validated season {target_season} with {teams} team entries')
+else:
+    raise SystemExit(f'Unknown mode {mode}')
+print('Export validation passed')
 PY
 
-      - name: Configure git
+      - name: Final checkpoint before commit
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Sync with remote
-        run: |
-          git fetch origin
-          git pull --rebase
+          set -euo pipefail
+          python -c "import sqlite3; conn=sqlite3.connect('data/epa.sqlite'); conn.execute('PRAGMA wal_checkpoint(TRUNCATE);'); conn.close()"
+          rm -f data/epa.sqlite-wal data/epa.sqlite-shm
 
       - name: Commit and push updates
         run: |
-          git add data/epa.sqlite data/epa_sample.json
+          git add data/epa.sqlite data/epa.json
           if git diff --cached --quiet; then
             echo "No changes to commit."
             exit 0
@@ -179,4 +212,9 @@ PY
           else
             git commit -m "chore: refresh EPA data for season ${season}"
           fi
-          git push
+          # Rebase onto any new upstream commits *after* committing (clean tree).
+          branch="${GITHUB_REF_NAME}"
+          git fetch origin "$branch"
+          git pull --rebase origin "$branch"
+
+          git push origin HEAD:"$branch"

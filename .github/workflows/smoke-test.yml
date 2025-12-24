@@ -29,15 +29,15 @@ jobs:
 
       - name: Export sample EPA JSON
         run: |
-          python -m scripts.export_epa_json --db data/epa.sqlite --output data/epa_sample.json
+          python -m scripts.export_epa_json --db data/epa.sqlite --output data/epa.json
 
       - name: Validate JSON contains 2024
         run: |
           python - <<'PY'
 import json
 from pathlib import Path
-payload = json.loads(Path('data/epa_sample.json').read_text())
+payload = json.loads(Path('data/epa.json').read_text())
 if '2024' not in payload.get('seasons', {}):
     raise SystemExit('Season 2024 missing from exported JSON')
-print('Validated season 2024 presence in data/epa_sample.json')
+print('Validated season 2024 presence in data/epa.json')
 PY
