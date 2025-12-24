@@ -319,12 +319,21 @@
       statusEl.textContent = '';
     }
 
+    const PLAYOFF_LABELS = ['Super Bowl', 'Conf. Round', 'Divisional Round', 'Wild Card Round'];
+
+    function formatWeekLabel(week, index, totalWeeks) {
+      const offsetFromEnd = totalWeeks - 1 - index;
+      const playoffLabel = PLAYOFF_LABELS[offsetFromEnd];
+      if (playoffLabel) return playoffLabel;
+      return `Week ${week}`;
+    }
+
     function fillWeekSelect(selectEl, weeks) {
       selectEl.innerHTML = '';
-      weeks.forEach((week) => {
+      weeks.forEach((week, index) => {
         const option = document.createElement('option');
         option.value = week;
-        option.textContent = `Week ${week}`;
+        option.textContent = formatWeekLabel(week, index, weeks.length);
         selectEl.appendChild(option);
       });
     }
