@@ -173,10 +173,6 @@
     tbody tr:nth-child(odd) { background: #f8fafc; }
     tbody tr:nth-child(even) { background: #ffffff; }
 
-    tbody tr.quadrant-positive-positive { background: #ecfdf3; color: #166534; }
-    tbody tr.quadrant-positive-negative { background: #e0f2fe; color: #1d4ed8; }
-    tbody tr.quadrant-negative-positive { background: #f5f3ff; color: #7c3aed; }
-    tbody tr.quadrant-negative-negative { background: #fef2f2; color: #b91c1c; }
   </style>
 </head>
 <body>
@@ -216,7 +212,6 @@
             <thead>
               <tr>
                 <th data-type="string">Team</th>
-                <th data-type="string">Quadrant</th>
                 <th data-type="number">Combined EPA/play</th>
                 <th data-type="number">Offense EPA/play</th>
                 <th data-type="number">Defense EPA/play</th>
@@ -451,15 +446,6 @@
       return Number.isFinite(value) ? value.toFixed(3) : 'N/A';
     }
 
-    function describeQuadrant(off, def) {
-      const offensePositive = off >= 0;
-      const defensePositive = def >= 0;
-      if (offensePositive && defensePositive) return { label: 'Positive Offense, Positive Defense', key: 'positive-positive' };
-      if (offensePositive && !defensePositive) return { label: 'Positive Offense, Negative Defense', key: 'positive-negative' };
-      if (!offensePositive && defensePositive) return { label: 'Negative Offense, Positive Defense', key: 'negative-positive' };
-      return { label: 'Negative Offense, Negative Defense', key: 'negative-negative' };
-    }
-
     function renderTable(rows) {
       if (!rows.length) {
         tableSection.hidden = true;
@@ -470,11 +456,8 @@
       tableBody.innerHTML = '';
       rows.forEach((row) => {
         const tr = document.createElement('tr');
-        const quadrant = describeQuadrant(row.off, row.def);
-        tr.classList.add(`quadrant-${quadrant.key}`);
         tr.innerHTML = `
           <td data-value="${row.team}">${row.displayName} (${row.team})</td>
-          <td data-value="${quadrant.label}" aria-label="${quadrant.label}">${quadrant.label}</td>
           <td data-value="${row.combined.toFixed(6)}">${formatNumber(row.combined)}</td>
           <td data-value="${row.off.toFixed(6)}">${formatNumber(row.off)}</td>
           <td data-value="${row.def.toFixed(6)}">${formatNumber(row.def)}</td>
