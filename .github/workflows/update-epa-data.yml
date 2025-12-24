@@ -4,26 +4,7 @@ on:
   schedule:
     - cron: '0 12 * * 2'
   workflow_dispatch:
-    inputs:
-      mode:
-        description: "Choose update_current to refresh active season; backfill_season for historical rebuild"
-        required: true
-        default: update_current
-        type: choice
-        options:
-          - update_current
-          - backfill_season
-          - backfill_range
-      season:
-        description: "Season year (used when mode=backfill_season)"
-        required: false
-      season_start:
-        description: "Start season year (used when mode=backfill_range)"
-        required: false
-        default: "2000"
-      season_end:
-        description: "End season year (optional; defaults to current season when mode=backfill_range)"
-        required: false
+    inputs: {}  # no manual inputs needed
 
 concurrency:
   group: epa-data
@@ -33,10 +14,8 @@ permissions:
   contents: write
 
 env:
-  MODE: ${{ github.event.inputs.mode || 'update_current' }}
-  SEASON: ${{ github.event.inputs.season }}
-  SEASON_START: ${{ github.event.inputs.season_start || '2000' }}
-  SEASON_END: ${{ github.event.inputs.season_end }}
+  # Always start backfilling from the year 2000
+  SEASON_START: "2000"
 
 jobs:
   update:
@@ -67,17 +46,9 @@ jobs:
 
       - name: Determine season target
         id: season
-        env:
-          MODE: ${{ env.MODE }}
-          INPUT_SEASON: ${{ env.SEASON }}
-          INPUT_START: ${{ env.SEASON_START }}
-          INPUT_END: ${{ env.SEASON_END }}
         run: |
           set -euo pipefail
-          MODE="${MODE:-update_current}"
-          INPUT_SEASON="${INPUT_SEASON:-}"
-          INPUT_START="${INPUT_START:-2000}"
-          INPUT_END="${INPUT_END:-}"
+          SEASON_START="${{ env.SEASON_START }}"
 
           current_year="$(date -u '+%Y')"
           current_month="$(date -u '+%m')"
@@ -87,28 +58,11 @@ jobs:
             current_season=$((current_year - 1))
           fi
 
-          if [ "$MODE" = "backfill_season" ]; then
-            if [ -z "$INPUT_SEASON" ]; then
-              echo "Season input is required when mode=backfill_season" >&2
-              exit 1
-            fi
-            season="$INPUT_SEASON"
-            season_start=""
-            season_end=""
-          elif [ "$MODE" = "backfill_range" ]; then
-            season_start="$INPUT_START"
-            season_end="${INPUT_END:-$current_season}"
-            season="$season_end"
-            if [ "$season_start" -gt "$season_end" ]; then
-              echo "season_start ($season_start) cannot be greater than season_end ($season_end)" >&2
-              exit 1
-            fi
-          else
-            season="$current_season"
-            season_start=""
-            season_end=""
-          fi
-          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          # Always backfill from SEASON_START to current season
+          season_start="$SEASON_START"
+          season_end="$current_season"
+          season="$season_end"
+          echo "mode=backfill_range" >> "$GITHUB_OUTPUT"
           echo "season=$season" >> "$GITHUB_OUTPUT"
           echo "season_start=$season_start" >> "$GITHUB_OUTPUT"
           echo "season_end=$season_end" >> "$GITHUB_OUTPUT"
@@ -119,22 +73,15 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Refresh SQLite cache
-        if: steps.season.outputs.mode != 'backfill_range'
-        run: |
-          python -m scripts.fetch_epa --season ${{ steps.season.outputs.season }} --db data/epa.sqlite --include-playoffs
+        if: false  # disable single-season refresh; always use range
+        run: echo "Single-season refresh disabled"
           
       - name: Refresh SQLite cache (range)
-        if: steps.season.outputs.mode == 'backfill_range'
+        # Always backfill from start to end
         run: |
           set -euo pipefail
           start=${{ steps.season.outputs.season_start }}
           end=${{ steps.season.outputs.season_end }}
-          max_span=10
-          span=$((end - start + 1))
-          if [ "$span" -gt "$max_span" ]; then
-            echo "Range too large (${span} seasons). Please backfill in batches of $max_span or fewer." >&2
-            exit 1
-          fi
           for season in $(seq $start $end); do
             echo "Backfilling season $season"
             python -m scripts.fetch_epa --season $season --db data/epa.sqlite --include-playoffs
@@ -148,10 +95,10 @@ jobs:
 
       - name: Validate exported payload
         run: |
-          MODE=${{ steps.season.outputs.mode }} \
-          SEASON=${{ steps.season.outputs.season }} \
-          SEASON_START=${{ steps.season.outputs.season_start }} \
-          SEASON_END=${{ steps.season.outputs.season_end }} python - <<'PY'
+          # Validate that every season has at least 28 teams
+          SEASON_START=${{ steps.season.outputs.season_start }}
+          SEASON_END=${{ steps.season.outputs.season_end }}
+          python - <<'PY'
 import json
 import os
 from pathlib import Path
@@ -160,34 +107,20 @@ payload = json.loads(Path('data/epa.json').read_text())
 seasons = payload.get('seasons', {})
 if not seasons:
     raise SystemExit('No seasons found in exported JSON')
-
-mode = os.environ['MODE']
-if mode == 'backfill_range':
-    start = int(os.environ['SEASON_START']) if os.environ['SEASON_START'] else None
-    end = int(os.environ['SEASON_END']) if os.environ['SEASON_END'] else None
-    if start is None or end is None:
-        raise SystemExit('Range mode requires SEASON_START and SEASON_END')
-    missing = []
-    for season_year in range(start, end + 1):
-        key = str(season_year)
-        if key not in seasons:
-            missing.append(key)
-            continue
+start = int(os.environ['SEASON_START'])
+end = int(os.environ['SEASON_END'])
+missing = []
+for year in range(start, end + 1):
+    key = str(year)
+    if key not in seasons:
+        missing.append(key)
+    else:
         teams = len(seasons[key].get('teams', []))
         if teams < 28:
-            raise SystemExit(f'Expected at least 28 teams for season {key}, found {teams}')
-    if missing:
-        raise SystemExit(f'Missing seasons in export: {", ".join(missing)}')
-elif mode in {'update_current', 'backfill_season'}:
-    target_season = str(os.environ['SEASON'])
-    if target_season not in seasons:
-        raise SystemExit(f'Target season {target_season} missing from export')
-    teams = len(seasons[target_season].get('teams', []))
-    if teams < 28:
-        raise SystemExit(f'Expected at least 28 teams for season {target_season}, found {teams}')
-else:
-    raise SystemExit(f'Unknown mode {mode}')
-print('Export validation passed')
+            raise SystemExit(f'Season {key} has only {teams} teams')
+if missing:
+    raise SystemExit(f'Missing seasons: {", ".join(missing)}')
+print('Validated all seasons')
 PY
 
       - name: Final checkpoint before commit
@@ -203,14 +136,8 @@ PY
             echo "No changes to commit."
             exit 0
           fi
-          mode="${{ steps.season.outputs.mode }}"
-          season="${{ steps.season.outputs.season }}"
           season_start="${{ steps.season.outputs.season_start }}"
           season_end="${{ steps.season.outputs.season_end }}"
-          if [ "$mode" = "backfill_range" ]; then
-            git commit -m "chore: backfill EPA data seasons ${season_start}-${season_end}"
-          else
-            git commit -m "chore: refresh EPA data for season ${season}"
-          fi
+          git commit -m "chore: refresh all seasons ${season_start}-${season_end}"
           branch="${GITHUB_REF_NAME}"
           git push origin HEAD:"$branch"
