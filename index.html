@@ -211,6 +211,7 @@
           <table id="epa-table">
             <thead>
               <tr>
+                <th data-type="number">Rank</th>
                 <th data-type="string">Team</th>
                 <th data-type="number">Combined EPA/play</th>
                 <th data-type="number">Offense EPA/play</th>
@@ -454,9 +455,10 @@
       }
 
       tableBody.innerHTML = '';
-      rows.forEach((row) => {
+      rows.forEach((row, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
+          <td class="rank-cell" data-value="${index + 1}">${index + 1}</td>
           <td data-value="${row.team}">${row.displayName} (${row.team})</td>
           <td data-value="${row.combined.toFixed(6)}">${formatNumber(row.combined)}</td>
           <td data-value="${row.off.toFixed(6)}">${formatNumber(row.off)}</td>
@@ -466,6 +468,17 @@
       });
 
       tableSection.hidden = false;
+      updateRankNumbers();
+    }
+
+    function updateRankNumbers() {
+      Array.from(tableBody.querySelectorAll('tr')).forEach((row, index) => {
+        const rankCell = row.querySelector('.rank-cell');
+        if (rankCell) {
+          rankCell.textContent = index + 1;
+          rankCell.dataset.value = index + 1;
+        }
+      });
     }
 
     function getCellValue(cell, type) {
@@ -499,6 +512,8 @@
       tableBody.innerHTML = '';
       rows.forEach((row) => tableBody.appendChild(row));
 
+      updateRankNumbers();
+
       tableHeaders.forEach((th) => th.classList.remove('sorted-asc', 'sorted-desc'));
       header.classList.add(direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
 
@@ -530,7 +545,7 @@
       }));
       renderChart(points, season, start, end);
       renderTable(tableRows);
-      sortTable(sortState.column ?? 0, false);
+      sortTable(sortState.column ?? 1, false);
     }
 
     function populateSeasonControls(seasonsMap) {
