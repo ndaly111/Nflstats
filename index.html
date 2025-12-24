@@ -96,6 +96,18 @@
       overflow: hidden;
     }
 
+    .chart-legend {
+      position: absolute;
+      inset: auto 0 0 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem 0.1rem;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.9));
+      pointer-events: none;
+      justify-content: center;
+    }
+
     .chart-wrap canvas {
       display: block;
       width: 100% !important;
@@ -259,6 +271,12 @@
 
       <div class="chart-wrap">
         <canvas id="epa-chart" aria-label="EPA scatter chart" role="img"></canvas>
+        <div class="chart-legend" aria-hidden="true">
+          <span class="legend-item legend-positive-positive"><span class="legend-swatch"></span>Positive Offense, Positive Defense</span>
+          <span class="legend-item legend-positive-negative"><span class="legend-swatch"></span>Positive Offense, Negative Defense</span>
+          <span class="legend-item legend-negative-positive"><span class="legend-swatch"></span>Negative Offense, Positive Defense</span>
+          <span class="legend-item legend-negative-negative"><span class="legend-swatch"></span>Negative Offense, Negative Defense</span>
+        </div>
       </div>
 
       <section id="table-section" class="table-wrapper" hidden>
@@ -310,6 +328,13 @@
       SEA: 'Seattle', SF: 'San Francisco', TB: 'Tampa Bay', TEN: 'Tennessee', WAS: 'Washington'
     };
 
+    const QUADRANT_BACKGROUND_COLORS = {
+      'positive-positive': 'rgba(101, 163, 13, 0.09)',
+      'positive-negative': 'rgba(37, 99, 235, 0.08)',
+      'negative-positive': 'rgba(192, 38, 211, 0.08)',
+      'negative-negative': 'rgba(148, 163, 184, 0.07)'
+    };
+
     const statusEl = document.getElementById('status');
     const metaEl = document.getElementById('data-meta');
     const seasonSelect = document.getElementById('season-select');
@@ -327,6 +352,32 @@
     let chart;
     let seasonData = {};
     const sortState = { column: null, direction: 'asc' };
+
+    const quadrantPlugin = {
+      id: 'quadrantBackground',
+      beforeDraw(chartInstance) {
+        const { chartArea, ctx, scales } = chartInstance;
+        if (!chartArea) return;
+        const xScale = scales.x;
+        const yScale = scales.y;
+        const xZero = Math.min(Math.max(xScale.getPixelForValue(0), chartArea.left), chartArea.right);
+        const yZero = Math.min(Math.max(yScale.getPixelForValue(0), chartArea.top), chartArea.bottom);
+
+        const quadrants = [
+          { key: 'positive-positive', xStart: xZero, xEnd: chartArea.right, yStart: chartArea.top, yEnd: yZero },
+          { key: 'positive-negative', xStart: xZero, xEnd: chartArea.right, yStart: yZero, yEnd: chartArea.bottom },
+          { key: 'negative-positive', xStart: chartArea.left, xEnd: xZero, yStart: chartArea.top, yEnd: yZero },
+          { key: 'negative-negative', xStart: chartArea.left, xEnd: xZero, yStart: yZero, yEnd: chartArea.bottom },
+        ];
+
+        ctx.save();
+        quadrants.forEach((quad) => {
+          ctx.fillStyle = QUADRANT_BACKGROUND_COLORS[quad.key] || 'rgba(0, 0, 0, 0.03)';
+          ctx.fillRect(quad.xStart, quad.yStart, quad.xEnd - quad.xStart, quad.yEnd - quad.yStart);
+        });
+        ctx.restore();
+      }
+    };
 
     function showStatus(message, variant = 'info') {
       statusEl.textContent = message;
@@ -464,7 +515,7 @@
             },
           },
         },
-        plugins: [ChartDataLabels],
+        plugins: [ChartDataLabels, quadrantPlugin],
       });
     }
 
