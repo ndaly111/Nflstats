@@ -39,8 +39,14 @@
     }
 
     p.lead {
-      margin: 0 0 1rem;
+      margin: 0 0 0.65rem;
       color: var(--muted);
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin: 0 0 1rem;
     }
 
     .controls {
@@ -105,6 +111,7 @@
   <main>
     <h1>NFL Offense vs Defense Efficiency</h1>
     <p class="lead">Explore team EPA/play without running a server. Pick your season and week range to redraw the chart in-place.</p>
+    <div id="data-meta" class="meta"></div>
     <div id="status" class="notice" hidden></div>
     <section class="controls">
       <div>
@@ -128,7 +135,7 @@
     <canvas id="epa-chart" width="1000" height="620" aria-label="EPA scatter chart" role="img"></canvas>
 
     <footer>
-      <p><strong>Tip:</strong> values shown come from a bundled sample dataset (data/epa_sample.json). Replace that file with your own weekly EPA snapshots to publish updated charts on GitHub Pages.</p>
+      <p><strong>Tip:</strong> values shown come from a bundled dataset (data/epa.json). Replace that file with your own weekly EPA snapshots to publish updated charts on GitHub Pages.</p>
     </footer>
   </main>
 
@@ -143,11 +150,15 @@
     };
 
     const statusEl = document.getElementById('status');
+    const metaEl = document.getElementById('data-meta');
     const seasonSelect = document.getElementById('season-select');
     const weekStartSelect = document.getElementById('week-start');
     const weekEndSelect = document.getElementById('week-end');
-    const updateBtn = document.getElementById('update-btn');
+    const updateButton = document.getElementById('update-btn');
     const ctx = document.getElementById('epa-chart').getContext('2d');
+    const DATA_URL = new URL('data/epa.json', document.baseURI);
+    DATA_URL.searchParams.set('v', Date.now().toString());
+
     let chart;
     let seasonData = {};
 
@@ -231,7 +242,7 @@
 
     function renderChart(points, seasonLabel, startWeek, endWeek) {
       if (chart) chart.destroy();
-      const subtitle = startWeek === endWeek ? `Week ${startWeek}` : `Weeks ${startWeek}–${endWeek}`;
+      const subtitle = startWeek === endWeek ? `Week ${startWeek}` : `Weeks ${startWeek}\u2013${endWeek}`;
       chart = new Chart(ctx, {
         type: 'scatter',
         data: { datasets: [{
@@ -291,7 +302,7 @@
       });
     }
 
-    function syncWeekRange(startWeek, endWeek) {
+    function syncWeekRange() {
       const start = Number(weekStartSelect.value);
       const end = Number(weekEndSelect.value);
       if (start > end) {
@@ -314,28 +325,43 @@
       renderChart(points, season, start, end);
     }
 
-    function populateSeasonControls(data) {
+    function populateSeasonControls(seasonsMap) {
       seasonSelect.innerHTML = '';
-      Object.keys(data).sort().forEach((seasonKey) => {
+      const sortedSeasonKeys = Object.keys(seasonsMap).sort();
+      sortedSeasonKeys.forEach((seasonKey) => {
         const opt = document.createElement('option');
         opt.value = seasonKey;
         opt.textContent = seasonKey;
         seasonSelect.appendChild(opt);
       });
-      seasonSelect.value = Object.keys(data).sort().pop();
-      const selected = data[seasonSelect.value];
+      const defaultSeason = sortedSeasonKeys[sortedSeasonKeys.length - 1];
+      seasonSelect.value = defaultSeason;
+      const selected = seasonsMap[seasonSelect.value];
       fillWeekSelect(weekStartSelect, selected.weeks);
       fillWeekSelect(weekEndSelect, selected.weeks);
       weekEndSelect.value = selected.weeks[selected.weeks.length - 1];
     }
 
+    function setMetaText(snapshot) {
+      const totalSeasons = Object.keys(snapshot.seasons || {}).length;
+      const generatedAt = snapshot.generated_at || 'unknown';
+      const sha = snapshot.git_sha ? snapshot.git_sha.slice(0, 7) : '';
+      metaEl.textContent = totalSeasons
+        ? `Loaded ${totalSeasons} seasons. generated_at=${generatedAt}${sha ? ` · git=${sha}` : ''}`
+        : '';
+    }
+
     async function bootstrap() {
       try {
-        const res = await fetch('data/epa_sample.json');
-        if (!res.ok) throw new Error(`Failed to load sample data (${res.status})`);
+        const res = await fetch(DATA_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`Failed to load data (${res.status})`);
         const json = await res.json();
-        seasonData = json.seasons || {};
-        if (!Object.keys(seasonData).length) throw new Error('No seasons found in sample data');
+        if (!json || typeof json !== 'object' || !json.seasons) {
+          throw new Error('Unexpected JSON payload: missing seasons');
+        }
+        seasonData = json.seasons;
+        if (!Object.keys(seasonData).length) throw new Error('No seasons found in data');
+        setMetaText(json);
         populateSeasonControls(seasonData);
         refreshChart();
       } catch (err) {
@@ -355,7 +381,7 @@
 
     weekStartSelect.addEventListener('change', () => syncWeekRange());
     weekEndSelect.addEventListener('change', () => syncWeekRange());
-    updateBtn.addEventListener('click', refreshChart);
+    updateButton.addEventListener('click', refreshChart);
 
     bootstrap();
   </script>
