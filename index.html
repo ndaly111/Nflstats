@@ -141,59 +141,6 @@
       color: var(--muted);
     }
 
-    .table-legend {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      margin: 0.35rem 0 0.75rem;
-      font-size: 0.9rem;
-      color: var(--muted);
-    }
-
-    .legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.35rem 0.6rem;
-      border-radius: 999px;
-      background: white;
-      border: 1px solid var(--border);
-    }
-
-    .legend-swatch,
-    .category-pill::before {
-      content: '';
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: #cbd5e1;
-      border: 1px solid #cbd5e1;
-    }
-
-    .category-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      border: 1px solid var(--border);
-      background: #f8fafc;
-      color: var(--muted);
-    }
-
-    .category-positive-positive::before { background: #65a30d; border-color: #65a30d; }
-    .category-positive-negative::before { background: #2563eb; border-color: #2563eb; }
-    .category-negative-positive::before { background: #c026d3; border-color: #c026d3; }
-    .category-negative-negative::before { background: #94a3b8; border-color: #94a3b8; }
-
-    .legend-positive-positive .legend-swatch { background: #65a30d; border-color: #65a30d; }
-    .legend-positive-negative .legend-swatch { background: #2563eb; border-color: #2563eb; }
-    .legend-negative-positive .legend-swatch { background: #c026d3; border-color: #c026d3; }
-    .legend-negative-negative .legend-swatch { background: #94a3b8; border-color: #94a3b8; }
-
     .table-scroll {
       overflow-x: auto;
     }
@@ -225,11 +172,6 @@
 
     tbody tr:nth-child(odd) { background: #f8fafc; }
     tbody tr:nth-child(even) { background: #ffffff; }
-
-    tbody tr.category-row-positive-positive { background: #f4fce3; }
-    tbody tr.category-row-positive-negative { background: #e8f0fe; }
-    tbody tr.category-row-negative-positive { background: #f5e1fa; }
-    tbody tr.category-row-negative-negative { background: #f8fafc; }
   </style>
 </head>
 <body>
@@ -264,18 +206,11 @@
       <section id="table-section" class="table-wrapper" hidden>
         <h2>EPA/play table</h2>
         <p class="table-note">Click any column header to sort. Values match the chart above.</p>
-        <div class="table-legend" aria-hidden="true">
-          <span class="legend-item legend-positive-positive"><span class="legend-swatch"></span>Positive Offense, Positive Defense</span>
-          <span class="legend-item legend-positive-negative"><span class="legend-swatch"></span>Positive Offense, Negative Defense</span>
-          <span class="legend-item legend-negative-positive"><span class="legend-swatch"></span>Negative Offense, Positive Defense</span>
-          <span class="legend-item legend-negative-negative"><span class="legend-swatch"></span>Negative Offense, Negative Defense</span>
-        </div>
         <div class="table-scroll">
           <table id="epa-table">
             <thead>
               <tr>
                 <th data-type="string">Team</th>
-                <th data-type="string">Quadrant</th>
                 <th data-type="number">Combined EPA/play</th>
                 <th data-type="number">Offense EPA/play</th>
                 <th data-type="number">Defense EPA/play</th>
@@ -482,15 +417,6 @@
       return Number.isFinite(value) ? value.toFixed(3) : 'N/A';
     }
 
-    function describeQuadrant(off, def) {
-      const offensePositive = off >= 0;
-      const defensePositive = def >= 0;
-      if (offensePositive && defensePositive) return { label: 'Positive Offense, Positive Defense', key: 'positive-positive' };
-      if (offensePositive && !defensePositive) return { label: 'Positive Offense, Negative Defense', key: 'positive-negative' };
-      if (!offensePositive && defensePositive) return { label: 'Negative Offense, Positive Defense', key: 'negative-positive' };
-      return { label: 'Negative Offense, Negative Defense', key: 'negative-negative' };
-    }
-
     function renderTable(rows) {
       if (!rows.length) {
         tableSection.hidden = true;
@@ -501,11 +427,8 @@
       tableBody.innerHTML = '';
       rows.forEach((row) => {
         const tr = document.createElement('tr');
-        const quadrant = describeQuadrant(row.off, row.def);
-        tr.classList.add(`category-row-${quadrant.key}`);
         tr.innerHTML = `
           <td data-value="${row.team}">${row.displayName} (${row.team})</td>
-          <td data-value="${quadrant.label}" aria-label="${quadrant.label}"><span class="category-pill category-${quadrant.key}">${quadrant.label}</span></td>
           <td data-value="${row.combined.toFixed(6)}">${formatNumber(row.combined)}</td>
           <td data-value="${row.off.toFixed(6)}">${formatNumber(row.off)}</td>
           <td data-value="${row.def.toFixed(6)}">${formatNumber(row.def)}</td>
