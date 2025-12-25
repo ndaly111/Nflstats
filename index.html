@@ -426,33 +426,41 @@
       };
     }
 
-    function applyChartSizing(chartInstance, viewportWidth = window.innerWidth) {
-      if (!chartInstance) return;
-      const sizing = getChartSizing(viewportWidth);
-      const [dataset] = chartInstance.data.datasets || [];
-      if (dataset) {
-        dataset.pointRadius = sizing.pointRadius;
-        dataset.pointHoverRadius = sizing.pointHoverRadius;
+    let resizeRaf = null;
+    let isApplyingSize = false;
+
+    function applyChartSizing(chartInstance, viewportWidth = window.innerWidth, shouldUpdate = true) {
+      if (!chartInstance || isApplyingSize) return;
+      isApplyingSize = true;
+      try {
+        const sizing = getChartSizing(viewportWidth);
+        const [dataset] = chartInstance.data.datasets || [];
+        if (dataset) {
+          dataset.pointRadius = sizing.pointRadius;
+          dataset.pointHoverRadius = sizing.pointHoverRadius;
+        }
+        const options = chartInstance.options || {};
+        options.layout = options.layout || {};
+        options.layout.padding = sizing.padding;
+        options.plugins = options.plugins || {};
+        options.plugins.datalabels = options.plugins.datalabels || {};
+        options.plugins.datalabels.font = {
+          ...(options.plugins.datalabels.font || {}),
+          size: sizing.datalabelSize,
+        };
+        options.scales = options.scales || {};
+        ['x', 'y'].forEach((axis) => {
+          const axisOptions = options.scales[axis] || {};
+          axisOptions.title = axisOptions.title || {};
+          axisOptions.title.text = axis === 'x' ? sizing.axisTitles.x : sizing.axisTitles.y;
+          axisOptions.ticks = axisOptions.ticks || {};
+          axisOptions.ticks.font = { size: sizing.tickFontSize };
+          options.scales[axis] = axisOptions;
+        });
+        if (shouldUpdate) chartInstance.update('none');
+      } finally {
+        isApplyingSize = false;
       }
-      const options = chartInstance.options || {};
-      options.layout = options.layout || {};
-      options.layout.padding = sizing.padding;
-      options.plugins = options.plugins || {};
-      options.plugins.datalabels = options.plugins.datalabels || {};
-      options.plugins.datalabels.font = {
-        ...(options.plugins.datalabels.font || {}),
-        size: sizing.datalabelSize,
-      };
-      options.scales = options.scales || {};
-      ['x', 'y'].forEach((axis) => {
-        const axisOptions = options.scales[axis] || {};
-        axisOptions.title = axisOptions.title || {};
-        axisOptions.title.text = axis === 'x' ? sizing.axisTitles.x : sizing.axisTitles.y;
-        axisOptions.ticks = axisOptions.ticks || {};
-        axisOptions.ticks.font = { size: sizing.tickFontSize };
-        options.scales[axis] = axisOptions;
-      });
-      chartInstance.update('none');
     }
 
     function renderChart(points, seasonLabel, startWeek, endWeek) {
@@ -475,7 +483,13 @@
           responsive: true,
           maintainAspectRatio: false,
           layout: { padding: sizing.padding },
-          onResize: (chartInstance, size) => applyChartSizing(chartInstance, size?.width ?? window.innerWidth),
+          onResize: (chartInstance, size) => {
+            if (resizeRaf) cancelAnimationFrame(resizeRaf);
+            resizeRaf = requestAnimationFrame(() => {
+              resizeRaf = null;
+              applyChartSizing(chartInstance, size?.width ?? window.innerWidth, false);
+            });
+          },
           plugins: {
             legend: { display: false },
             title: { display: false },
