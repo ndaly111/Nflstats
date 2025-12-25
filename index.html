@@ -709,9 +709,22 @@
         off: computeRanks(tableRows, 'off'),
         def: computeRanks(tableRows, 'def'),
       };
-      renderChart(points, season, start, end);
       renderTable(tableRows, ranksByMetric);
       sortTable(sortState.column ?? 1, false);
+
+      try {
+        renderChart(points, season, start, end);
+      } catch (err) {
+        console.error('Chart render failed', {
+          season,
+          startWeek: start,
+          endWeek: end,
+          pointCount: points.length,
+          samplePoint: points[0],
+        }, err);
+        const message = err?.message || String(err);
+        showStatus(`Chart render failed: ${message}. Check the browser console for details.`, 'error');
+      }
     }
 
     function populateSeasonControls(seasonsMap) {
