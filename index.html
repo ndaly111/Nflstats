@@ -103,25 +103,9 @@
     }
 
     @media (max-width: 640px) {
-      body {
-        padding: 1.4rem 1rem 2.4rem;
-      }
-
-      h1 {
-        font-size: 1.6rem;
-      }
-
       .chart-wrap {
-        height: clamp(360px, 72vh, 620px);
+        height: clamp(320px, 60vh, 520px);
         padding: 0.5rem;
-      }
-
-      .lead,
-      .meta,
-      label,
-      select,
-      button {
-        font-size: 0.98rem;
       }
     }
 
@@ -471,14 +455,13 @@
     function renderChart(points, seasonLabel, startWeek, endWeek) {
       if (chart) chart.destroy();
       const subtitle = startWeek === endWeek ? `Week ${startWeek}` : `Weeks ${startWeek}\u2013${endWeek}`;
-      const sizing = getChartSizing();
       chart = new Chart(ctx, {
         type: 'scatter',
         data: { datasets: [{
           label: 'EPA per play',
           data: points,
-          pointRadius: sizing.pointRadius,
-          pointHoverRadius: sizing.pointHoverRadius,
+          pointRadius: 12,
+          pointHoverRadius: 14,
           backgroundColor: points.map((p) => p.backgroundColor),
           pointBackgroundColor: points.map((p) => p.backgroundColor),
           pointBorderColor: points.map((p) => p.borderColor),
@@ -505,7 +488,7 @@
               borderWidth: 0,
               color: '#0f172a',
               formatter: (value) => value.label,
-              font: { weight: 'bold', size: sizing.datalabelSize },
+              font: { weight: 'bold', size: 11 },
               padding: { top: 2, bottom: 2, left: 2, right: 2 },
               textStrokeColor: '#fff',
               textStrokeWidth: 3,
@@ -521,20 +504,17 @@
           },
           scales: {
             x: {
-              title: { display: true, text: sizing.axisTitles.x },
+              title: { display: true, text: 'Offense EPA per play (higher = better offense)' },
               grid: { color: '#e2e8f0' },
-              ticks: { font: { size: sizing.tickFontSize } },
             },
             y: {
-              title: { display: true, text: sizing.axisTitles.y },
+              title: { display: true, text: 'Defense EPA per play (higher = better defense)' },
               grid: { color: '#e2e8f0' },
-              ticks: { font: { size: sizing.tickFontSize } },
             },
           },
         },
         plugins: [ChartDataLabels, quadrantPlugin],
       });
-      applyChartSizing(chart, window.innerWidth);
     }
 
     function syncWeekRange() {
