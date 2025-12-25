@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>NFL EPA Explorer (Static)</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -124,6 +124,7 @@
       }
 
       .chart-wrap {
+        height: min(420px, 55vh);
         height: min(420px, 55svh);
         padding: 8px;
       }
@@ -208,7 +209,8 @@
       position: sticky;
       top: 0;
       z-index: 2;
-      background: white;
+      background: #f8fafc;
+      box-shadow: 0 1px 0 var(--border);
     }
 
     .metric-cell .metric-value { font-variant-numeric: tabular-nums; }
@@ -464,6 +466,14 @@
     let sizingRaf = null;
     let isApplyingSize = false;
 
+    function sizingTier(width) {
+      if (width < 480) return 'very-narrow';
+      if (width < 840) return 'narrow';
+      return 'wide';
+    }
+
+    let lastSizingTier = sizingTier(window.innerWidth);
+
     function scheduleSizingUpdate() {
       if (!chart) return;
       if (sizingRaf) cancelAnimationFrame(sizingRaf);
@@ -567,7 +577,7 @@
         },
         plugins: [ChartDataLabels, quadrantPlugin],
       });
-      applyChartSizing(chart, window.innerWidth);
+      applyChartSizing(chart, window.innerWidth, false);
       scheduleSizingUpdate();
     }
 
@@ -805,6 +815,14 @@
     weekStartSelect.addEventListener('change', () => syncWeekRange());
     weekEndSelect.addEventListener('change', () => syncWeekRange());
     updateButton.addEventListener('click', refreshChart);
+
+    window.addEventListener('resize', () => {
+      const tier = sizingTier(window.innerWidth);
+      if (tier !== lastSizingTier) {
+        lastSizingTier = tier;
+        scheduleSizingUpdate();
+      }
+    }, { passive: true });
 
     mqPhone.addEventListener('change', scheduleSizingUpdate);
     window.addEventListener('orientationchange', () => {
