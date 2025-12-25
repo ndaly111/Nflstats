@@ -394,6 +394,64 @@
         .filter(Boolean);
     }
 
+    function getChartSizing(viewportWidth = window.innerWidth) {
+      const isVeryNarrow = viewportWidth < 480;
+      const isNarrow = viewportWidth < 840;
+      return {
+        pointRadius: isVeryNarrow ? 9 : (isNarrow ? 11 : 12),
+        pointHoverRadius: isVeryNarrow ? 11 : (isNarrow ? 13 : 14),
+        datalabelSize: isVeryNarrow ? 10 : 11,
+        tickFontSize: isVeryNarrow ? 10 : 12,
+        padding: isVeryNarrow ? 6 : 10,
+        axisTitles: {
+          x: isVeryNarrow ? 'Offense EPA/play (higher better)' : 'Offense EPA per play (higher = better offense)',
+          y: isVeryNarrow ? 'Defense EPA/play (higher better)' : 'Defense EPA per play (higher = better defense)',
+        }
+      };
+    }
+
+    let resizeRaf = null;
+    let isApplyingSize = false;
+    let suppressResizeHandler = false;
+
+    function applyChartSizing(chartInstance, viewportWidth = window.innerWidth, shouldUpdate = true) {
+      if (!chartInstance || isApplyingSize) return;
+      isApplyingSize = true;
+      try {
+        const sizing = getChartSizing(viewportWidth);
+        const [dataset] = chartInstance.data.datasets || [];
+        if (dataset) {
+          dataset.pointRadius = sizing.pointRadius;
+          dataset.pointHoverRadius = sizing.pointHoverRadius;
+        }
+        const options = chartInstance.options || {};
+        options.layout = options.layout || {};
+        options.layout.padding = sizing.padding;
+        options.plugins = options.plugins || {};
+        options.plugins.datalabels = options.plugins.datalabels || {};
+        options.plugins.datalabels.font = {
+          ...(options.plugins.datalabels.font || {}),
+          size: sizing.datalabelSize,
+        };
+        options.scales = options.scales || {};
+        ['x', 'y'].forEach((axis) => {
+          const axisOptions = options.scales[axis] || {};
+          axisOptions.title = axisOptions.title || {};
+          axisOptions.title.text = axis === 'x' ? sizing.axisTitles.x : sizing.axisTitles.y;
+          axisOptions.ticks = axisOptions.ticks || {};
+          axisOptions.ticks.font = { size: sizing.tickFontSize };
+          options.scales[axis] = axisOptions;
+        });
+        if (shouldUpdate) {
+          suppressResizeHandler = true;
+          chartInstance.update('none');
+          suppressResizeHandler = false;
+        }
+      } finally {
+        isApplyingSize = false;
+      }
+    }
+
     function renderChart(points, seasonLabel, startWeek, endWeek) {
       if (chart) chart.destroy();
       const subtitle = startWeek === endWeek ? `Week ${startWeek}` : `Weeks ${startWeek}\u2013${endWeek}`;
@@ -412,7 +470,15 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          layout: { padding: 10 },
+          layout: { padding: sizing.padding },
+          onResize: (chartInstance, size) => {
+            if (suppressResizeHandler) return;
+            if (resizeRaf) cancelAnimationFrame(resizeRaf);
+            resizeRaf = requestAnimationFrame(() => {
+              resizeRaf = null;
+              applyChartSizing(chartInstance, size?.width ?? window.innerWidth, false);
+            });
+          },
           plugins: {
             legend: { display: false },
             title: { display: false },
