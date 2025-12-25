@@ -33,6 +33,14 @@
       margin: 0 auto;
     }
 
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
     h1 {
       margin: 0 0 0.35rem;
       font-size: 1.9rem;
@@ -82,6 +90,27 @@
       background: linear-gradient(135deg, #2563eb, #1d4ed8);
       border: none;
       box-shadow: 0 8px 18px rgba(37, 99, 235, 0.2);
+    }
+
+    .hof-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: white;
+      font-weight: 700;
+      color: #0f172a;
+      text-decoration: none;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+      transition: transform 120ms ease, box-shadow 120ms ease;
+      white-space: nowrap;
+    }
+
+    .hof-link:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
     }
 
     .chart-wrap {
@@ -184,8 +213,13 @@
 </head>
 <body>
   <main>
-    <h1>NFL Offense vs Defense Efficiency</h1>
-    <p class="lead">Explore team EPA/play without running a server. Pick your season and week range to redraw the chart in-place.</p>
+    <div class="top-bar">
+      <div>
+        <h1>NFL Offense vs Defense Efficiency</h1>
+        <p class="lead">Explore team EPA/play without running a server. Pick your season and week range to redraw the chart in-place.</p>
+      </div>
+      <a class="hof-link" href="hof.html" aria-label="View EPA Hall of Fame">🏆 HOF</a>
+    </div>
     <div id="data-meta" class="meta"></div>
     <div id="status" class="notice" hidden></div>
     <section class="controls">
@@ -249,7 +283,7 @@
       ARI: 'Arizona', ATL: 'Atlanta', BAL: 'Baltimore', BUF: 'Buffalo', CAR: 'Carolina', CHI: 'Chicago',
       CIN: 'Cincinnati', CLE: 'Cleveland', DAL: 'Dallas', DEN: 'Denver', DET: 'Detroit', GB: 'Green Bay',
       HOU: 'Houston', IND: 'Indianapolis', JAX: 'Jacksonville', KC: 'Kansas City', LAC: 'LA Chargers',
-      LAR: 'LA Rams', LV: 'Las Vegas', MIA: 'Miami', MIN: 'Minnesota', NE: 'New England',
+      LAR: 'Los Angeles Rams', LV: 'Las Vegas', MIA: 'Miami', MIN: 'Minnesota', NE: 'New England',
       NO: 'New Orleans', NYG: 'NY Giants', NYJ: 'NY Jets', PHI: 'Philadelphia', PIT: 'Pittsburgh',
       SEA: 'Seattle', SF: 'San Francisco', TB: 'Tampa Bay', TEN: 'Tennessee', WAS: 'Washington'
     };

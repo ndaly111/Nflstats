@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NFL EPA Hall of Fame</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #475569;
+      --panel: #f8fafc;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      margin: 0;
+      padding: 2rem 1.5rem 3rem;
+      background: #ffffff;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.9rem;
+    }
+
+    p.lead {
+      margin: 0 0 0.65rem;
+      color: var(--muted);
+    }
+
+    .meta { color: var(--muted); margin: 0 0 1rem; }
+
+    .back-link, .hof-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: white;
+      font-weight: 700;
+      color: #0f172a;
+      text-decoration: none;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+      transition: transform 120ms ease, box-shadow 120ms ease;
+      white-space: nowrap;
+    }
+
+    .back-link:hover, .hof-link:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
+      padding: 1rem;
+    }
+
+    .panel h2 {
+      margin: 0 0 0.35rem;
+    }
+
+    .panel p { margin: 0 0 0.75rem; color: var(--muted); }
+
+    .table-scroll { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 0.55rem 0.65rem;
+      border: 1px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th { background: #f8fafc; }
+    tbody tr:nth-child(odd) { background: #f8fafc; }
+    tbody tr:nth-child(even) { background: #ffffff; }
+
+    .metric-value { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top-bar">
+      <div>
+        <h1>NFL EPA Hall of Fame</h1>
+        <p class="lead">Top 10 best and worst single-season efficiency marks across every season in the dataset.</p>
+      </div>
+      <a class="back-link" href="index.html" aria-label="Back to EPA chart">⬅️ Back</a>
+    </div>
+    <p id="meta" class="meta"></p>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Best Offense (EPA/play)</h2>
+        <p>Top 10 offensive seasons.</p>
+        <div class="table-scroll">
+          <table id="off-best"></table>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Worst Offense (EPA/play)</h2>
+        <p>Bottom 10 offensive seasons.</p>
+        <div class="table-scroll">
+          <table id="off-worst"></table>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Best Defense (EPA/play)</h2>
+        <p>Top 10 defensive seasons.</p>
+        <div class="table-scroll">
+          <table id="def-best"></table>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Worst Defense (EPA/play)</h2>
+        <p>Bottom 10 defensive seasons.</p>
+        <div class="table-scroll">
+          <table id="def-worst"></table>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Best Combined EPA/play</h2>
+        <p>Top 10 offensive + defensive seasons.</p>
+        <div class="table-scroll">
+          <table id="combo-best"></table>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Worst Combined EPA/play</h2>
+        <p>Bottom 10 offensive + defensive seasons.</p>
+        <div class="table-scroll">
+          <table id="combo-worst"></table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const TEAM_DISPLAY_NAMES = {
+      ARI: 'Arizona', ATL: 'Atlanta', BAL: 'Baltimore', BUF: 'Buffalo', CAR: 'Carolina', CHI: 'Chicago',
+      CIN: 'Cincinnati', CLE: 'Cleveland', DAL: 'Dallas', DEN: 'Denver', DET: 'Detroit', GB: 'Green Bay',
+      HOU: 'Houston', IND: 'Indianapolis', JAX: 'Jacksonville', KC: 'Kansas City', LAC: 'LA Chargers',
+      LAR: 'Los Angeles Rams', LV: 'Las Vegas', MIA: 'Miami', MIN: 'Minnesota', NE: 'New England',
+      NO: 'New Orleans', NYG: 'NY Giants', NYJ: 'NY Jets', PHI: 'Philadelphia', PIT: 'Pittsburgh',
+      SEA: 'Seattle', SF: 'San Francisco', TB: 'Tampa Bay', TEN: 'Tennessee', WAS: 'Washington'
+    };
+
+    const DATA_URL = new URL('data/epa.json', document.baseURI);
+    DATA_URL.searchParams.set('v', Date.now().toString());
+
+    function averageWeeks(teamWeeks, start, end) {
+      let offWeighted = 0;
+      let offPlays = 0;
+      let offSimple = 0;
+      let defWeighted = 0;
+      let defPlays = 0;
+      let defSimple = 0;
+      let count = 0;
+      for (let w = start; w <= end; w += 1) {
+        const payload = teamWeeks[w];
+        if (payload && typeof payload.off === 'number' && typeof payload.def === 'number') {
+          count += 1;
+          offSimple += payload.off;
+          defSimple += payload.def;
+          const offWeekPlays = Number(payload.off_plays ?? 0);
+          const defWeekPlays = Number(payload.def_plays ?? 0);
+          if (Number.isFinite(offWeekPlays) && offWeekPlays > 0) {
+            offWeighted += payload.off * offWeekPlays;
+            offPlays += offWeekPlays;
+          }
+          if (Number.isFinite(defWeekPlays) && defWeekPlays > 0) {
+            defWeighted += payload.def * defWeekPlays;
+            defPlays += defWeekPlays;
+          }
+        }
+      }
+      if (count === 0) return null;
+      const off = offPlays > 0 ? offWeighted / offPlays : offSimple / count;
+      const def = defPlays > 0 ? defWeighted / defPlays : defSimple / count;
+      return { off, def };
+    }
+
+    function seasonAverages(seasons) {
+      const rows = [];
+      Object.entries(seasons).forEach(([seasonKey, season]) => {
+        const startWeek = Math.min(...season.weeks);
+        const endWeek = Math.max(...season.weeks);
+        season.teams.forEach((teamEntry) => {
+          const normalizedWeeks = {};
+          Object.entries(teamEntry.weeks).forEach(([week, values]) => {
+            normalizedWeeks[Number(week)] = values;
+          });
+          const averaged = averageWeeks(normalizedWeeks, startWeek, endWeek);
+          if (!averaged) return;
+          rows.push({
+            team: teamEntry.team,
+            season: seasonKey,
+            off: averaged.off,
+            def: averaged.def,
+            combined: averaged.off + averaged.def,
+          });
+        });
+      });
+      return rows;
+    }
+
+    function sortRows(rows, key, direction = 'desc') {
+      return [...rows].sort((a, b) => {
+        if (a[key] === b[key]) return 0;
+        return direction === 'desc' ? b[key] - a[key] : a[key] - b[key];
+      }).slice(0, 10);
+    }
+
+    function formatNumber(value) {
+      return Number.isFinite(value) ? value.toFixed(3) : 'N/A';
+    }
+
+    function summaryLabel(idx, row, metricKey) {
+      const value = formatNumber(row[metricKey]);
+      const teamName = TEAM_DISPLAY_NAMES[row.team] || row.team;
+      return `#${idx + 1} · ${value} · ${teamName} – ${row.season}`;
+    }
+
+    function renderTable(el, rows, metricKey) {
+      el.innerHTML = `
+        <thead>
+          <tr>
+            <th>Summary</th>
+            <th>${metricKey === 'combined' ? 'Combined' : metricKey === 'off' ? 'Offense' : 'Defense'} EPA/play</th>
+            ${metricKey === 'combined' ? '<th>Off</th><th>Def</th>' : ''}
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map((row, idx) => `
+            <tr>
+              <td>${summaryLabel(idx, row, metricKey)}</td>
+              <td class="metric-value">${formatNumber(row[metricKey])}</td>
+              ${metricKey === 'combined' ? `<td class="metric-value">${formatNumber(row.off)}</td><td class="metric-value">${formatNumber(row.def)}</td>` : ''}
+            </tr>
+          `).join('')}
+        </tbody>
+      `;
+    }
+
+    async function bootstrap() {
+      const res = await fetch(DATA_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Failed to load data (${res.status})`);
+      const json = await res.json();
+      if (!json || typeof json !== 'object' || !json.seasons) throw new Error('Unexpected JSON payload');
+      const rows = seasonAverages(json.seasons);
+
+      document.getElementById('meta').textContent = `Seasons loaded: ${Object.keys(json.seasons).length} · generated_at=${json.generated_at || 'unknown'}`;
+
+      const offBest = sortRows(rows, 'off', 'desc');
+      const offWorst = sortRows(rows, 'off', 'asc');
+      const defBest = sortRows(rows, 'def', 'asc');
+      const defWorst = sortRows(rows, 'def', 'desc');
+      const comboBest = sortRows(rows, 'combined', 'desc');
+      const comboWorst = sortRows(rows, 'combined', 'asc');
+
+      renderTable(document.getElementById('off-best'), offBest, 'off');
+      renderTable(document.getElementById('off-worst'), offWorst, 'off');
+      renderTable(document.getElementById('def-best'), defBest, 'def');
+      renderTable(document.getElementById('def-worst'), defWorst, 'def');
+      renderTable(document.getElementById('combo-best'), comboBest, 'combined');
+      renderTable(document.getElementById('combo-worst'), comboWorst, 'combined');
+    }
+
+    bootstrap().catch((err) => {
+      document.querySelectorAll('table').forEach((table) => {
+        table.innerHTML = `<tbody><tr><td>Unable to load data: ${err.message}</td></tr></tbody>`;
+      });
+    });
+  </script>
+</body>
+</html>
