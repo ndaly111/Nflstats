@@ -157,20 +157,13 @@ def _parse_int(arg: str, default: Optional[int]) -> Optional[int]:
         return default
 
 
-def _format_week_options(season: int, weeks: list[int]) -> list[dict[str, int | str]]:
+def _format_week_options(weeks: list[int]) -> list[dict[str, int | str]]:
     playoff_labels = ["Super Bowl", "Conference Round", "Divisional Round", "Wild Card Round"]
     total_weeks = len(weeks)
     formatted = []
-    is_current_season = season == datetime.date.today().year
     for idx, week in enumerate(weeks):
         offset_from_end = total_weeks - 1 - idx
-        playoff_label = (
-            None
-            if is_current_season
-            else playoff_labels[offset_from_end]
-            if offset_from_end < len(playoff_labels)
-            else None
-        )
+        playoff_label = playoff_labels[offset_from_end] if offset_from_end < len(playoff_labels) else None
         label = playoff_label or f"Week {week}"
         formatted.append({"value": week, "label": label})
     return formatted
@@ -225,7 +218,7 @@ def index() -> str:
         db_path=DB_PATH,
         season=season,
         weeks=weeks,
-        week_options=_format_week_options(season, weeks),
+        week_options=_format_week_options(weeks),
         week_start=week_start,
         week_end=week_end,
         chart_url=chart_url,

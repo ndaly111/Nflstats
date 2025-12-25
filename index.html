@@ -337,21 +337,19 @@
 
     const PLAYOFF_LABELS = ['Super Bowl', 'Conf. Round', 'Divisional Round', 'Wild Card Round'];
 
-    function formatWeekLabel(week, index, totalWeeks, season) {
-      const isCurrentSeason = String(season) === String(new Date().getFullYear());
-      if (isCurrentSeason) return `Week ${week}`;
+    function formatWeekLabel(week, index, totalWeeks) {
       const offsetFromEnd = totalWeeks - 1 - index;
       const playoffLabel = PLAYOFF_LABELS[offsetFromEnd];
       if (playoffLabel) return playoffLabel;
       return `Week ${week}`;
     }
 
-    function fillWeekSelect(selectEl, weeks, season) {
+    function fillWeekSelect(selectEl, weeks) {
       selectEl.innerHTML = '';
       weeks.forEach((week, index) => {
         const option = document.createElement('option');
         option.value = week;
-        option.textContent = formatWeekLabel(week, index, weeks.length, season);
+        option.textContent = formatWeekLabel(week, index, weeks.length);
         selectEl.appendChild(option);
       });
     }
@@ -726,8 +724,8 @@
       const defaultSeason = sortedSeasonKeys[sortedSeasonKeys.length - 1];
       seasonSelect.value = defaultSeason;
       const selected = seasonsMap[seasonSelect.value];
-      fillWeekSelect(weekStartSelect, selected.weeks, defaultSeason);
-      fillWeekSelect(weekEndSelect, selected.weeks, defaultSeason);
+      fillWeekSelect(weekStartSelect, selected.weeks);
+      fillWeekSelect(weekEndSelect, selected.weeks);
       weekEndSelect.value = selected.weeks[selected.weeks.length - 1];
     }
 
@@ -762,8 +760,8 @@
     seasonSelect.addEventListener('change', () => {
       const selected = seasonData[seasonSelect.value];
       if (!selected) return;
-      fillWeekSelect(weekStartSelect, selected.weeks, seasonSelect.value);
-      fillWeekSelect(weekEndSelect, selected.weeks, seasonSelect.value);
+      fillWeekSelect(weekStartSelect, selected.weeks);
+      fillWeekSelect(weekEndSelect, selected.weeks);
       weekEndSelect.value = selected.weeks[selected.weeks.length - 1];
       refreshChart();
     });
