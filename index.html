@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>NFL EPA Explorer (Static)</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,19 +16,9 @@
       --text: #0f172a;
       --muted: #475569;
       --panel: #f8fafc;
-      /* NEW: layout sizing vars */
       --page-gutter: 24px;
       --card-pad: 16px;
       --card-radius: 12px;
-    }
-
-    /* NEW: mobile-first gutter reduction */
-    @media (max-width: 640px) {
-      :root {
-        --page-gutter: 10px;
-        --card-pad: 10px;
-        --card-radius: 10px;
-      }
     }
 
     * { box-sizing: border-box; }
@@ -118,26 +107,6 @@
       height: 100%;
     }
 
-    @media (max-width: 640px) {
-      h1 {
-        font-size: 1.6rem;
-      }
-
-      .chart-wrap {
-        height: min(420px, 55vh);
-        height: min(420px, 55svh);
-        padding: 8px;
-      }
-
-      .lead,
-      .meta,
-      label,
-      select,
-      button {
-        font-size: 0.98rem;
-      }
-    }
-
     .notice {
       background: #fff7ed;
       border: 1px solid #fed7aa;
@@ -220,18 +189,6 @@
       margin-left: 0.35rem;
     }
 
-    @media (max-width: 640px) {
-      #epa-table {
-        font-size: 14px;
-        min-width: 520px;
-      }
-
-      #epa-table th,
-      #epa-table td {
-        padding: 8px 10px;
-      }
-    }
-
   </style>
 </head>
 <body>
@@ -263,7 +220,7 @@
         <canvas id="epa-chart" aria-label="EPA scatter chart" role="img"></canvas>
       </div>
 
-      <section id="table-section" class="table-wrapper" hidden>
+      <section id="table-section" class="table-wrapper">
         <h2>EPA/play table</h2>
         <p class="table-note">Click any column header to sort. Values match the chart above.</p>
         <div class="table-scroll">
@@ -330,6 +287,17 @@
     let chart;
     let seasonData = {};
     const sortState = { column: null, direction: 'asc' };
+    const STATIC_SIZING = {
+      pointRadius: 12,
+      pointHoverRadius: 14,
+      datalabelSize: 11,
+      tickFontSize: 12,
+      padding: 10,
+      axisTitles: {
+        x: 'Offense EPA per play (higher = better offense)',
+        y: 'Defense EPA per play (higher = better defense)',
+      },
+    };
 
     const quadrantPlugin = {
       id: 'quadrantBackground',
@@ -446,83 +414,10 @@
         .filter(Boolean);
     }
 
-    function getChartSizing(viewportWidth = window.innerWidth) {
-      const isVeryNarrow = viewportWidth < 480;
-      const isNarrow = viewportWidth < 840;
-      return {
-        pointRadius: isVeryNarrow ? 9 : (isNarrow ? 11 : 12),
-        pointHoverRadius: isVeryNarrow ? 11 : (isNarrow ? 13 : 14),
-        datalabelSize: isVeryNarrow ? 10 : 11,
-        tickFontSize: isVeryNarrow ? 10 : 12,
-        padding: isVeryNarrow ? 6 : 10,
-        axisTitles: {
-          x: isVeryNarrow ? 'Offense EPA/play (higher better)' : 'Offense EPA per play (higher = better offense)',
-          y: isVeryNarrow ? 'Defense EPA/play (higher better)' : 'Defense EPA per play (higher = better defense)',
-        }
-      };
-    }
-
-    const mqPhone = window.matchMedia('(max-width: 640px)');
-    let sizingRaf = null;
-    let isApplyingSize = false;
-
-    function sizingTier(width) {
-      if (width < 480) return 'very-narrow';
-      if (width < 840) return 'narrow';
-      return 'wide';
-    }
-
-    let lastSizingTier = sizingTier(window.innerWidth);
-
-    function scheduleSizingUpdate() {
-      if (!chart) return;
-      if (sizingRaf) cancelAnimationFrame(sizingRaf);
-      sizingRaf = requestAnimationFrame(() => {
-        sizingRaf = null;
-        applyChartSizing(chart, window.innerWidth, true);
-      });
-    }
-
-    function applyChartSizing(chartInstance, viewportWidth = window.innerWidth, shouldUpdate = true) {
-      if (!chartInstance || isApplyingSize) return;
-      isApplyingSize = true;
-      try {
-        const sizing = getChartSizing(viewportWidth);
-        const [dataset] = chartInstance.data.datasets || [];
-        if (dataset) {
-          dataset.pointRadius = sizing.pointRadius;
-          dataset.pointHoverRadius = sizing.pointHoverRadius;
-        }
-        const options = chartInstance.options || {};
-        options.layout = options.layout || {};
-        options.layout.padding = sizing.padding;
-        options.plugins = options.plugins || {};
-        options.plugins.datalabels = options.plugins.datalabels || {};
-        options.plugins.datalabels.font = {
-          ...(options.plugins.datalabels.font || {}),
-          size: sizing.datalabelSize,
-        };
-        options.scales = options.scales || {};
-        ['x', 'y'].forEach((axis) => {
-          const axisOptions = options.scales[axis] || {};
-          axisOptions.title = axisOptions.title || {};
-          axisOptions.title.text = axis === 'x' ? sizing.axisTitles.x : sizing.axisTitles.y;
-          axisOptions.ticks = axisOptions.ticks || {};
-          axisOptions.ticks.font = { size: sizing.tickFontSize };
-          options.scales[axis] = axisOptions;
-        });
-        if (shouldUpdate) {
-          chartInstance.update('none');
-        }
-      } finally {
-        isApplyingSize = false;
-      }
-    }
-
     function renderChart(points, seasonLabel, startWeek, endWeek) {
       if (chart) chart.destroy();
       const subtitle = startWeek === endWeek ? `Week ${startWeek}` : `Weeks ${startWeek}\u2013${endWeek}`;
-      const sizing = getChartSizing();
+      const sizing = STATIC_SIZING;
       chart = new Chart(ctx, {
         type: 'scatter',
         data: { datasets: [{
@@ -577,8 +472,6 @@
         },
         plugins: [ChartDataLabels, quadrantPlugin],
       });
-      applyChartSizing(chart, window.innerWidth, false);
-      scheduleSizingUpdate();
     }
 
     function syncWeekRange() {
@@ -815,19 +708,6 @@
     weekStartSelect.addEventListener('change', () => syncWeekRange());
     weekEndSelect.addEventListener('change', () => syncWeekRange());
     updateButton.addEventListener('click', refreshChart);
-
-    window.addEventListener('resize', () => {
-      const tier = sizingTier(window.innerWidth);
-      if (tier !== lastSizingTier) {
-        lastSizingTier = tier;
-        scheduleSizingUpdate();
-      }
-    }, { passive: true });
-
-    mqPhone.addEventListener('change', scheduleSizingUpdate);
-    window.addEventListener('orientationchange', () => {
-      setTimeout(scheduleSizingUpdate, 250);
-    });
 
     bootstrap();
   </script>
