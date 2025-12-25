@@ -17,19 +17,6 @@
       --text: #0f172a;
       --muted: #475569;
       --panel: #f8fafc;
-      /* NEW: layout sizing vars */
-      --page-gutter: 24px;
-      --card-pad: 16px;
-      --card-radius: 12px;
-    }
-
-    /* NEW: mobile-first gutter reduction */
-    @media (max-width: 640px) {
-      :root {
-        --page-gutter: 10px;
-        --card-pad: 10px;
-        --card-radius: 10px;
-      }
     }
 
     * { box-sizing: border-box; }
@@ -37,11 +24,7 @@
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       color: var(--text);
       margin: 0;
-      padding:
-        calc(var(--page-gutter) + env(safe-area-inset-top))
-        calc(var(--page-gutter) + env(safe-area-inset-right))
-        calc(var(--page-gutter) + env(safe-area-inset-bottom))
-        calc(var(--page-gutter) + env(safe-area-inset-left));
+      padding: 2rem 1.5rem 3rem;
       background: #ffffff;
     }
 
@@ -72,8 +55,8 @@
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: var(--card-radius);
-      padding: var(--card-pad);
+      border-radius: 12px;
+      padding: 1rem;
       margin: 1rem 0 1.5rem;
     }
 
@@ -104,28 +87,33 @@
     .chart-wrap {
       position: relative;
       width: 100%;
-      height: 520px;
+      /* “Reasonable size” across laptop + mobile */
+      height: clamp(360px, 65vh, 720px);
       border: 1px solid var(--border);
-      border-radius: var(--card-radius);
-      padding: var(--card-pad);
+      border-radius: 12px;
+      padding: 0.75rem;
       background: #fff;
       overflow: hidden;
     }
 
     .chart-wrap canvas {
       display: block;
-      width: 100%;
-      height: 100%;
+      width: 100% !important;
+      height: 100% !important;
     }
 
     @media (max-width: 640px) {
+      body {
+        padding: 1.4rem 1rem 2.4rem;
+      }
+
       h1 {
         font-size: 1.6rem;
       }
 
       .chart-wrap {
-        height: min(420px, 55svh);
-        padding: 8px;
+        height: clamp(360px, 72vh, 620px);
+        padding: 0.5rem;
       }
 
       .lead,
@@ -155,8 +143,8 @@
     .table-wrapper {
       margin-top: 1.5rem;
       border: 1px solid var(--border);
-      border-radius: var(--card-radius);
-      padding: var(--card-pad);
+      border-radius: 12px;
+      padding: 1rem;
       background: var(--panel);
     }
 
@@ -171,63 +159,41 @@
 
     .table-scroll {
       overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
     }
 
-    #epa-table {
+    table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.95rem;
       background: white;
       border-radius: 10px;
       overflow: hidden;
-      min-width: 560px;
     }
 
-    #epa-table th,
-    #epa-table td {
+    th, td {
       padding: 0.55rem 0.65rem;
       border: 1px solid var(--border);
       text-align: left;
       white-space: nowrap;
     }
 
-    #epa-table th {
+    th {
       background: #f8fafc;
       cursor: pointer;
       user-select: none;
     }
 
-    #epa-table th.sorted-asc::after { content: " \2191"; }
-    #epa-table th.sorted-desc::after { content: " \2193"; }
+    th.sorted-asc::after { content: " \2191"; }
+    th.sorted-desc::after { content: " \2193"; }
 
-    #epa-table tbody tr:nth-child(odd) { background: #f8fafc; }
-    #epa-table tbody tr:nth-child(even) { background: #ffffff; }
-
-    #epa-table thead th {
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      background: white;
-    }
+    tbody tr:nth-child(odd) { background: #f8fafc; }
+    tbody tr:nth-child(even) { background: #ffffff; }
 
     .metric-cell .metric-value { font-variant-numeric: tabular-nums; }
     .metric-cell .rank-label {
       font-weight: 700;
       font-size: 0.9rem;
       margin-left: 0.35rem;
-    }
-
-    @media (max-width: 640px) {
-      #epa-table {
-        font-size: 14px;
-        min-width: 520px;
-      }
-
-      #epa-table th,
-      #epa-table td {
-        padding: 8px 10px;
-      }
     }
 
   </style>
@@ -460,18 +426,9 @@
       };
     }
 
-    const mqPhone = window.matchMedia('(max-width: 640px)');
-    let sizingRaf = null;
+    let resizeRaf = null;
     let isApplyingSize = false;
-
-    function scheduleSizingUpdate() {
-      if (!chart) return;
-      if (sizingRaf) cancelAnimationFrame(sizingRaf);
-      sizingRaf = requestAnimationFrame(() => {
-        sizingRaf = null;
-        applyChartSizing(chart, window.innerWidth, true);
-      });
-    }
+    let suppressResizeHandler = false;
 
     function applyChartSizing(chartInstance, viewportWidth = window.innerWidth, shouldUpdate = true) {
       if (!chartInstance || isApplyingSize) return;
@@ -502,7 +459,9 @@
           options.scales[axis] = axisOptions;
         });
         if (shouldUpdate) {
+          suppressResizeHandler = true;
           chartInstance.update('none');
+          suppressResizeHandler = false;
         }
       } finally {
         isApplyingSize = false;
@@ -529,6 +488,14 @@
           responsive: true,
           maintainAspectRatio: false,
           layout: { padding: sizing.padding },
+          onResize: (chartInstance, size) => {
+            if (suppressResizeHandler) return;
+            if (resizeRaf) cancelAnimationFrame(resizeRaf);
+            resizeRaf = requestAnimationFrame(() => {
+              resizeRaf = null;
+              applyChartSizing(chartInstance, size?.width ?? window.innerWidth, false);
+            });
+          },
           plugins: {
             legend: { display: false },
             title: { display: false },
@@ -568,7 +535,6 @@
         plugins: [ChartDataLabels, quadrantPlugin],
       });
       applyChartSizing(chart, window.innerWidth);
-      scheduleSizingUpdate();
     }
 
     function syncWeekRange() {
@@ -805,11 +771,6 @@
     weekStartSelect.addEventListener('change', () => syncWeekRange());
     weekEndSelect.addEventListener('change', () => syncWeekRange());
     updateButton.addEventListener('click', refreshChart);
-
-    mqPhone.addEventListener('change', scheduleSizingUpdate);
-    window.addEventListener('orientationchange', () => {
-      setTimeout(scheduleSizingUpdate, 250);
-    });
 
     bootstrap();
   </script>
