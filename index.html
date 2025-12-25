@@ -426,7 +426,7 @@
       };
     }
 
-    function applyChartSizing(chartInstance, viewportWidth = window.innerWidth) {
+    function applyChartSizing(chartInstance, viewportWidth = window.innerWidth, shouldUpdate = true) {
       if (!chartInstance) return;
       const sizing = getChartSizing(viewportWidth);
       const [dataset] = chartInstance.data.datasets || [];
@@ -452,7 +452,7 @@
         axisOptions.ticks.font = { size: sizing.tickFontSize };
         options.scales[axis] = axisOptions;
       });
-      chartInstance.update('none');
+      if (shouldUpdate) chartInstance.update('none');
     }
 
     function renderChart(points, seasonLabel, startWeek, endWeek) {
@@ -475,7 +475,7 @@
           responsive: true,
           maintainAspectRatio: false,
           layout: { padding: sizing.padding },
-          onResize: (chartInstance, size) => applyChartSizing(chartInstance, size?.width ?? window.innerWidth),
+          onResize: (chartInstance, size) => applyChartSizing(chartInstance, size?.width ?? window.innerWidth, false),
           plugins: {
             legend: { display: false },
             title: { display: false },
