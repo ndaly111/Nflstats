@@ -428,7 +428,6 @@
 
     let resizeRaf = null;
     let isApplyingSize = false;
-    let suppressResizeHandler = false;
 
     function applyChartSizing(chartInstance, viewportWidth = window.innerWidth, shouldUpdate = true) {
       if (!chartInstance || isApplyingSize) return;
@@ -458,11 +457,7 @@
           axisOptions.ticks.font = { size: sizing.tickFontSize };
           options.scales[axis] = axisOptions;
         });
-        if (shouldUpdate) {
-          suppressResizeHandler = true;
-          chartInstance.update('none');
-          suppressResizeHandler = false;
-        }
+        if (shouldUpdate) chartInstance.update('none');
       } finally {
         isApplyingSize = false;
       }
@@ -489,7 +484,6 @@
           maintainAspectRatio: false,
           layout: { padding: sizing.padding },
           onResize: (chartInstance, size) => {
-            if (suppressResizeHandler) return;
             if (resizeRaf) cancelAnimationFrame(resizeRaf);
             resizeRaf = requestAnimationFrame(() => {
               resizeRaf = null;
