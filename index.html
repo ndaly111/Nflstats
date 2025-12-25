@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>NFL EPA Explorer (Static)</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,6 +17,19 @@
       --text: #0f172a;
       --muted: #475569;
       --panel: #f8fafc;
+      /* NEW: layout sizing vars */
+      --page-gutter: 24px;
+      --card-pad: 16px;
+      --card-radius: 12px;
+    }
+
+    /* NEW: mobile-first gutter reduction */
+    @media (max-width: 640px) {
+      :root {
+        --page-gutter: 10px;
+        --card-pad: 10px;
+        --card-radius: 10px;
+      }
     }
 
     * { box-sizing: border-box; }
@@ -24,7 +37,11 @@
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       color: var(--text);
       margin: 0;
-      padding: 2rem 1.5rem 3rem;
+      padding:
+        calc(var(--page-gutter) + env(safe-area-inset-top))
+        calc(var(--page-gutter) + env(safe-area-inset-right))
+        calc(var(--page-gutter) + env(safe-area-inset-bottom))
+        calc(var(--page-gutter) + env(safe-area-inset-left));
       background: #ffffff;
     }
 
@@ -55,8 +72,8 @@
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1rem;
+      border-radius: var(--card-radius);
+      padding: var(--card-pad);
       margin: 1rem 0 1.5rem;
     }
 
@@ -87,34 +104,30 @@
     .chart-wrap {
       position: relative;
       width: 100%;
-      /* “Reasonable size” across laptop + mobile */
-      height: clamp(360px, 65vh, 720px);
+      height: 520px;
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 0.75rem;
+      border-radius: var(--card-radius);
+      padding: var(--card-pad);
       background: #fff;
       overflow: hidden;
     }
 
     .chart-wrap canvas {
       display: block;
-      width: 100% !important;
-      height: 100% !important;
+      width: 100%;
+      height: 100%;
     }
 
     @media (max-width: 640px) {
-      body {
-        padding: 1.4rem 1rem 2.4rem;
-      }
-
       h1 {
         font-size: 1.6rem;
       }
 
       .chart-wrap {
-        height: clamp(360px, 72vh, 620px);
-        padding: 0.5rem;
-      }
+      height: min(420px, 55vh);
+      height: min(420px, 55svh);
+      padding: 8px;
+    }
 
       .lead,
       .meta,
@@ -143,8 +156,8 @@
     .table-wrapper {
       margin-top: 1.5rem;
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1rem;
+      border-radius: var(--card-radius);
+      padding: var(--card-pad);
       background: var(--panel);
     }
 
@@ -159,41 +172,64 @@
 
     .table-scroll {
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
-    table {
+    #epa-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.95rem;
       background: white;
       border-radius: 10px;
       overflow: hidden;
+      min-width: 560px;
     }
 
-    th, td {
+    #epa-table th,
+    #epa-table td {
       padding: 0.55rem 0.65rem;
       border: 1px solid var(--border);
       text-align: left;
       white-space: nowrap;
     }
 
-    th {
+    #epa-table th {
       background: #f8fafc;
       cursor: pointer;
       user-select: none;
     }
 
-    th.sorted-asc::after { content: " \2191"; }
-    th.sorted-desc::after { content: " \2193"; }
+    #epa-table th.sorted-asc::after { content: " \2191"; }
+    #epa-table th.sorted-desc::after { content: " \2193"; }
 
-    tbody tr:nth-child(odd) { background: #f8fafc; }
-    tbody tr:nth-child(even) { background: #ffffff; }
+    #epa-table tbody tr:nth-child(odd) { background: #f8fafc; }
+    #epa-table tbody tr:nth-child(even) { background: #ffffff; }
+
+    #epa-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #f8fafc;
+      box-shadow: 0 1px 0 var(--border);
+    }
 
     .metric-cell .metric-value { font-variant-numeric: tabular-nums; }
     .metric-cell .rank-label {
       font-weight: 700;
       font-size: 0.9rem;
       margin-left: 0.35rem;
+    }
+
+    @media (max-width: 640px) {
+      #epa-table {
+        font-size: 14px;
+        min-width: 520px;
+      }
+
+      #epa-table th,
+      #epa-table td {
+        padding: 8px 10px;
+      }
     }
 
   </style>
@@ -426,9 +462,26 @@
       };
     }
 
-    let resizeRaf = null;
+    const mqPhone = window.matchMedia('(max-width: 640px)');
+    let sizingRaf = null;
     let isApplyingSize = false;
-    let suppressResizeHandler = false;
+
+    function sizingTier(width) {
+      if (width < 480) return 'very-narrow';
+      if (width < 840) return 'narrow';
+      return 'wide';
+    }
+
+    let lastSizingTier = sizingTier(window.innerWidth);
+
+    function scheduleSizingUpdate() {
+      if (!chart) return;
+      if (sizingRaf) cancelAnimationFrame(sizingRaf);
+      sizingRaf = requestAnimationFrame(() => {
+        sizingRaf = null;
+        applyChartSizing(chart, window.innerWidth, true);
+      });
+    }
 
     function applyChartSizing(chartInstance, viewportWidth = window.innerWidth, shouldUpdate = true) {
       if (!chartInstance || isApplyingSize) return;
@@ -459,9 +512,7 @@
           options.scales[axis] = axisOptions;
         });
         if (shouldUpdate) {
-          suppressResizeHandler = true;
           chartInstance.update('none');
-          suppressResizeHandler = false;
         }
       } finally {
         isApplyingSize = false;
@@ -488,14 +539,6 @@
           responsive: true,
           maintainAspectRatio: false,
           layout: { padding: sizing.padding },
-          onResize: (chartInstance, size) => {
-            if (suppressResizeHandler) return;
-            if (resizeRaf) cancelAnimationFrame(resizeRaf);
-            resizeRaf = requestAnimationFrame(() => {
-              resizeRaf = null;
-              applyChartSizing(chartInstance, size?.width ?? window.innerWidth, false);
-            });
-          },
           plugins: {
             legend: { display: false },
             title: { display: false },
@@ -534,7 +577,8 @@
         },
         plugins: [ChartDataLabels, quadrantPlugin],
       });
-      applyChartSizing(chart, window.innerWidth);
+      applyChartSizing(chart, window.innerWidth, false);
+      scheduleSizingUpdate();
     }
 
     function syncWeekRange() {
@@ -771,6 +815,19 @@
     weekStartSelect.addEventListener('change', () => syncWeekRange());
     weekEndSelect.addEventListener('change', () => syncWeekRange());
     updateButton.addEventListener('click', refreshChart);
+
+    window.addEventListener('resize', () => {
+      const tier = sizingTier(window.innerWidth);
+      if (tier !== lastSizingTier) {
+        lastSizingTier = tier;
+        scheduleSizingUpdate();
+      }
+    }, { passive: true });
+
+    mqPhone.addEventListener('change', scheduleSizingUpdate);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(scheduleSizingUpdate, 250);
+    });
 
     bootstrap();
   </script>
