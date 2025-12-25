@@ -211,7 +211,7 @@
         <canvas id="epa-chart" aria-label="EPA scatter chart" role="img"></canvas>
       </div>
 
-      <section id="table-section" class="table-wrapper" hidden>
+      <section id="table-section" class="table-wrapper">
         <h2>EPA/play table</h2>
         <p class="table-note">Click any column header to sort. Values match the chart above.</p>
         <div class="table-scroll">
@@ -510,13 +510,11 @@
     }
 
     function renderTable(rows, ranksByMetric = { combined: {}, off: {}, def: {} }) {
+      tableBody.innerHTML = '';
       if (!rows.length) {
-        tableSection.hidden = true;
-        tableBody.innerHTML = '';
+        tableBody.innerHTML = '<tr><td colspan="5">No EPA data for the selected range.</td></tr>';
         return;
       }
-
-      tableBody.innerHTML = '';
       const totalTeams = rows.length;
       rows.forEach((row, index) => {
         const tr = document.createElement('tr');
@@ -541,8 +539,6 @@
         `;
         tableBody.appendChild(tr);
       });
-
-      tableSection.hidden = false;
       updateRankNumbers();
     }
 
