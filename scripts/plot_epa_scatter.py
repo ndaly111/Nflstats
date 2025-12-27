@@ -28,14 +28,17 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from .sos_adjustment import compute_sos_adjusted_net_epa, compute_sos_faced
+
 try:
     # Prefer DB-backed data when available.
-    from .db_storage import load_team_epa_from_db, DB_PATH
+    from .db_storage import DB_PATH, load_team_epa_from_db, load_team_game_epa_from_db
 except ImportError:  # pragma: no cover
     try:
-        from scripts.db_storage import load_team_epa_from_db, DB_PATH
+        from scripts.db_storage import DB_PATH, load_team_epa_from_db, load_team_game_epa_from_db
     except ImportError:  # pragma: no cover
         load_team_epa_from_db = None  # type: ignore
+        load_team_game_epa_from_db = None  # type: ignore
         DB_PATH = None  # type: ignore
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -167,7 +170,11 @@ def _normalize_team_epa_df(df: pd.DataFrame, source_desc: str) -> pd.DataFrame:
 
 
 def load_team_epa(
-    season: int, week_start: Optional[int] = None, week_end: Optional[int] = None
+    season: int,
+    week_start: Optional[int] = None,
+    week_end: Optional[int] = None,
+    include_sos: bool = False,
+    sos_basis: str = "season_to_date",
 ) -> pd.DataFrame:
     """
     Load per‑team EPA data from the SQLite cache and normalise for plotting.
@@ -201,6 +208,42 @@ def load_team_epa(
     normalized.attrs["week_end"] = df_db.attrs.get("week_end")
     if "week" in df_db.attrs:
         normalized.attrs["week"] = df_db.attrs["week"]
+
+    normalized["net_epa_pp"] = normalized["EPA_off_per_play"] + normalized["EPA_def_per_play"]
+
+    allowed_bases = {"season_to_date", "window_only", "full_season"}
+    if sos_basis not in allowed_bases:
+        sos_basis = "season_to_date"
+
+    if include_sos and load_team_game_epa_from_db is not None:
+        if sos_basis == "window_only":
+            ratings_games = load_team_game_epa_from_db(
+                season, week_start=week_start, week_end=week_end
+            )
+        elif sos_basis == "full_season":
+            ratings_games = load_team_game_epa_from_db(season, week_start=None, week_end=None)
+        else:
+            ratings_games = load_team_game_epa_from_db(season, week_start=None, week_end=week_end)
+
+        window_games = load_team_game_epa_from_db(season, week_start=week_start, week_end=week_end)
+
+        ratings = None
+        if ratings_games is not None and not ratings_games.empty:
+            ratings = compute_sos_adjusted_net_epa(ratings_games)
+
+        sos_faced = None
+        if ratings is not None and window_games is not None and not window_games.empty:
+            sos_faced = compute_sos_faced(window_games, ratings)
+        elif ratings is not None:
+            sos_faced = pd.Series(0.0, index=normalized.index, name="sos_faced")
+
+        if sos_faced is not None:
+            normalized["sos_faced"] = normalized.index.map(sos_faced).fillna(0.0)
+            normalized["net_epa_pp_sos_adj"] = normalized["net_epa_pp"] + normalized["sos_faced"]
+            normalized["net_epa_pp_adj_delta"] = (
+                normalized["net_epa_pp_sos_adj"] - normalized["net_epa_pp"]
+            ).fillna(0.0)
+
     return normalized
 
 
@@ -252,6 +295,7 @@ def plot_scatter(
     invert_y: bool,
     output: Path | IO[bytes],
     season: int,
+    metric_mode: str = "raw",
 ) -> None:
     """
     Create and save the offense vs defence scatter plot.
@@ -275,16 +319,26 @@ def plot_scatter(
     if df.empty:
         raise ValueError("No rows to plot after dropping missing EPA values.")
 
+    data = df.copy()
+    if metric_mode == "sos" and {"net_epa_pp", "net_epa_pp_sos_adj"}.issubset(data.columns):
+        delta = (data["net_epa_pp_sos_adj"] - data["net_epa_pp"]).fillna(0.0)
+        # Split the adjustment evenly between offense and defense so combined EPA matches
+        adjustment = delta / 2.0
+        data["EPA_off_per_play"] = data["EPA_off_per_play"] + adjustment
+        data["EPA_def_per_play"] = data["EPA_def_per_play"] + adjustment
+    else:
+        metric_mode = "raw"
+
     # Compute league averages
-    x_vals = df["EPA_off_per_play"]
-    y_vals = df["EPA_def_per_play"]
+    x_vals = data["EPA_off_per_play"]
+    y_vals = data["EPA_def_per_play"]
     x_avg = x_vals.mean()
     y_avg = y_vals.mean()
 
     fig, ax = plt.subplots(figsize=(10, 6))
 
     # Plot each team
-    for team, row in df.iterrows():
+    for team, row in data.iterrows():
         add_team_marker(ax, row["EPA_off_per_play"], row["EPA_def_per_play"], team)
 
     # Draw reference lines at league averages
@@ -292,15 +346,24 @@ def plot_scatter(
     ax.axhline(y_avg, color="grey", linestyle="--", linewidth=1.0, zorder=1)
 
     # Label axes
-    ax.set_xlabel("Offense EPA per play (higher = better offense)")
-    y_label = "Defense EPA per play (higher = better defense)"
+    offense_label = "Offense EPA per play (higher = better offense)"
+    defense_label = "Defense EPA per play (higher = better defense)"
+    if metric_mode == "sos":
+        offense_label = "Offense EPA per play (shifted to match SOS-adjusted combined)"
+        defense_label = "Defense EPA per play (shifted to match SOS-adjusted combined)"
+
+    ax.set_xlabel(offense_label)
+    y_label = defense_label
     if invert_y:
         y_label += " — axis inverted for legacy data"
     ax.set_ylabel(y_label)
 
     # Title and subtitle
     title = f"NFL Team Efficiency (EPA/play), {season}"
-    subtitle = week_label if week_label else "Season to date"
+    subtitle_bits = [week_label or "Season to date"]
+    if metric_mode == "sos":
+        subtitle_bits.append("SOS-adjusted combined EPA")
+    subtitle = " — ".join(subtitle_bits)
     ax.set_title(title + "\n" + subtitle, pad=14)
 
     # Improve layout

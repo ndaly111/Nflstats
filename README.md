@@ -103,6 +103,32 @@ the thread to confirm whether it dispatched the workflow or lacked permission.
   workflow writes and commits this file alongside the SQLite cache so GitHub
   Pages can serve the freshest numbers.
 
+### SOS-adjusted EPA
+
+- `data/epa.json` now includes a `games` section (two rows per game) with
+  plays-weighted net EPA/play for each team. The browser computes a
+  ridge-regularised SRS-style adjustment using a selectable opponent strength
+  basis (default: season-to-date through the selected end week) and applies
+  those opponent ratings to the chosen display window. The same toggle also
+  powers the Flask view rendered by `app.py`.
+- Opponent strength basis options:
+  - `season_to_date` (default): ratings use games through the selected end week
+    with no future leakage.
+  - `window_only`: ratings use only games inside the selected display window
+    (more volatile for small ranges).
+  - `full_season`: ratings use all games in the season (hindsight).
+- Two helper columns accompany the adjusted ratings when the data is
+  available:
+  - `net_epa_pp_sos_adj`: window’s combined EPA/play plus the plays-weighted
+    SOS faced in that window (opponent strength measured per selected basis)
+  - `sos_faced`: plays-weighted average opponent rating faced in the selected
+    display window, useful for explaining why a team moved up or down when SOS
+    mode is enabled
+- Early-season noise is tamed with a modest ridge penalty (λ=20 by default) so
+  ratings do not overreact to a single blowout. In SOS mode offense/defense
+  values are shifted equally to keep the combined EPA aligned with the adjusted
+  rating.
+
 ## Preview locally (optional)
 
 Open `index.html` in your browser (double-click from your file explorer or run

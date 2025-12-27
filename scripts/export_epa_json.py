@@ -57,6 +57,16 @@ def fetch_season_payload(conn: sqlite3.Connection, season: int) -> dict | None:
             week_payload["def_plays"] = def_play_count
         teams.setdefault(team, {})[int(week)] = week_payload
 
+    game_rows = conn.execute(
+        """
+        SELECT game_id, week, team, opp, net_epa_pp, plays
+        FROM team_epa_games
+        WHERE season = ?
+        ORDER BY week, game_id, team
+        """,
+        (season,),
+    ).fetchall()
+
     return {
         "weeks": sorted(weeks),
         "teams": [
@@ -65,6 +75,17 @@ def fetch_season_payload(conn: sqlite3.Connection, season: int) -> dict | None:
                 "weeks": {str(week): payload for week, payload in sorted(weeks_data.items())},
             }
             for team, weeks_data in sorted(teams.items())
+        ],
+        "games": [
+            {
+                "game_id": row[0],
+                "week": int(row[1]),
+                "team": row[2],
+                "opp": row[3],
+                "net_epa_pp": float(row[4]),
+                "plays": int(row[5]),
+            }
+            for row in game_rows
         ],
     }
 
