@@ -6,8 +6,14 @@ from typing import Optional
 
 import pandas as pd
 
-from .db_storage import DB_PATH, save_team_epa_snapshot
-from .epa_od_fetcher import PbpFilters, apply_filters, compute_team_epa, load_pbp_pandas
+from .db_storage import DB_PATH, save_team_epa_snapshot, save_team_game_epa
+from .epa_od_fetcher import (
+    PbpFilters,
+    apply_filters,
+    compute_team_epa,
+    compute_team_game_epa,
+    load_pbp_pandas,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -74,11 +80,15 @@ def main() -> None:
             max_wp=filters.max_wp,
             include_playoffs=filters.include_playoffs,
         )
-        weekly_epa = compute_team_epa(apply_filters(pbp, week_filters))
+        filtered_week = apply_filters(pbp, week_filters)
+        weekly_epa = compute_team_epa(filtered_week)
         if weekly_epa.empty:
             raise SystemExit(f"Computed empty EPA snapshot for week {week_num}; cannot store in DB.")
 
         save_team_epa_snapshot(weekly_epa, season, week_num, db_path=args.db)
+        team_games = compute_team_game_epa(filtered_week, week=week_num)
+        if not team_games.empty:
+            save_team_game_epa(team_games, season, week_num, db_path=args.db)
         print(f"Stored team EPA for week {week_num} in SQLite database: {args.db}")
 
     print("All requested weeks stored in SQLite cache ✅")

@@ -4,6 +4,7 @@ import datetime
 from io import BytesIO
 from typing import Optional
 
+import pandas as pd
 from flask import Flask, abort, make_response, render_template_string, request, send_file, url_for
 
 from scripts.db_storage import DB_PATH, get_cached_weeks
@@ -56,6 +57,23 @@ PAGE_TEMPLATE = """
       {% endfor %}
     </select>
 
+    <label for="metric_mode">EPA view</label>
+    <select name="metric_mode" id="metric_mode">
+      <option value="raw" {% if metric_mode == 'raw' %}selected{% endif %}>Raw EPA/play</option>
+      <option value="sos" {% if metric_mode == 'sos' %}selected{% endif %}>SOS-adjusted EPA/play</option>
+    </select>
+
+    {% if metric_mode == 'sos' %}
+    <label for="sos_basis">Opponent strength basis</label>
+    <select name="sos_basis" id="sos_basis">
+      <option value="season_to_date" {% if sos_basis == 'season_to_date' %}selected{% endif %}>Season-to-date (through end week)</option>
+      <option value="window_only" {% if sos_basis == 'window_only' %}selected{% endif %}>Selected weeks only</option>
+      <option value="full_season" {% if sos_basis == 'full_season' %}selected{% endif %}>Full season (hindsight)</option>
+    </select>
+    {% else %}
+    <input type="hidden" name="sos_basis" value="{{ sos_basis }}">
+    {% endif %}
+
     <div style="margin-top:0.5rem;">
       <button type="submit">Update chart</button>
     </div>
@@ -76,6 +94,7 @@ PAGE_TEMPLATE = """
             <tr>
               <th data-type="string">Team</th>
               <th data-type="number">Combined EPA/play</th>
+              {% if metric_mode == 'sos' %}<th data-type="number">SOS faced</th>{% endif %}
               <th data-type="number">Offense EPA/play</th>
               <th data-type="number">Defense EPA/play</th>
             </tr>
@@ -85,6 +104,11 @@ PAGE_TEMPLATE = """
               <tr>
                 <td data-value="{{ row.team }}">{{ row.display_name }} ({{ row.team }})</td>
                 <td data-value="{{ "%.6f"|format(row.combined) }}">{{ "%.3f"|format(row.combined) }}</td>
+                {% if metric_mode == 'sos' %}
+                <td data-value="{{ row.sos_faced if row.sos_faced is not none else '' }}">
+                  {% if row.sos_faced is not none %}{{ "%.3f"|format(row.sos_faced) }}{% else %}N/A{% endif %}
+                </td>
+                {% endif %}
                 <td data-value="{{ "%.6f"|format(row.offense) }}">{{ "%.3f"|format(row.offense) }}</td>
                 <td data-value="{{ "%.6f"|format(row.defense) }}">{{ "%.3f"|format(row.defense) }}</td>
               </tr>
@@ -179,6 +203,12 @@ def _format_week_options(season: int, weeks: list[int]) -> list[dict[str, int | 
 @app.route("/")
 def index() -> str:
     season = _parse_int(request.args.get("season"), datetime.date.today().year)
+    metric_mode = request.args.get("metric_mode", default="raw")
+    if metric_mode not in {"raw", "sos"}:
+        metric_mode = "raw"
+    sos_basis = request.args.get("sos_basis", default="season_to_date")
+    if sos_basis not in {"season_to_date", "window_only", "full_season"}:
+        sos_basis = "season_to_date"
     weeks = get_cached_weeks(season)
     if not weeks:
         return render_template_string(
@@ -189,6 +219,8 @@ def index() -> str:
             week_options=[],
             week_start=None,
             week_end=None,
+            metric_mode=metric_mode,
+            sos_basis=sos_basis,
             chart_url=None,
             table_rows=[],
         )
@@ -198,17 +230,30 @@ def index() -> str:
     if week_start > week_end:
         week_start, week_end = week_end, week_start
 
-    df = load_team_epa(season, week_start=week_start, week_end=week_end)
+    df = load_team_epa(
+        season,
+        week_start=week_start,
+        week_end=week_end,
+        include_sos=metric_mode == "sos",
+        sos_basis=sos_basis,
+    )
     data_for_table = df.dropna(subset=["EPA_off_per_play", "EPA_def_per_play"])
     table_rows = []
     for team, row in data_for_table.sort_index().iterrows():
+        base_net = row.get("net_epa_pp")
+        if pd.isna(base_net):
+            base_net = row["EPA_off_per_play"] + row["EPA_def_per_play"]
+        use_sos = metric_mode == "sos" and not pd.isna(row.get("net_epa_pp_sos_adj"))
+        delta = (row.get("net_epa_pp_sos_adj", 0) - base_net) / 2 if use_sos else 0
+        combined = row.get("net_epa_pp_sos_adj", base_net) if use_sos else base_net
         table_rows.append(
             {
                 "team": team,
                 "display_name": TEAM_DISPLAY_NAMES.get(team, team),
-                "combined": row["EPA_off_per_play"] + row["EPA_def_per_play"],
-                "offense": row["EPA_off_per_play"],
-                "defense": row["EPA_def_per_play"],
+                "combined": combined,
+                "offense": row["EPA_off_per_play"] + delta,
+                "defense": row["EPA_def_per_play"] + delta,
+                "sos_faced": row.get("sos_faced"),
             }
         )
 
@@ -217,6 +262,8 @@ def index() -> str:
         season=season,
         week_start=week_start,
         week_end=week_end,
+        metric_mode=metric_mode,
+        sos_basis=sos_basis,
         cachebuster=datetime.datetime.utcnow().timestamp(),
     )
 
@@ -228,6 +275,8 @@ def index() -> str:
         week_options=_format_week_options(season, weeks),
         week_start=week_start,
         week_end=week_end,
+        metric_mode=metric_mode,
+        sos_basis=sos_basis,
         chart_url=chart_url,
         table_rows=table_rows,
     )
@@ -238,11 +287,23 @@ def chart():
     season = request.args.get("season", type=int)
     week_start = request.args.get("week_start", type=int)
     week_end = request.args.get("week_end", type=int)
+    metric_mode = request.args.get("metric_mode", default="raw")
+    if metric_mode not in {"raw", "sos"}:
+        metric_mode = "raw"
+    sos_basis = request.args.get("sos_basis", default="season_to_date")
+    if sos_basis not in {"season_to_date", "window_only", "full_season"}:
+        sos_basis = "season_to_date"
 
     if season is None:
         abort(make_response({"error": "Missing required season"}, 400))
 
-    df = load_team_epa(season, week_start=week_start, week_end=week_end)
+    df = load_team_epa(
+        season,
+        week_start=week_start,
+        week_end=week_end,
+        include_sos=metric_mode == "sos",
+        sos_basis=sos_basis,
+    )
     start = df.attrs.get("week_start") or week_start
     end = df.attrs.get("week_end") or week_end
     week_label = None
@@ -250,7 +311,14 @@ def chart():
         week_label = f"Week {end}" if start == end else f"Weeks {start}–{end}"
 
     buffer = BytesIO()
-    plot_scatter(df, week_label, invert_y=False, output=buffer, season=season)
+    plot_scatter(
+        df,
+        week_label,
+        invert_y=False,
+        output=buffer,
+        season=season,
+        metric_mode=metric_mode,
+    )
     buffer.seek(0)
 
     return send_file(buffer, mimetype="image/png")

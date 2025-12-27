@@ -199,6 +199,10 @@
     th.sorted-asc::after { content: " \2191"; }
     th.sorted-desc::after { content: " \2193"; }
 
+    body:not(.sos-mode) .sos-only {
+      display: none;
+    }
+
     tbody tr:nth-child(odd) { background: #f8fafc; }
     tbody tr:nth-child(even) { background: #ffffff; }
 
@@ -236,6 +240,21 @@
         <select id="week-end"></select>
       </div>
       <div>
+        <label for="metric-mode">EPA view</label>
+        <select id="metric-mode">
+          <option value="raw">Raw EPA/play</option>
+          <option value="sos">SOS-adjusted EPA/play</option>
+        </select>
+      </div>
+      <div id="sos-basis-wrap">
+        <label for="sos-basis">Opponent strength basis</label>
+        <select id="sos-basis">
+          <option value="season_to_date" selected>Season-to-date (through end week)</option>
+          <option value="window_only">Selected weeks only</option>
+          <option value="full_season">Full season (hindsight)</option>
+        </select>
+      </div>
+      <div>
         <label>&nbsp;</label>
         <button id="update-btn">Update chart</button>
       </div>
@@ -247,7 +266,7 @@
 
       <section id="table-section" class="table-wrapper">
         <h2>EPA/play table</h2>
-        <p class="table-note">Click any column header to sort. Values match the chart above.</p>
+        <p class="table-note">Click any column header to sort. Combined EPA follows the selected view; SOS faced is the plays-weighted average rating of opponents. In SOS-adjusted mode, offense and defense values are shifted equally to align with the adjusted combined rating.</p>
         <div class="table-scroll">
           <table id="epa-table">
             <thead>
@@ -255,6 +274,7 @@
                 <th data-type="number">Rank</th>
                 <th data-type="string">Team</th>
                 <th data-type="number">Combined EPA/play</th>
+                <th class="sos-only" data-type="number">SOS faced</th>
                 <th data-type="number">Offense EPA/play</th>
                 <th data-type="number">Defense EPA/play</th>
               </tr>
@@ -300,6 +320,8 @@
     const seasonSelect = document.getElementById('season-select');
     const weekStartSelect = document.getElementById('week-start');
     const weekEndSelect = document.getElementById('week-end');
+    const metricModeSelect = document.getElementById('metric-mode');
+    const sosBasisSelect = document.getElementById('sos-basis');
     const updateButton = document.getElementById('update-btn');
     const ctx = document.getElementById('epa-chart').getContext('2d');
     const tableSection = document.getElementById('table-section');
@@ -406,7 +428,104 @@
       return { off, def };
     }
 
-    function computePoints(selectedSeason, startWeek, endWeek) {
+    function solveLinearSystem(matrix, vector) {
+      const n = matrix.length;
+      const augmented = matrix.map((row, idx) => [...row, vector[idx]]);
+      for (let i = 0; i < n; i += 1) {
+        let pivot = i;
+        for (let r = i + 1; r < n; r += 1) {
+          if (Math.abs(augmented[r][i]) > Math.abs(augmented[pivot][i])) pivot = r;
+        }
+        if (Math.abs(augmented[pivot][i]) < 1e-9) {
+          console.error('SOS solver encountered a near-singular pivot');
+          throw new Error('SOS solver failed due to singular matrix');
+        }
+        if (pivot !== i) [augmented[i], augmented[pivot]] = [augmented[pivot], augmented[i]];
+        const pivotVal = augmented[i][i];
+        for (let c = i; c <= n; c += 1) augmented[i][c] /= pivotVal;
+        for (let r = 0; r < n; r += 1) {
+          if (r === i) continue;
+          const factor = augmented[r][i];
+          if (factor === 0) continue;
+          for (let c = i; c <= n; c += 1) augmented[r][c] -= factor * augmented[i][c];
+        }
+      }
+      return augmented.map((row) => row[n]);
+    }
+
+    function computeSosRatingsForRange(selectedSeason, startWeek, endWeek, sosBasis = 'season_to_date') {
+      const season = seasonData[selectedSeason];
+      if (!season || !Array.isArray(season.games) || !season.games.length) return null;
+
+      let ratingGames;
+      if (sosBasis === 'window_only') {
+        ratingGames = season.games.filter((g) => g.week >= startWeek && g.week <= endWeek);
+      } else if (sosBasis === 'full_season') {
+        ratingGames = season.games;
+      } else {
+        ratingGames = season.games.filter((g) => g.week <= endWeek);
+      }
+      const displayGames = season.games.filter((g) => g.week >= startWeek && g.week <= endWeek);
+      if (!ratingGames.length || !displayGames.length) return null;
+
+      const teams = Array.from(
+        new Set([...ratingGames, ...displayGames].flatMap((g) => [g.team, g.opp])),
+      ).sort();
+      const idx = Object.fromEntries(teams.map((t, i) => [t, i]));
+      const n = teams.length;
+      const lam = 20;
+      const AtA = Array.from({ length: n }, (_, i) =>
+        Array.from({ length: n }, (__unused, j) => (i === j ? lam : 0)),
+      );
+      const Atb = Array(n).fill(0);
+
+      ratingGames.forEach((g) => {
+        const t = idx[g.team];
+        const o = idx[g.opp];
+        const weight = Number(g.plays);
+        const net = Number(g.net_epa_pp);
+        if (!Number.isFinite(weight) || weight <= 0 || !Number.isFinite(net)) return;
+        AtA[t][t] += weight;
+        AtA[o][o] += weight;
+        AtA[t][o] -= weight;
+        AtA[o][t] -= weight;
+        Atb[t] += weight * net;
+        Atb[o] -= weight * net;
+      });
+
+      let ratingsArr;
+      try {
+        ratingsArr = solveLinearSystem(AtA, Atb);
+      } catch (err) {
+        console.warn('SOS solver failed; falling back to raw EPA for this selection', err);
+        return null;
+      }
+      const mean = ratingsArr.reduce((acc, val) => acc + val, 0) / ratingsArr.length;
+      const ratings = {};
+      teams.forEach((team, i) => {
+        ratings[team] = ratingsArr[i] - mean;
+      });
+
+      const sosFacedSums = {};
+      const weightTotals = {};
+      displayGames.forEach((g) => {
+        const weight = Number(g.plays);
+        const oppRating = ratings[g.opp];
+        if (!Number.isFinite(weight) || weight <= 0 || !Number.isFinite(oppRating)) return;
+        sosFacedSums[g.team] = (sosFacedSums[g.team] || 0) + weight * oppRating;
+        weightTotals[g.team] = (weightTotals[g.team] || 0) + weight;
+      });
+
+      const sosFaced = {};
+      teams.forEach((team) => {
+        const total = weightTotals[team] || 0;
+        sosFaced[team] = total ? sosFacedSums[team] / total : 0;
+      });
+
+      return { ratings, sosFaced };
+    }
+
+    function buildTeamRows(selectedSeason, startWeek, endWeek, metricMode, sosBasis, sosData) {
       const season = seasonData[selectedSeason];
       if (!season) return [];
       return season.teams
@@ -417,20 +536,49 @@
           });
           const averaged = averageWeeks(weeks, startWeek, endWeek);
           if (!averaged) return null;
+
+          const baseCombined = averaged.off + averaged.def;
+          const sosFaced = metricMode === 'sos' ? sosData?.sosFaced?.[teamEntry.team] : null;
+          const combined = Number.isFinite(sosFaced) ? baseCombined + sosFaced : baseCombined;
+          const delta = Number.isFinite(sosFaced) ? sosFaced : 0;
+          const off = averaged.off + delta / 2;
+          const def = averaged.def + delta / 2;
           return {
-            x: averaged.off,
-            y: averaged.def,
+            x: off,
+            y: def,
             label: teamEntry.team,
             backgroundColor: TEAM_COLORS[teamEntry.team] || '#0f172a',
             borderColor: '#0f172a',
+            team: teamEntry.team,
+            displayName: TEAM_DISPLAY_NAMES[teamEntry.team] || teamEntry.team,
+            combined,
+            off,
+            def,
+            sosFaced: Number.isFinite(sosFaced) ? sosFaced : null,
           };
         })
         .filter(Boolean);
     }
 
-    function renderChart(points, seasonLabel, startWeek, endWeek) {
+    function renderChart(points, seasonLabel, startWeek, endWeek, metricMode, sosBasis) {
       if (chart) chart.destroy();
       const subtitle = startWeek === endWeek ? `Week ${startWeek}` : `Weeks ${startWeek}\u2013${endWeek}`;
+      const subtitleParts = [subtitle];
+      if (metricMode === 'sos') {
+        const basisLabel = sosBasis === 'full_season'
+          ? 'full season'
+          : sosBasis === 'window_only'
+            ? 'window only'
+            : `through Week ${endWeek}`;
+        subtitleParts.push(`SOS-adjusted combined EPA (opp basis: ${basisLabel})`);
+      }
+      const offenseAxisLabel = metricMode === 'sos'
+        ? 'Offense EPA per play (shifted to match SOS-adjusted combined)'
+        : 'Offense EPA per play (higher = better offense)';
+      const defenseAxisLabel = metricMode === 'sos'
+        ? 'Defense EPA per play (shifted to match SOS-adjusted combined)'
+        : 'Defense EPA per play (higher = better defense)';
+
       chart = new Chart(ctx, {
         type: 'scatter',
         data: { datasets: [{
@@ -450,7 +598,7 @@
           plugins: {
             legend: { display: false },
             title: { display: false },
-            subtitle: { display: false },
+            subtitle: { display: true, text: subtitleParts.join(' — ') },
             datalabels: {
               backgroundColor: null,
               borderWidth: 0,
@@ -465,18 +613,19 @@
               callbacks: {
                 label: (ctx) => {
                   const { x, y, label } = ctx.raw;
-                  return `${label}: Off ${x.toFixed(3)}, Def ${y.toFixed(3)}`;
+                  const shiftedNote = metricMode === 'sos' ? ' (shifted)' : '';
+                  return `${label}: Off ${x.toFixed(3)}, Def ${y.toFixed(3)}${shiftedNote}`;
                 },
               },
             },
           },
           scales: {
             x: {
-              title: { display: true, text: 'Offense EPA per play (higher = better offense)' },
+              title: { display: true, text: offenseAxisLabel },
               grid: { color: '#e2e8f0' },
             },
             y: {
-              title: { display: true, text: 'Defense EPA per play (higher = better defense)' },
+              title: { display: true, text: defenseAxisLabel },
               grid: { color: '#e2e8f0' },
             },
           },
@@ -546,7 +695,7 @@
     function renderTable(rows, ranksByMetric = { combined: {}, off: {}, def: {} }) {
       tableBody.innerHTML = '';
       if (!rows.length) {
-        tableBody.innerHTML = '<tr><td colspan="5">No EPA data for the selected range.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6">No EPA data for the selected range.</td></tr>';
         return;
       }
       const totalTeams = rows.length;
@@ -555,12 +704,16 @@
         const combinedRank = ranksByMetric.combined[row.team];
         const offRank = ranksByMetric.off[row.team];
         const defRank = ranksByMetric.def[row.team];
+        const sosValue = Number.isFinite(row.sosFaced) ? row.sosFaced.toFixed(6) : 'N/A';
         tr.innerHTML = `
           <td class="rank-cell" data-value="${index + 1}">${index + 1}</td>
           <td data-value="${row.team}">${row.displayName} (${row.team})</td>
           <td class="metric-cell" data-value="${row.combined.toFixed(6)}">
             <span class="metric-value">${formatNumber(row.combined)}</span>
             <span class="rank-label" style="color: ${getRankColor(combinedRank, totalTeams)}">(#${combinedRank})</span>
+          </td>
+          <td class="metric-cell sos-only" data-value="${sosValue}">
+            <span class="metric-value">${Number.isFinite(row.sosFaced) ? formatNumber(row.sosFaced) : 'N/A'}</span>
           </td>
           <td class="metric-cell" data-value="${row.off.toFixed(6)}">
             <span class="metric-value">${formatNumber(row.off)}</span>
@@ -634,28 +787,40 @@
       hideStatus();
       const season = seasonSelect.value;
       const { start, end } = syncWeekRange();
-      const points = computePoints(season, start, end);
-      if (points.length === 0) {
+      const metricMode = metricModeSelect.value;
+      const sosBasis = sosBasisSelect.value;
+      const sosData = metricMode === 'sos'
+        ? computeSosRatingsForRange(season, start, end, sosBasis)
+        : null;
+      const effectiveMetricMode = metricMode === 'sos' && !sosData ? 'raw' : metricMode;
+      if (metricMode === 'sos' && !sosData) {
+        showStatus('SOS metrics unavailable for this selection; showing raw EPA values instead.', 'error');
+      }
+      updateSosControlsVisibility(effectiveMetricMode);
+      const rows = buildTeamRows(season, start, end, effectiveMetricMode, sosBasis, sosData);
+      if (rows.length === 0) {
         showStatus('No EPA points available for that range. Try a different week selection.', 'error');
         if (chart) chart.destroy();
         renderTable([]);
         return;
       }
-      const tableRows = points.map((p) => ({
-        team: p.label,
-        displayName: TEAM_DISPLAY_NAMES[p.label] || p.label,
-        combined: p.x + p.y,
-        off: p.x,
-        def: p.y,
-      }));
+      const points = rows.map((row) => ({ x: row.x, y: row.y, label: row.label, backgroundColor: row.backgroundColor, borderColor: row.borderColor }));
       const ranksByMetric = {
-        combined: computeRanks(tableRows, 'combined'),
-        off: computeRanks(tableRows, 'off'),
-        def: computeRanks(tableRows, 'def'),
+        combined: computeRanks(rows, 'combined'),
+        off: computeRanks(rows, 'off'),
+        def: computeRanks(rows, 'def'),
       };
-      renderChart(points, season, start, end);
-      renderTable(tableRows, ranksByMetric);
+      renderChart(points, season, start, end, effectiveMetricMode, sosBasis);
+      renderTable(rows, ranksByMetric);
       sortTable(sortState.column ?? 1, false);
+    }
+
+    function updateSosControlsVisibility(metricMode) {
+      const wrap = document.getElementById('sos-basis-wrap');
+      if (wrap) {
+        wrap.style.display = metricMode === 'sos' ? '' : 'none';
+      }
+      document.body.classList.toggle('sos-mode', metricMode === 'sos');
     }
 
     function populateSeasonControls(seasonsMap) {
@@ -714,8 +879,13 @@
 
     weekStartSelect.addEventListener('change', () => syncWeekRange());
     weekEndSelect.addEventListener('change', () => syncWeekRange());
+    metricModeSelect.addEventListener('change', () => {
+      updateSosControlsVisibility(metricModeSelect.value);
+      refreshChart();
+    });
+    sosBasisSelect.addEventListener('change', refreshChart);
     updateButton.addEventListener('click', refreshChart);
-
+    updateSosControlsVisibility(metricModeSelect.value);
     bootstrap();
   </script>
 </body>

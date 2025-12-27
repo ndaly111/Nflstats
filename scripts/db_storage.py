@@ -45,6 +45,26 @@ CREATE TABLE IF NOT EXISTS team_epa_weekly (
 );
 """
 
+TEAM_GAME_EPA_SCHEMA = """
+CREATE TABLE IF NOT EXISTS team_epa_games (
+    season INTEGER NOT NULL,
+    week INTEGER NOT NULL,
+    game_id TEXT NOT NULL,
+    team TEXT NOT NULL,
+    opp TEXT NOT NULL,
+    net_epa_sum REAL NOT NULL,
+    plays INTEGER NOT NULL,
+    net_epa_pp REAL NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    PRIMARY KEY (season, game_id, team)
+);
+"""
+
+TEAM_GAME_EPA_WEEK_INDEX = """
+CREATE INDEX IF NOT EXISTS idx_team_epa_games_season_week
+ON team_epa_games(season, week);
+"""
+
 
 def init_db(db_path: Path | str = DB_PATH) -> sqlite3.Connection:
     db_path = Path(db_path)
@@ -53,6 +73,8 @@ def init_db(db_path: Path | str = DB_PATH) -> sqlite3.Connection:
     conn.execute("PRAGMA journal_mode=DELETE;")
     conn.execute(TEAM_EPA_SCHEMA)
     conn.execute(TEAM_EPA_WEEKLY_SCHEMA)
+    conn.execute(TEAM_GAME_EPA_SCHEMA)
+    conn.execute(TEAM_GAME_EPA_WEEK_INDEX)
     _migrate_weekly_schema(conn)
     return conn
 
@@ -219,3 +241,88 @@ def save_team_epa_snapshot(
             ],
         )
     conn.close()
+
+
+def save_team_game_epa(
+    df: pd.DataFrame, season: int, week: int, db_path: Path | str = DB_PATH
+) -> None:
+    """Persist per-game EPA snapshots for a specific week."""
+
+    required = ["game_id", "team", "opp", "net_epa_sum", "plays", "net_epa_pp"]
+    missing = set(required) - set(df.columns)
+    if missing:
+        raise ValueError(f"Team-game EPA dataframe missing columns for DB storage: {sorted(missing)}")
+
+    df_to_write = df[required].copy()
+    df_to_write["season"] = season
+    df_to_write["week"] = week
+
+    conn = init_db(db_path)
+    with conn:
+        conn.executemany(
+            """
+            INSERT INTO team_epa_games (
+                season, week, game_id, team, opp, net_epa_sum, plays, net_epa_pp
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(season, game_id, team) DO UPDATE SET
+                week=excluded.week,
+                opp=excluded.opp,
+                net_epa_sum=excluded.net_epa_sum,
+                plays=excluded.plays,
+                net_epa_pp=excluded.net_epa_pp,
+                updated_at=strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+            """,
+            [
+                (
+                    season,
+                    week,
+                    str(row.game_id),
+                    str(row.team),
+                    str(row.opp),
+                    float(row.net_epa_sum),
+                    int(row.plays),
+                    float(row.net_epa_pp),
+                )
+                for row in df_to_write.itertuples(index=False)
+            ],
+        )
+    conn.close()
+
+
+def load_team_game_epa_from_db(
+    season: int,
+    week_start: Optional[int] = None,
+    week_end: Optional[int] = None,
+    db_path: Path | str = DB_PATH,
+) -> Optional[pd.DataFrame]:
+    """Load per-team game EPA rows for a week range."""
+
+    conn = init_db(db_path)
+    cur = conn.execute(
+        "SELECT MIN(week), MAX(week) FROM team_epa_games WHERE season = ?",
+        (season,),
+    )
+    min_week, max_week = cur.fetchone()
+    if min_week is None or max_week is None:
+        conn.close()
+        return None
+
+    target_start = week_start or int(min_week)
+    target_end = week_end or int(max_week)
+    if target_start > target_end:
+        target_start, target_end = target_end, target_start
+
+    query = """
+        SELECT game_id, week, team, opp, net_epa_sum, plays, net_epa_pp
+        FROM team_epa_games
+        WHERE season = ? AND week BETWEEN ? AND ?
+        ORDER BY game_id, team
+    """
+    df = pd.read_sql_query(query, conn, params=(season, target_start, target_end))
+    conn.close()
+    if df.empty:
+        return None
+
+    df.attrs["week_start"] = int(target_start)
+    df.attrs["week_end"] = int(target_end)
+    return df
