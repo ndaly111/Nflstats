@@ -28,7 +28,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from .sos_adjustment import compute_sos_adjusted_net_epa, compute_sos_faced
+from .sos_adjustment import compute_sos_adjusted_off_def, compute_split_sos_faced
 
 try:
     # Prefer DB-backed data when available.
@@ -227,22 +227,26 @@ def load_team_epa(
 
         window_games = load_team_game_epa_from_db(season, week_start=week_start, week_end=week_end)
 
-        ratings = None
+        ratings_df = None
         if ratings_games is not None and not ratings_games.empty:
-            ratings = compute_sos_adjusted_net_epa(ratings_games)
+            ratings_df = compute_sos_adjusted_off_def(ratings_games)
 
-        sos_faced = None
-        if ratings is not None and window_games is not None and not window_games.empty:
-            sos_faced = compute_sos_faced(window_games, ratings)
-        elif ratings is not None:
-            sos_faced = pd.Series(0.0, index=normalized.index, name="sos_faced")
-
-        if sos_faced is not None:
-            normalized["sos_faced"] = normalized.index.map(sos_faced).fillna(0.0)
-            normalized["net_epa_pp_sos_adj"] = normalized["net_epa_pp"] + normalized["sos_faced"]
-            normalized["net_epa_pp_adj_delta"] = (
-                normalized["net_epa_pp_sos_adj"] - normalized["net_epa_pp"]
-            ).fillna(0.0)
+        if (
+            ratings_df is not None
+            and not ratings_df.empty
+            and window_games is not None
+            and not window_games.empty
+        ):
+            sos_off, sos_def = compute_split_sos_faced(
+                window_games, ratings_df["off_rating"], ratings_df["def_rating"]
+            )
+            normalized["sos_off_faced"] = sos_off.reindex(normalized.index).fillna(0.0)
+            normalized["sos_def_faced"] = sos_def.reindex(normalized.index).fillna(0.0)
+            normalized["EPA_off_sos_adj"] = normalized["EPA_off_per_play"] + normalized["sos_off_faced"]
+            normalized["EPA_def_sos_adj"] = normalized["EPA_def_per_play"] + normalized["sos_def_faced"]
+            normalized["net_epa_pp_sos_adj"] = (
+                normalized["EPA_off_sos_adj"] + normalized["EPA_def_sos_adj"]
+            )
 
     return normalized
 
@@ -320,12 +324,9 @@ def plot_scatter(
         raise ValueError("No rows to plot after dropping missing EPA values.")
 
     data = df.copy()
-    if metric_mode == "sos" and {"net_epa_pp", "net_epa_pp_sos_adj"}.issubset(data.columns):
-        delta = (data["net_epa_pp_sos_adj"] - data["net_epa_pp"]).fillna(0.0)
-        # Split the adjustment evenly between offense and defense so combined EPA matches
-        adjustment = delta / 2.0
-        data["EPA_off_per_play"] = data["EPA_off_per_play"] + adjustment
-        data["EPA_def_per_play"] = data["EPA_def_per_play"] + adjustment
+    if metric_mode == "sos" and {"EPA_off_sos_adj", "EPA_def_sos_adj"}.issubset(data.columns):
+        data["EPA_off_per_play"] = data["EPA_off_sos_adj"]
+        data["EPA_def_per_play"] = data["EPA_def_sos_adj"]
     else:
         metric_mode = "raw"
 
@@ -349,8 +350,8 @@ def plot_scatter(
     offense_label = "Offense EPA per play (higher = better offense)"
     defense_label = "Defense EPA per play (higher = better defense)"
     if metric_mode == "sos":
-        offense_label = "Offense EPA per play (shifted to match SOS-adjusted combined)"
-        defense_label = "Defense EPA per play (shifted to match SOS-adjusted combined)"
+        offense_label = "Offense EPA per play (SOS-adjusted via opponent defenses)"
+        defense_label = "Defense EPA per play (SOS-adjusted via opponent offenses)"
 
     ax.set_xlabel(offense_label)
     y_label = defense_label
@@ -362,7 +363,7 @@ def plot_scatter(
     title = f"NFL Team Efficiency (EPA/play), {season}"
     subtitle_bits = [week_label or "Season to date"]
     if metric_mode == "sos":
-        subtitle_bits.append("SOS-adjusted combined EPA")
+        subtitle_bits.append("SOS-adjusted offense/defense EPA")
     subtitle = " — ".join(subtitle_bits)
     ax.set_title(title + "\n" + subtitle, pad=14)
 

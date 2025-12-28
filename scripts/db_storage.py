@@ -52,6 +52,12 @@ CREATE TABLE IF NOT EXISTS team_epa_games (
     game_id TEXT NOT NULL,
     team TEXT NOT NULL,
     opp TEXT NOT NULL,
+    off_epa_sum REAL NOT NULL,
+    off_plays INTEGER NOT NULL,
+    off_epa_pp REAL NOT NULL,
+    def_epa_sum REAL NOT NULL,
+    def_plays INTEGER NOT NULL,
+    def_epa_pp REAL NOT NULL,
     net_epa_sum REAL NOT NULL,
     plays INTEGER NOT NULL,
     net_epa_pp REAL NOT NULL,
@@ -76,6 +82,7 @@ def init_db(db_path: Path | str = DB_PATH) -> sqlite3.Connection:
     conn.execute(TEAM_GAME_EPA_SCHEMA)
     conn.execute(TEAM_GAME_EPA_WEEK_INDEX)
     _migrate_weekly_schema(conn)
+    _migrate_team_game_schema(conn)
     return conn
 
 
@@ -104,6 +111,32 @@ def _migrate_weekly_schema(conn: sqlite3.Connection) -> None:
         if name not in existing_columns:
             conn.execute(
                 f"ALTER TABLE team_epa_weekly ADD COLUMN {name} {col_type} "
+                f"NOT NULL DEFAULT {default};"
+            )
+
+
+def _migrate_team_game_schema(conn: sqlite3.Connection) -> None:
+    """Add any missing team-game EPA columns for older databases."""
+
+    cur = conn.execute("PRAGMA table_info(team_epa_games)")
+    existing_columns = {row[1] for row in cur.fetchall()}
+    migrations = [
+        ("off_epa_sum", "REAL", "0"),
+        ("off_plays", "INTEGER", "0"),
+        ("off_epa_pp", "REAL", "0"),
+        ("def_epa_sum", "REAL", "0"),
+        ("def_plays", "INTEGER", "0"),
+        ("def_epa_pp", "REAL", "0"),
+        ("net_epa_sum", "REAL", "0"),
+        ("plays", "INTEGER", "0"),
+        ("net_epa_pp", "REAL", "0"),
+        ("updated_at", "TEXT", "''"),
+    ]
+
+    for name, col_type, default in migrations:
+        if name not in existing_columns:
+            conn.execute(
+                f"ALTER TABLE team_epa_games ADD COLUMN {name} {col_type} "
                 f"NOT NULL DEFAULT {default};"
             )
 
@@ -248,7 +281,20 @@ def save_team_game_epa(
 ) -> None:
     """Persist per-game EPA snapshots for a specific week."""
 
-    required = ["game_id", "team", "opp", "net_epa_sum", "plays", "net_epa_pp"]
+    required = [
+        "game_id",
+        "team",
+        "opp",
+        "off_epa_sum",
+        "off_plays",
+        "off_epa_pp",
+        "def_epa_sum",
+        "def_plays",
+        "def_epa_pp",
+        "net_epa_sum",
+        "plays",
+        "net_epa_pp",
+    ]
     missing = set(required) - set(df.columns)
     if missing:
         raise ValueError(f"Team-game EPA dataframe missing columns for DB storage: {sorted(missing)}")
@@ -262,11 +308,20 @@ def save_team_game_epa(
         conn.executemany(
             """
             INSERT INTO team_epa_games (
-                season, week, game_id, team, opp, net_epa_sum, plays, net_epa_pp
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                season, week, game_id, team, opp,
+                off_epa_sum, off_plays, off_epa_pp,
+                def_epa_sum, def_plays, def_epa_pp,
+                net_epa_sum, plays, net_epa_pp
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(season, game_id, team) DO UPDATE SET
                 week=excluded.week,
                 opp=excluded.opp,
+                off_epa_sum=excluded.off_epa_sum,
+                off_plays=excluded.off_plays,
+                off_epa_pp=excluded.off_epa_pp,
+                def_epa_sum=excluded.def_epa_sum,
+                def_plays=excluded.def_plays,
+                def_epa_pp=excluded.def_epa_pp,
                 net_epa_sum=excluded.net_epa_sum,
                 plays=excluded.plays,
                 net_epa_pp=excluded.net_epa_pp,
@@ -279,6 +334,12 @@ def save_team_game_epa(
                     str(row.game_id),
                     str(row.team),
                     str(row.opp),
+                    float(row.off_epa_sum),
+                    int(row.off_plays),
+                    float(row.off_epa_pp),
+                    float(row.def_epa_sum),
+                    int(row.def_plays),
+                    float(row.def_epa_pp),
                     float(row.net_epa_sum),
                     int(row.plays),
                     float(row.net_epa_pp),
@@ -313,7 +374,11 @@ def load_team_game_epa_from_db(
         target_start, target_end = target_end, target_start
 
     query = """
-        SELECT game_id, week, team, opp, net_epa_sum, plays, net_epa_pp
+        SELECT
+            game_id, week, team, opp,
+            off_epa_sum, off_plays, off_epa_pp,
+            def_epa_sum, def_plays, def_epa_pp,
+            net_epa_sum, plays, net_epa_pp
         FROM team_epa_games
         WHERE season = ? AND week BETWEEN ? AND ?
         ORDER BY game_id, team

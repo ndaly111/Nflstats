@@ -144,7 +144,7 @@ def compute_team_epa(pbp: pd.DataFrame) -> pd.DataFrame:
 
 
 def compute_team_game_epa(pbp: pd.DataFrame, week: int) -> pd.DataFrame:
-    """Compute per-team, per-game net EPA metrics for a specific week."""
+    """Compute per-team, per-game EPA metrics for a specific week."""
 
     required_columns = {"game_id", "posteam", "defteam", "epa"}
     missing = required_columns - set(pbp.columns)
@@ -186,11 +186,26 @@ def compute_team_game_epa(pbp: pd.DataFrame, week: int) -> pd.DataFrame:
 
     merged["plays"] = merged["off_plays"].astype(int) + merged["def_plays"].astype(int)
     merged["net_epa_pp"] = merged["off_epa_pp"] + merged["def_epa_pp"]
-    # Keep the stored sum consistent with the combined per-play value and weight.
-    merged["net_epa_sum"] = merged["net_epa_pp"] * merged["plays"]
+    merged["net_epa_sum"] = merged["off_epa_sum"] + merged["def_epa_sum"]
     merged["week"] = week
 
-    return merged[["game_id", "week", "team", "opp", "net_epa_sum", "plays", "net_epa_pp"]]
+    return merged[
+        [
+            "game_id",
+            "week",
+            "team",
+            "opp",
+            "off_epa_sum",
+            "off_plays",
+            "off_epa_pp",
+            "def_epa_sum",
+            "def_plays",
+            "def_epa_pp",
+            "net_epa_sum",
+            "plays",
+            "net_epa_pp",
+        ]
+    ]
 
 
 def build_team_epa(season: int, filters: Optional[PbpFilters] = None) -> pd.DataFrame:
