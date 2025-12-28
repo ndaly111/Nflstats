@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import nflreadpy as nfl
+import numpy as np
 import pandas as pd
 
 
@@ -155,6 +156,12 @@ def compute_team_game_epa(pbp: pd.DataFrame, week: int) -> pd.DataFrame:
     df["epa"] = pd.to_numeric(df["epa"], errors="coerce")
     df = df.dropna(subset=["epa", "posteam", "defteam", "game_id"])
 
+    home_col = away_col = None
+    if {"home_team", "away_team", "total_home_score", "total_away_score"}.issubset(df.columns):
+        home_col, away_col = "total_home_score", "total_away_score"
+    elif {"home_team", "away_team", "home_score", "away_score"}.issubset(df.columns):
+        home_col, away_col = "home_score", "away_score"
+
     # Offensive perspective
     off = (
         df.groupby(["game_id", "posteam", "defteam"])["epa"]
@@ -179,6 +186,41 @@ def compute_team_game_epa(pbp: pd.DataFrame, week: int) -> pd.DataFrame:
     merged["team"] = merged["team"].astype(str).str.upper()
     merged["opp"] = merged["opp"].astype(str).str.upper()
 
+    sentinel_points = -1
+    if home_col and away_col and {"home_team", "away_team"}.issubset(df.columns):
+        score_df = df[["game_id", "home_team", "away_team", home_col, away_col]].copy()
+        score_df[home_col] = pd.to_numeric(score_df[home_col], errors="coerce")
+        score_df[away_col] = pd.to_numeric(score_df[away_col], errors="coerce")
+        final_scores = (
+            score_df.groupby("game_id")
+            .agg(
+                home_team=("home_team", "first"),
+                away_team=("away_team", "first"),
+                home_points=(home_col, "max"),
+                away_points=(away_col, "max"),
+            )
+            .reset_index()
+        )
+        final_scores[["home_team", "away_team"]] = final_scores[["home_team", "away_team"]].apply(
+            lambda col: col.astype(str).str.upper()
+        )
+        merged = merged.merge(final_scores, on="game_id", how="left")
+        merged["home_points"] = merged["home_points"].fillna(sentinel_points)
+        merged["away_points"] = merged["away_points"].fillna(sentinel_points)
+        merged["points_for"] = np.select(
+            [merged["team"] == merged["home_team"], merged["team"] == merged["away_team"]],
+            [merged["home_points"], merged["away_points"]],
+            default=sentinel_points,
+        )
+        merged["points_against"] = np.select(
+            [merged["team"] == merged["home_team"], merged["team"] == merged["away_team"]],
+            [merged["away_points"], merged["home_points"]],
+            default=sentinel_points,
+        )
+    else:
+        merged["points_for"] = sentinel_points
+        merged["points_against"] = sentinel_points
+
     merged = merged[(merged["off_plays"] > 0) & (merged["def_plays"] > 0)].copy()
 
     merged["off_epa_pp"] = merged["off_epa_sum"] / merged["off_plays"]
@@ -188,6 +230,8 @@ def compute_team_game_epa(pbp: pd.DataFrame, week: int) -> pd.DataFrame:
     merged["net_epa_pp"] = merged["off_epa_pp"] + merged["def_epa_pp"]
     merged["net_epa_sum"] = merged["off_epa_sum"] + merged["def_epa_sum"]
     merged["week"] = week
+    merged["points_for"] = merged["points_for"].fillna(sentinel_points).astype(int)
+    merged["points_against"] = merged["points_against"].fillna(sentinel_points).astype(int)
 
     return merged[
         [
@@ -201,6 +245,8 @@ def compute_team_game_epa(pbp: pd.DataFrame, week: int) -> pd.DataFrame:
             "def_epa_sum",
             "def_plays",
             "def_epa_pp",
+            "points_for",
+            "points_against",
             "net_epa_sum",
             "plays",
             "net_epa_pp",

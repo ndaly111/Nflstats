@@ -213,6 +213,12 @@
       margin-left: 0.35rem;
     }
 
+    .raw-value {
+      color: #9ca3af;
+      font-size: 0.85em;
+      margin-left: 0.35rem;
+    }
+
   </style>
 </head>
 <body>
@@ -266,13 +272,15 @@
 
       <section id="table-section" class="table-wrapper">
         <h2>EPA/play table</h2>
-        <p class="table-note">Click any column header to sort. Combined EPA follows the selected view; SOS columns show play-weighted opponent ratings faced for each side of the ball.</p>
+        <p class="table-note">Click any column header to sort. Combined EPA follows the selected view; SOS columns show play-weighted opponent ratings faced for each side of the ball (SOS rank #1 = hardest schedule).</p>
         <div class="table-scroll">
           <table id="epa-table">
             <thead>
               <tr>
                 <th data-type="number">Rank</th>
                 <th data-type="string">Team</th>
+                <th data-type="number">Record</th>
+                <th data-type="number">Win%</th>
                 <th data-type="number">Combined EPA/play</th>
                 <th class="sos-only" data-type="number">SOS faced (opp DEF)</th>
                 <th class="sos-only" data-type="number">SOS faced (opp OFF)</th>
@@ -427,6 +435,28 @@
       const off = offPlays > 0 ? offWeighted / offPlays : offSimple / count;
       const def = defPlays > 0 ? defWeighted / defPlays : defSimple / count;
       return { off, def };
+    }
+
+    function computeRecord(season, team, startWeek, endWeek) {
+      if (!season || !Array.isArray(season.games)) return null;
+      const games = season.games.filter((g) => g.week >= startWeek && g.week <= endWeek && g.team === team);
+      let wins = 0;
+      let losses = 0;
+      let ties = 0;
+      let counted = 0;
+      games.forEach((g) => {
+        const pf = Number(g.points_for);
+        const pa = Number(g.points_against);
+        if (!Number.isFinite(pf) || !Number.isFinite(pa) || pf < 0 || pa < 0) return;
+        counted += 1;
+        if (pf > pa) wins += 1;
+        else if (pf < pa) losses += 1;
+        else ties += 1;
+      });
+      if (counted === 0) return null;
+      const recordStr = ties ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`;
+      const winPct = (wins + 0.5 * ties) / counted;
+      return { wins, losses, ties, recordStr, winPct };
     }
 
     function solveLinearSystem(matrix, vector) {
@@ -591,6 +621,7 @@
           const offAdj = Number.isFinite(sosOff) ? baseOff + sosOff : baseOff;
           const defAdj = Number.isFinite(sosDef) ? baseDef + sosDef : baseDef;
           const combined = offAdj + defAdj;
+          const record = computeRecord(season, teamEntry.team, startWeek, endWeek);
 
           return {
             x: offAdj,
@@ -603,8 +634,18 @@
             combined,
             off: offAdj,
             def: defAdj,
+            rawCombined: baseOff + baseDef,
+            rawOff: baseOff,
+            rawDef: baseDef,
+            deltaOff: offAdj - baseOff,
+            deltaDef: defAdj - baseDef,
             sosOffFaced: Number.isFinite(sosOff) ? sosOff : null,
             sosDefFaced: Number.isFinite(sosDef) ? sosDef : null,
+            wins: record?.wins ?? null,
+            losses: record?.losses ?? null,
+            ties: record?.ties ?? null,
+            record: record?.recordStr ?? null,
+            winPct: record?.winPct ?? null,
           };
         })
         .filter(Boolean);
@@ -732,8 +773,10 @@
 
     function computeRanks(rows, metricKey) {
       const sorted = [...rows].sort((a, b) => {
-        if (b[metricKey] === a[metricKey]) return a.team.localeCompare(b.team);
-        return b[metricKey] - a[metricKey];
+        const aVal = Number.isFinite(a[metricKey]) ? a[metricKey] : -Infinity;
+        const bVal = Number.isFinite(b[metricKey]) ? b[metricKey] : -Infinity;
+        if (bVal === aVal) return a.team.localeCompare(b.team);
+        return bVal - aVal;
       });
       const rankMap = {};
       sorted.forEach((row, index) => {
@@ -742,39 +785,53 @@
       return rankMap;
     }
 
-    function renderTable(rows, ranksByMetric = { combined: {}, off: {}, def: {} }) {
+    function renderTable(rows, ranksByMetric = { combined: {}, off: {}, def: {}, sosOff: {}, sosDef: {} }, metricMode = 'raw') {
       tableBody.innerHTML = '';
       if (!rows.length) {
-        tableBody.innerHTML = '<tr><td colspan="7">No EPA data for the selected range.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="9">No EPA data for the selected range.</td></tr>';
         return;
       }
       const totalTeams = rows.length;
+      const showRaw = metricMode === 'sos' && document.body.classList.contains('sos-mode');
       rows.forEach((row, index) => {
         const tr = document.createElement('tr');
         const combinedRank = ranksByMetric.combined[row.team];
         const offRank = ranksByMetric.off[row.team];
         const defRank = ranksByMetric.def[row.team];
+        const sosOffRank = ranksByMetric.sosOff?.[row.team];
+        const sosDefRank = ranksByMetric.sosDef?.[row.team];
         const sosOffValue = Number.isFinite(row.sosOffFaced) ? row.sosOffFaced.toFixed(6) : 'N/A';
         const sosDefValue = Number.isFinite(row.sosDefFaced) ? row.sosDefFaced.toFixed(6) : 'N/A';
         tr.innerHTML = `
           <td class="rank-cell" data-value="${index + 1}">${index + 1}</td>
           <td data-value="${row.team}">${row.displayName} (${row.team})</td>
+          <td data-type="number" data-value="${Number.isFinite(row.winPct) ? row.winPct : ''}">${row.record ?? 'N/A'}</td>
+          <td data-type="number" data-value="${Number.isFinite(row.winPct) ? row.winPct : ''}">${Number.isFinite(row.winPct) ? row.winPct.toFixed(3) : 'N/A'}</td>
           <td class="metric-cell" data-value="${row.combined.toFixed(6)}">
             <span class="metric-value">${formatNumber(row.combined)}</span>
+            ${showRaw ? `<span class="raw-value">(raw ${formatNumber(row.rawCombined)})</span>` : ''}
             <span class="rank-label" style="color: ${getRankColor(combinedRank, totalTeams)}">(#${combinedRank})</span>
           </td>
           <td class="metric-cell sos-only" data-value="${sosOffValue}">
             <span class="metric-value">${Number.isFinite(row.sosOffFaced) ? formatNumber(row.sosOffFaced) : 'N/A'}</span>
+            ${Number.isFinite(row.sosOffFaced)
+              ? `<span class="rank-label" style="color: #0f172a">(#${sosOffRank})</span>`
+              : ''}
           </td>
           <td class="metric-cell sos-only" data-value="${sosDefValue}">
             <span class="metric-value">${Number.isFinite(row.sosDefFaced) ? formatNumber(row.sosDefFaced) : 'N/A'}</span>
+            ${Number.isFinite(row.sosDefFaced)
+              ? `<span class="rank-label" style="color: #0f172a">(#${sosDefRank})</span>`
+              : ''}
           </td>
           <td class="metric-cell" data-value="${row.off.toFixed(6)}">
             <span class="metric-value">${formatNumber(row.off)}</span>
+            ${showRaw ? `<span class="raw-value">(raw ${formatNumber(row.rawOff)})</span>` : ''}
             <span class="rank-label" style="color: ${getRankColor(offRank, totalTeams)}">(#${offRank})</span>
           </td>
           <td class="metric-cell" data-value="${row.def.toFixed(6)}">
             <span class="metric-value">${formatNumber(row.def)}</span>
+            ${showRaw ? `<span class="raw-value">(raw ${formatNumber(row.rawDef)})</span>` : ''}
             <span class="rank-label" style="color: ${getRankColor(defRank, totalTeams)}">(#${defRank})</span>
           </td>
         `;
@@ -865,9 +922,11 @@
         combined: computeRanks(rows, 'combined'),
         off: computeRanks(rows, 'off'),
         def: computeRanks(rows, 'def'),
+        sosOff: effectiveMetricMode === 'sos' ? computeRanks(rows, 'sosOffFaced') : {},
+        sosDef: effectiveMetricMode === 'sos' ? computeRanks(rows, 'sosDefFaced') : {},
       };
       renderChart(points, season, start, end, effectiveMetricMode, sosBasis);
-      renderTable(rows, ranksByMetric);
+      renderTable(rows, ranksByMetric, effectiveMetricMode);
       sortTable(sortState.column ?? 1, false);
     }
 

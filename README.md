@@ -107,8 +107,8 @@ the thread to confirm whether it dispatched the workflow or lacked permission.
 
 - `data/epa.json` now includes a `games` section (two rows per game) with
   plays-weighted offense and defense EPA/play plus play counts. Each row
-  exposes: `off_epa_pp`, `def_epa_pp`, `off_plays`, `def_plays`, and the
-  combined `net_epa_pp`/`plays` for convenience.
+  exposes: `off_epa_pp`, `def_epa_pp`, `off_plays`, `def_plays`, `points_for`,
+  `points_against`, and the combined `net_epa_pp`/`plays` for convenience.
 - The browser and Flask views compute a ridge-regularised SRS-style adjustment
   using a selectable opponent strength basis (default: season-to-date through
   the selected end week) and apply opponent **defensive** ratings to offenses
@@ -131,7 +131,12 @@ the thread to confirm whether it dispatched the workflow or lacked permission.
 - Early-season noise is tamed with a modest ridge penalty (λ=20 by default) so
   ratings do not overreact to a single blowout.
 - After upgrading the schema, re-run the backfill to populate the new per-game
-  columns; the SQLite migration defaults to zeros for existing rows.
+  columns; the SQLite migration also converts any legacy 0-0 placeholders to
+  the -1 sentinel so missing scores are ignored instead of creating phantom
+  ties.
+- Loss/record columns on the tables require the new `points_for`/`points_against`
+  fields. If you see `N/A` for wins/losses, rerun the backfill so scores are
+  stored alongside EPA metrics.
 
 ## Preview locally (optional)
 
