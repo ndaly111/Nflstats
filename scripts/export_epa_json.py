@@ -15,7 +15,7 @@ import sqlite3
 from pathlib import Path
 from typing import Iterable
 
-from scripts.db_storage import DB_PATH
+from scripts.db_storage import DB_PATH, init_db
 
 
 def collect_seasons(conn: sqlite3.Connection, seasons: Iterable[int] | None) -> list[int]:
@@ -59,7 +59,11 @@ def fetch_season_payload(conn: sqlite3.Connection, season: int) -> dict | None:
 
     game_rows = conn.execute(
         """
-        SELECT game_id, week, team, opp, net_epa_pp, plays
+        SELECT
+            game_id, week, team, opp,
+            off_epa_pp, def_epa_pp,
+            off_plays, def_plays,
+            net_epa_pp, plays
         FROM team_epa_games
         WHERE season = ?
         ORDER BY week, game_id, team
@@ -82,8 +86,12 @@ def fetch_season_payload(conn: sqlite3.Connection, season: int) -> dict | None:
                 "week": int(row[1]),
                 "team": row[2],
                 "opp": row[3],
-                "net_epa_pp": float(row[4]),
-                "plays": int(row[5]),
+                "off_epa_pp": float(row[4]),
+                "def_epa_pp": float(row[5]),
+                "off_plays": int(row[6]),
+                "def_plays": int(row[7]),
+                "net_epa_pp": float(row[8]),
+                "plays": int(row[9]),
             }
             for row in game_rows
         ],
@@ -91,7 +99,7 @@ def fetch_season_payload(conn: sqlite3.Connection, season: int) -> dict | None:
 
 
 def export_json(db_path: Path, output_path: Path, seasons: Iterable[int] | None) -> None:
-    conn = sqlite3.connect(db_path)
+    conn = init_db(db_path)
     try:
         season_keys = collect_seasons(conn, seasons)
         snapshot: dict[str, dict] = {"seasons": {}}

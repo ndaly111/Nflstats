@@ -88,25 +88,31 @@ PAGE_TEMPLATE = """
     {% if table_rows %}
       <div class="table-wrapper">
         <h2>EPA/play table</h2>
-        <p class="table-note">Click any column header to sort. Values match the chart above.</p>
+        <p class="table-note">Click any column header to sort. Values match the chart above. SOS columns show play-weighted opponent ratings faced.</p>
         <table id="epa-table">
           <thead>
             <tr>
               <th data-type="string">Team</th>
               <th data-type="number">Combined EPA/play</th>
-              {% if metric_mode == 'sos' %}<th data-type="number">SOS faced</th>{% endif %}
+              {% if metric_mode == 'sos' %}
+              <th data-type="number">SOS faced (opp DEF)</th>
+              <th data-type="number">SOS faced (opp OFF)</th>
+              {% endif %}
               <th data-type="number">Offense EPA/play</th>
               <th data-type="number">Defense EPA/play</th>
             </tr>
           </thead>
           <tbody>
-            {% for row in table_rows %}
+              {% for row in table_rows %}
               <tr>
                 <td data-value="{{ row.team }}">{{ row.display_name }} ({{ row.team }})</td>
                 <td data-value="{{ "%.6f"|format(row.combined) }}">{{ "%.3f"|format(row.combined) }}</td>
                 {% if metric_mode == 'sos' %}
-                <td data-value="{{ row.sos_faced if row.sos_faced is not none else '' }}">
-                  {% if row.sos_faced is not none %}{{ "%.3f"|format(row.sos_faced) }}{% else %}N/A{% endif %}
+                <td data-value="{{ row.sos_off_faced if row.sos_off_faced is not none else '' }}">
+                  {% if row.sos_off_faced is not none %}{{ "%.3f"|format(row.sos_off_faced) }}{% else %}N/A{% endif %}
+                </td>
+                <td data-value="{{ row.sos_def_faced if row.sos_def_faced is not none else '' }}">
+                  {% if row.sos_def_faced is not none %}{{ "%.3f"|format(row.sos_def_faced) }}{% else %}N/A{% endif %}
                 </td>
                 {% endif %}
                 <td data-value="{{ "%.6f"|format(row.offense) }}">{{ "%.3f"|format(row.offense) }}</td>
@@ -240,20 +246,26 @@ def index() -> str:
     data_for_table = df.dropna(subset=["EPA_off_per_play", "EPA_def_per_play"])
     table_rows = []
     for team, row in data_for_table.sort_index().iterrows():
-        base_net = row.get("net_epa_pp")
-        if pd.isna(base_net):
-            base_net = row["EPA_off_per_play"] + row["EPA_def_per_play"]
-        use_sos = metric_mode == "sos" and not pd.isna(row.get("net_epa_pp_sos_adj"))
-        delta = (row.get("net_epa_pp_sos_adj", 0) - base_net) / 2 if use_sos else 0
-        combined = row.get("net_epa_pp_sos_adj", base_net) if use_sos else base_net
+        base_off = row["EPA_off_per_play"]
+        base_def = row["EPA_def_per_play"]
+        base_net = row.get("net_epa_pp", base_off + base_def)
+
+        use_sos = metric_mode == "sos" and {
+            "EPA_off_sos_adj",
+            "EPA_def_sos_adj",
+        }.issubset(row.index)
+        offense = row.get("EPA_off_sos_adj", base_off) if use_sos else base_off
+        defense = row.get("EPA_def_sos_adj", base_def) if use_sos else base_def
+        combined = row.get("net_epa_pp_sos_adj", offense + defense) if use_sos else base_net
         table_rows.append(
             {
                 "team": team,
                 "display_name": TEAM_DISPLAY_NAMES.get(team, team),
                 "combined": combined,
-                "offense": row["EPA_off_per_play"] + delta,
-                "defense": row["EPA_def_per_play"] + delta,
-                "sos_faced": row.get("sos_faced"),
+                "offense": offense,
+                "defense": defense,
+                "sos_off_faced": row.get("sos_off_faced"),
+                "sos_def_faced": row.get("sos_def_faced"),
             }
         )
 

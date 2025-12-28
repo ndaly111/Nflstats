@@ -39,17 +39,9 @@
       margin-bottom: 0.5rem;
     }
 
-    h1 {
-      margin: 0 0 0.35rem;
-      font-size: 1.9rem;
-    }
-
-    p.lead {
-      margin: 0 0 0.65rem;
-      color: var(--muted);
-    }
-
-    .meta { color: var(--muted); margin: 0 0 1rem; }
+    h1 { margin: 0 0 0.35rem; font-size: 1.9rem; }
+    p.lead { margin: 0 0 0.65rem; color: var(--muted); }
+    .meta { color: var(--muted); margin: 0 0 0.5rem; }
 
     .back-link, .hof-link {
       display: inline-flex;
@@ -72,6 +64,44 @@
       box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
     }
 
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin: 0.4rem 0 0.5rem;
+    }
+
+    .controls label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-weight: 600;
+      color: var(--muted);
+      background: #fff;
+      padding: 0.35rem 0.6rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    select {
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 0.25rem 0.35rem;
+      font-size: 0.95rem;
+    }
+
+    .banner {
+      margin: 0.35rem 0 0.75rem;
+      padding: 0.6rem 0.75rem;
+      border-radius: 10px;
+      border: 1px solid #f59e0b;
+      background: #fffbeb;
+      color: #92400e;
+      display: none;
+    }
+
+    .banner.visible { display: block; }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -85,10 +115,7 @@
       padding: 1rem;
     }
 
-    .panel h2 {
-      margin: 0 0 0.35rem;
-    }
-
+    .panel h2 { margin: 0 0 0.35rem; }
     .panel p { margin: 0 0 0.75rem; color: var(--muted); }
 
     .table-scroll { overflow-x: auto; }
@@ -114,6 +141,8 @@
     tbody tr:nth-child(even) { background: #ffffff; }
 
     .metric-value { font-variant-numeric: tabular-nums; }
+
+    body:not(.sos-mode) .sos-only { display: none; }
   </style>
 </head>
 <body>
@@ -122,10 +151,26 @@
       <div>
         <h1>NFL EPA Hall of Fame</h1>
         <p class="lead">Top 10 best and worst single-season efficiency marks across every season in the dataset.</p>
+        <p id="meta" class="meta"></p>
+        <div class="controls">
+          <label for="metric-mode">Metric:
+            <select id="metric-mode">
+              <option value="raw">Raw EPA/play</option>
+              <option value="sos">SOS-adjusted EPA/play</option>
+            </select>
+          </label>
+          <label for="sos-basis" id="sos-basis-wrapper">SOS basis:
+            <select id="sos-basis">
+              <option value="season_to_date">Season to date</option>
+              <option value="window_only">Display window only</option>
+              <option value="full_season">Full season (hindsight)</option>
+            </select>
+          </label>
+        </div>
+        <p id="sos-banner" class="banner" aria-live="polite"></p>
       </div>
       <a class="back-link" href="index.html" aria-label="Back to EPA chart">⬅️ Back</a>
     </div>
-    <p id="meta" class="meta"></p>
 
     <div class="grid">
       <section class="panel">
@@ -186,6 +231,34 @@
     const DATA_URL = new URL('data/epa.json', document.baseURI);
     DATA_URL.searchParams.set('v', Date.now().toString());
 
+    const sosCache = new Map();
+    let seasonData = {};
+
+    function solveLinearSystem(matrix, vector) {
+      const n = matrix.length;
+      const augmented = matrix.map((row, idx) => [...row, vector[idx]]);
+      for (let i = 0; i < n; i += 1) {
+        let pivot = i;
+        for (let r = i + 1; r < n; r += 1) {
+          if (Math.abs(augmented[r][i]) > Math.abs(augmented[pivot][i])) pivot = r;
+        }
+        if (Math.abs(augmented[pivot][i]) < 1e-9) {
+          console.error('SOS solver encountered a near-singular pivot');
+          throw new Error('SOS solver failed due to singular matrix');
+        }
+        if (pivot !== i) [augmented[i], augmented[pivot]] = [augmented[pivot], augmented[i]];
+        const pivotVal = augmented[i][i];
+        for (let c = i; c <= n; c += 1) augmented[i][c] /= pivotVal;
+        for (let r = 0; r < n; r += 1) {
+          if (r === i) continue;
+          const factor = augmented[r][i];
+          if (factor === 0) continue;
+          for (let c = i; c <= n; c += 1) augmented[r][c] -= factor * augmented[i][c];
+        }
+      }
+      return augmented.map((row) => row[n]);
+    }
+
     function averageWeeks(teamWeeks, start, end) {
       let offWeighted = 0;
       let offPlays = 0;
@@ -218,11 +291,142 @@
       return { off, def };
     }
 
-    function seasonAverages(seasons) {
+    function computeSosRatingsForRange(seasonKey, season, startWeek, endWeek, sosBasis = 'season_to_date') {
+      if (!season || !Array.isArray(season.games) || !season.games.length) {
+        return { error: `No game rows in data for season ${seasonKey}. Re-run backfill to populate team_epa_games and re-export.` };
+      }
+
+      let ratingGames;
+      if (sosBasis === 'window_only') {
+        ratingGames = season.games.filter((g) => g.week >= startWeek && g.week <= endWeek);
+      } else if (sosBasis === 'full_season') {
+        ratingGames = season.games;
+      } else {
+        ratingGames = season.games.filter((g) => g.week <= endWeek);
+      }
+      const displayGames = season.games.filter((g) => g.week >= startWeek && g.week <= endWeek);
+      if (!ratingGames.length || !displayGames.length) {
+        return { error: 'No game rows available for the selected SOS window.' };
+      }
+
+      const teams = Array.from(new Set([...ratingGames, ...displayGames].flatMap((g) => [g.team, g.opp]))).sort();
+      const idx = Object.fromEntries(teams.map((t, i) => [t, i]));
+      const n = teams.length;
+      const totalVars = n * 2;
+      const lam = 20;
+      const baseRow = Array.from({ length: totalVars }, (__unused, j) => 0);
+      const AtA = Array.from({ length: totalVars }, (_, i) => baseRow.map((__, j) => (i === j ? lam : 0)));
+      const Atb = Array(totalVars).fill(0);
+
+      const offIndex = (team) => idx[team];
+      const defIndex = (team) => idx[team] + n;
+
+      let equationCount = 0;
+      ratingGames.forEach((g) => {
+        const t = g.team;
+        const o = g.opp;
+        const offWeight = Number(g.off_plays);
+        const defWeight = Number(g.def_plays);
+        const offVal = Number(g.off_epa_pp);
+        const defVal = Number(g.def_epa_pp);
+
+        if (Number.isFinite(offWeight) && offWeight > 0 && Number.isFinite(offVal)) {
+          const tIdx = offIndex(t);
+          const oIdx = defIndex(o);
+          AtA[tIdx][tIdx] += offWeight;
+          AtA[oIdx][oIdx] += offWeight;
+          AtA[tIdx][oIdx] -= offWeight;
+          AtA[oIdx][tIdx] -= offWeight;
+          Atb[tIdx] += offWeight * offVal;
+          Atb[oIdx] -= offWeight * offVal;
+          equationCount += 1;
+        }
+
+        if (Number.isFinite(defWeight) && defWeight > 0 && Number.isFinite(defVal)) {
+          const tIdx = defIndex(t);
+          const oIdx = offIndex(o);
+          AtA[tIdx][tIdx] += defWeight;
+          AtA[oIdx][oIdx] += defWeight;
+          AtA[tIdx][oIdx] -= defWeight;
+          AtA[oIdx][tIdx] -= defWeight;
+          Atb[tIdx] += defWeight * defVal;
+          Atb[oIdx] -= defWeight * defVal;
+          equationCount += 1;
+        }
+      });
+
+      if (equationCount === 0) {
+        return { error: 'No valid plays found to compute SOS for this range.' };
+      }
+
+      let ratingsArr;
+      try {
+        ratingsArr = solveLinearSystem(AtA, Atb);
+      } catch (err) {
+        console.warn('SOS solver failed; falling back to raw EPA for this selection', err);
+        return { error: 'SOS solver failed due to singular matrix.' };
+      }
+
+      const mean = ratingsArr.reduce((acc, val) => acc + val, 0) / ratingsArr.length;
+      const offRatings = {};
+      const defRatings = {};
+      teams.forEach((team, i) => {
+        offRatings[team] = ratingsArr[i] - mean;
+        defRatings[team] = ratingsArr[i + n] - mean;
+      });
+
+      const sosOffSums = {};
+      const sosOffWeights = {};
+      const sosDefSums = {};
+      const sosDefWeights = {};
+      displayGames.forEach((g) => {
+        const offWeight = Number(g.off_plays);
+        const defWeight = Number(g.def_plays);
+        const oppDefRating = defRatings[g.opp];
+        const oppOffRating = offRatings[g.opp];
+        if (Number.isFinite(offWeight) && offWeight > 0 && Number.isFinite(oppDefRating)) {
+          sosOffSums[g.team] = (sosOffSums[g.team] || 0) + offWeight * oppDefRating;
+          sosOffWeights[g.team] = (sosOffWeights[g.team] || 0) + offWeight;
+        }
+        if (Number.isFinite(defWeight) && defWeight > 0 && Number.isFinite(oppOffRating)) {
+          sosDefSums[g.team] = (sosDefSums[g.team] || 0) + defWeight * oppOffRating;
+          sosDefWeights[g.team] = (sosDefWeights[g.team] || 0) + defWeight;
+        }
+      });
+
+      const sosOffFaced = {};
+      const sosDefFaced = {};
+      teams.forEach((team) => {
+        const offTotal = sosOffWeights[team] || 0;
+        const defTotal = sosDefWeights[team] || 0;
+        sosOffFaced[team] = offTotal ? sosOffSums[team] / offTotal : 0;
+        sosDefFaced[team] = defTotal ? sosDefSums[team] / defTotal : 0;
+      });
+
+      return { offRatings, defRatings, sosOffFaced, sosDefFaced };
+    }
+
+    function seasonAverages(metricMode, sosBasis) {
       const rows = [];
-      Object.entries(seasons).forEach(([seasonKey, season]) => {
+      let sosError = '';
+      Object.entries(seasonData).forEach(([seasonKey, season]) => {
+        if (!Array.isArray(season.weeks) || season.weeks.length === 0) return;
         const startWeek = Math.min(...season.weeks);
         const endWeek = Math.max(...season.weeks);
+
+        let sosResult = null;
+        if (metricMode === 'sos') {
+          const cacheKey = `${seasonKey}-${startWeek}-${endWeek}-${sosBasis}`;
+          sosResult = sosCache.get(cacheKey);
+          if (!sosResult) {
+            sosResult = computeSosRatingsForRange(seasonKey, season, startWeek, endWeek, sosBasis);
+            sosCache.set(cacheKey, sosResult);
+          }
+          if (!sosResult || sosResult.error) {
+            sosError = sosError || (sosResult?.error || 'SOS unavailable for this selection.');
+          }
+        }
+
         season.teams.forEach((teamEntry) => {
           const normalizedWeeks = {};
           Object.entries(teamEntry.weeks).forEach(([week, values]) => {
@@ -230,23 +434,41 @@
           });
           const averaged = averageWeeks(normalizedWeeks, startWeek, endWeek);
           if (!averaged) return;
+
+          const baseOff = averaged.off;
+          const baseDef = averaged.def;
+          const sosOff = metricMode === 'sos' && sosResult && !sosResult.error
+            ? sosResult.sosOffFaced?.[teamEntry.team]
+            : null;
+          const sosDef = metricMode === 'sos' && sosResult && !sosResult.error
+            ? sosResult.sosDefFaced?.[teamEntry.team]
+            : null;
+
+          const offAdj = Number.isFinite(sosOff) ? baseOff + sosOff : baseOff;
+          const defAdj = Number.isFinite(sosDef) ? baseDef + sosDef : baseDef;
+          const combined = offAdj + defAdj;
+
           rows.push({
             team: teamEntry.team,
             season: seasonKey,
-            off: averaged.off,
-            def: averaged.def,
-            combined: averaged.off + averaged.def,
+            off: offAdj,
+            def: defAdj,
+            combined,
+            sosOffFaced: Number.isFinite(sosOff) ? sosOff : null,
+            sosDefFaced: Number.isFinite(sosDef) ? sosDef : null,
           });
         });
       });
-      return rows;
+      return { rows, sosError };
     }
 
     function sortRows(rows, key, direction = 'desc') {
-      return [...rows].sort((a, b) => {
-        if (a[key] === b[key]) return 0;
-        return direction === 'desc' ? b[key] - a[key] : a[key] - b[key];
-      }).slice(0, 10);
+      return [...rows]
+        .sort((a, b) => {
+          if (a[key] === b[key]) return 0;
+          return direction === 'desc' ? b[key] - a[key] : a[key] - b[key];
+        })
+        .slice(0, 10);
     }
 
     function formatNumber(value) {
@@ -259,13 +481,29 @@
       return `#${idx + 1} · ${value} · ${teamName} – ${row.season}`;
     }
 
-    function renderTable(el, rows, metricKey) {
+    function renderTable(el, rows, metricKey, metricMode) {
+      const showOffDef = metricKey === 'combined';
+      const metricLabel =
+        metricKey === 'combined'
+          ? `${metricMode === 'sos' ? 'SOS-adjusted ' : ''}Combined EPA/play`
+          : metricKey === 'off'
+            ? `${metricMode === 'sos' ? 'SOS-adjusted ' : ''}Offense EPA/play`
+            : `${metricMode === 'sos' ? 'SOS-adjusted ' : ''}Defense EPA/play`;
+      const baseCols = 2 + (showOffDef ? 2 : 0);
+      const colSpan = baseCols + 2; // SOS columns remain hidden via CSS in raw mode
+
+      if (!rows.length) {
+        el.innerHTML = `<tbody><tr><td colspan="${colSpan}">No data available.</td></tr></tbody>`;
+        return;
+      }
+
       el.innerHTML = `
         <thead>
           <tr>
             <th>Summary</th>
-            <th>${metricKey === 'combined' ? 'Combined' : metricKey === 'off' ? 'Offense' : 'Defense'} EPA/play</th>
-            ${metricKey === 'combined' ? '<th>Off</th><th>Def</th>' : ''}
+            <th>${metricLabel}</th>
+            ${showOffDef ? '<th>Off</th><th>Def</th>' : ''}
+            ${'<th class="sos-only">SOS faced (opp DEF)</th><th class="sos-only">SOS faced (opp OFF)</th>'}
           </tr>
         </thead>
         <tbody>
@@ -273,21 +511,21 @@
             <tr>
               <td>${summaryLabel(idx, row, metricKey)}</td>
               <td class="metric-value">${formatNumber(row[metricKey])}</td>
-              ${metricKey === 'combined' ? `<td class="metric-value">${formatNumber(row.off)}</td><td class="metric-value">${formatNumber(row.def)}</td>` : ''}
+              ${showOffDef ? `<td class="metric-value">${formatNumber(row.off)}</td><td class="metric-value">${formatNumber(row.def)}</td>` : ''}
+              <td class="metric-value sos-only">${formatNumber(row.sosOffFaced)}</td>
+              <td class="metric-value sos-only">${formatNumber(row.sosDefFaced)}</td>
             </tr>
           `).join('')}
         </tbody>
       `;
     }
 
-    async function bootstrap() {
-      const res = await fetch(DATA_URL, { cache: 'no-store' });
-      if (!res.ok) throw new Error(`Failed to load data (${res.status})`);
-      const json = await res.json();
-      if (!json || typeof json !== 'object' || !json.seasons) throw new Error('Unexpected JSON payload');
-      const rows = seasonAverages(json.seasons);
+    function render(metricMode, sosBasis) {
+      document.body.classList.toggle('sos-mode', metricMode === 'sos');
+      const sosWrapper = document.getElementById('sos-basis-wrapper');
+      sosWrapper.style.display = metricMode === 'sos' ? 'inline-flex' : 'none';
 
-      document.getElementById('meta').textContent = `Seasons loaded: ${Object.keys(json.seasons).length} · generated_at=${json.generated_at || 'unknown'}`;
+      const { rows, sosError } = seasonAverages(metricMode, sosBasis);
 
       const offBest = sortRows(rows, 'off', 'desc');
       const offWorst = sortRows(rows, 'off', 'asc');
@@ -296,18 +534,49 @@
       const comboBest = sortRows(rows, 'combined', 'desc');
       const comboWorst = sortRows(rows, 'combined', 'asc');
 
-      renderTable(document.getElementById('off-best'), offBest, 'off');
-      renderTable(document.getElementById('off-worst'), offWorst, 'off');
-      renderTable(document.getElementById('def-best'), defBest, 'def');
-      renderTable(document.getElementById('def-worst'), defWorst, 'def');
-      renderTable(document.getElementById('combo-best'), comboBest, 'combined');
-      renderTable(document.getElementById('combo-worst'), comboWorst, 'combined');
+      renderTable(document.getElementById('off-best'), offBest, 'off', metricMode);
+      renderTable(document.getElementById('off-worst'), offWorst, 'off', metricMode);
+      renderTable(document.getElementById('def-best'), defBest, 'def', metricMode);
+      renderTable(document.getElementById('def-worst'), defWorst, 'def', metricMode);
+      renderTable(document.getElementById('combo-best'), comboBest, 'combined', metricMode);
+      renderTable(document.getElementById('combo-worst'), comboWorst, 'combined', metricMode);
+
+      const banner = document.getElementById('sos-banner');
+      if (metricMode === 'sos' && sosError) {
+        banner.textContent = `${sosError} Showing raw values instead for affected seasons.`;
+        banner.classList.add('visible');
+      } else {
+        banner.textContent = '';
+        banner.classList.remove('visible');
+      }
+    }
+
+    async function bootstrap() {
+      const res = await fetch(DATA_URL, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Failed to load data (${res.status})`);
+      const json = await res.json();
+      if (!json || typeof json !== 'object' || !json.seasons) throw new Error('Unexpected JSON payload');
+      seasonData = json.seasons;
+
+      document.getElementById('meta').textContent = `Seasons loaded: ${Object.keys(json.seasons).length} · generated_at=${json.generated_at || 'unknown'}`;
+
+      const metricSelect = document.getElementById('metric-mode');
+      const sosBasisSelect = document.getElementById('sos-basis');
+      const triggerRender = () => render(metricSelect.value, sosBasisSelect.value);
+
+      metricSelect.addEventListener('change', triggerRender);
+      sosBasisSelect.addEventListener('change', triggerRender);
+
+      triggerRender();
     }
 
     bootstrap().catch((err) => {
       document.querySelectorAll('table').forEach((table) => {
         table.innerHTML = `<tbody><tr><td>Unable to load data: ${err.message}</td></tr></tbody>`;
       });
+      const banner = document.getElementById('sos-banner');
+      banner.textContent = err.message;
+      banner.classList.add('visible');
     });
   </script>
 </body>

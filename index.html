@@ -266,7 +266,7 @@
 
       <section id="table-section" class="table-wrapper">
         <h2>EPA/play table</h2>
-        <p class="table-note">Click any column header to sort. Combined EPA follows the selected view; SOS faced is the plays-weighted average rating of opponents. In SOS-adjusted mode, offense and defense values are shifted equally to align with the adjusted combined rating.</p>
+        <p class="table-note">Click any column header to sort. Combined EPA follows the selected view; SOS columns show play-weighted opponent ratings faced for each side of the ball.</p>
         <div class="table-scroll">
           <table id="epa-table">
             <thead>
@@ -274,7 +274,8 @@
                 <th data-type="number">Rank</th>
                 <th data-type="string">Team</th>
                 <th data-type="number">Combined EPA/play</th>
-                <th class="sos-only" data-type="number">SOS faced</th>
+                <th class="sos-only" data-type="number">SOS faced (opp DEF)</th>
+                <th class="sos-only" data-type="number">SOS faced (opp OFF)</th>
                 <th data-type="number">Offense EPA/play</th>
                 <th data-type="number">Defense EPA/play</th>
               </tr>
@@ -455,7 +456,9 @@
 
     function computeSosRatingsForRange(selectedSeason, startWeek, endWeek, sosBasis = 'season_to_date') {
       const season = seasonData[selectedSeason];
-      if (!season || !Array.isArray(season.games) || !season.games.length) return null;
+      if (!season || !Array.isArray(season.games) || !season.games.length) {
+        return { error: `No game rows in data for season ${selectedSeason}. Re-run backfill to populate team_epa_games and re-export.` };
+      }
 
       let ratingGames;
       if (sosBasis === 'window_only') {
@@ -466,63 +469,106 @@
         ratingGames = season.games.filter((g) => g.week <= endWeek);
       }
       const displayGames = season.games.filter((g) => g.week >= startWeek && g.week <= endWeek);
-      if (!ratingGames.length || !displayGames.length) return null;
+      if (!ratingGames.length || !displayGames.length) {
+        return { error: 'No game rows available for the selected SOS window.' };
+      }
 
       const teams = Array.from(
         new Set([...ratingGames, ...displayGames].flatMap((g) => [g.team, g.opp])),
       ).sort();
       const idx = Object.fromEntries(teams.map((t, i) => [t, i]));
       const n = teams.length;
+      const totalVars = n * 2;
       const lam = 20;
-      const AtA = Array.from({ length: n }, (_, i) =>
-        Array.from({ length: n }, (__unused, j) => (i === j ? lam : 0)),
-      );
-      const Atb = Array(n).fill(0);
+      const baseRow = Array.from({ length: totalVars }, (__unused, j) => 0);
+      const AtA = Array.from({ length: totalVars }, (_, i) => baseRow.map((__, j) => (i === j ? lam : 0)));
+      const Atb = Array(totalVars).fill(0);
 
+      const offIndex = (team) => idx[team];
+      const defIndex = (team) => idx[team] + n;
+
+      let equationCount = 0;
       ratingGames.forEach((g) => {
-        const t = idx[g.team];
-        const o = idx[g.opp];
-        const weight = Number(g.plays);
-        const net = Number(g.net_epa_pp);
-        if (!Number.isFinite(weight) || weight <= 0 || !Number.isFinite(net)) return;
-        AtA[t][t] += weight;
-        AtA[o][o] += weight;
-        AtA[t][o] -= weight;
-        AtA[o][t] -= weight;
-        Atb[t] += weight * net;
-        Atb[o] -= weight * net;
+        const t = g.team;
+        const o = g.opp;
+        const offWeight = Number(g.off_plays);
+        const defWeight = Number(g.def_plays);
+        const offVal = Number(g.off_epa_pp);
+        const defVal = Number(g.def_epa_pp);
+
+        if (Number.isFinite(offWeight) && offWeight > 0 && Number.isFinite(offVal)) {
+          const tIdx = offIndex(t);
+          const oIdx = defIndex(o);
+          AtA[tIdx][tIdx] += offWeight;
+          AtA[oIdx][oIdx] += offWeight;
+          AtA[tIdx][oIdx] -= offWeight;
+          AtA[oIdx][tIdx] -= offWeight;
+          Atb[tIdx] += offWeight * offVal;
+          Atb[oIdx] -= offWeight * offVal;
+          equationCount += 1;
+        }
+
+        if (Number.isFinite(defWeight) && defWeight > 0 && Number.isFinite(defVal)) {
+          const tIdx = defIndex(t);
+          const oIdx = offIndex(o);
+          AtA[tIdx][tIdx] += defWeight;
+          AtA[oIdx][oIdx] += defWeight;
+          AtA[tIdx][oIdx] -= defWeight;
+          AtA[oIdx][tIdx] -= defWeight;
+          Atb[tIdx] += defWeight * defVal;
+          Atb[oIdx] -= defWeight * defVal;
+          equationCount += 1;
+        }
       });
+
+      if (equationCount === 0) {
+        return { error: 'No valid plays found to compute SOS for this range.' };
+      }
 
       let ratingsArr;
       try {
         ratingsArr = solveLinearSystem(AtA, Atb);
       } catch (err) {
         console.warn('SOS solver failed; falling back to raw EPA for this selection', err);
-        return null;
+        return { error: 'SOS solver failed due to singular matrix.' };
       }
       const mean = ratingsArr.reduce((acc, val) => acc + val, 0) / ratingsArr.length;
-      const ratings = {};
+      const offRatings = {};
+      const defRatings = {};
       teams.forEach((team, i) => {
-        ratings[team] = ratingsArr[i] - mean;
+        offRatings[team] = ratingsArr[i] - mean;
+        defRatings[team] = ratingsArr[i + n] - mean;
       });
 
-      const sosFacedSums = {};
-      const weightTotals = {};
+      const sosOffSums = {};
+      const sosOffWeights = {};
+      const sosDefSums = {};
+      const sosDefWeights = {};
       displayGames.forEach((g) => {
-        const weight = Number(g.plays);
-        const oppRating = ratings[g.opp];
-        if (!Number.isFinite(weight) || weight <= 0 || !Number.isFinite(oppRating)) return;
-        sosFacedSums[g.team] = (sosFacedSums[g.team] || 0) + weight * oppRating;
-        weightTotals[g.team] = (weightTotals[g.team] || 0) + weight;
+        const offWeight = Number(g.off_plays);
+        const defWeight = Number(g.def_plays);
+        const oppDefRating = defRatings[g.opp];
+        const oppOffRating = offRatings[g.opp];
+        if (Number.isFinite(offWeight) && offWeight > 0 && Number.isFinite(oppDefRating)) {
+          sosOffSums[g.team] = (sosOffSums[g.team] || 0) + offWeight * oppDefRating;
+          sosOffWeights[g.team] = (sosOffWeights[g.team] || 0) + offWeight;
+        }
+        if (Number.isFinite(defWeight) && defWeight > 0 && Number.isFinite(oppOffRating)) {
+          sosDefSums[g.team] = (sosDefSums[g.team] || 0) + defWeight * oppOffRating;
+          sosDefWeights[g.team] = (sosDefWeights[g.team] || 0) + defWeight;
+        }
       });
 
-      const sosFaced = {};
+      const sosOffFaced = {};
+      const sosDefFaced = {};
       teams.forEach((team) => {
-        const total = weightTotals[team] || 0;
-        sosFaced[team] = total ? sosFacedSums[team] / total : 0;
+        const offTotal = sosOffWeights[team] || 0;
+        const defTotal = sosDefWeights[team] || 0;
+        sosOffFaced[team] = offTotal ? sosOffSums[team] / offTotal : 0;
+        sosDefFaced[team] = defTotal ? sosDefSums[team] / defTotal : 0;
       });
 
-      return { ratings, sosFaced };
+      return { offRatings, defRatings, sosOffFaced, sosDefFaced };
     }
 
     function buildTeamRows(selectedSeason, startWeek, endWeek, metricMode, sosBasis, sosData) {
@@ -537,24 +583,28 @@
           const averaged = averageWeeks(weeks, startWeek, endWeek);
           if (!averaged) return null;
 
-          const baseCombined = averaged.off + averaged.def;
-          const sosFaced = metricMode === 'sos' ? sosData?.sosFaced?.[teamEntry.team] : null;
-          const combined = Number.isFinite(sosFaced) ? baseCombined + sosFaced : baseCombined;
-          const delta = Number.isFinite(sosFaced) ? sosFaced : 0;
-          const off = averaged.off + delta / 2;
-          const def = averaged.def + delta / 2;
+          const baseOff = averaged.off;
+          const baseDef = averaged.def;
+          const sosOff = metricMode === 'sos' ? sosData?.sosOffFaced?.[teamEntry.team] : null;
+          const sosDef = metricMode === 'sos' ? sosData?.sosDefFaced?.[teamEntry.team] : null;
+
+          const offAdj = Number.isFinite(sosOff) ? baseOff + sosOff : baseOff;
+          const defAdj = Number.isFinite(sosDef) ? baseDef + sosDef : baseDef;
+          const combined = offAdj + defAdj;
+
           return {
-            x: off,
-            y: def,
+            x: offAdj,
+            y: defAdj,
             label: teamEntry.team,
             backgroundColor: TEAM_COLORS[teamEntry.team] || '#0f172a',
             borderColor: '#0f172a',
             team: teamEntry.team,
             displayName: TEAM_DISPLAY_NAMES[teamEntry.team] || teamEntry.team,
             combined,
-            off,
-            def,
-            sosFaced: Number.isFinite(sosFaced) ? sosFaced : null,
+            off: offAdj,
+            def: defAdj,
+            sosOffFaced: Number.isFinite(sosOff) ? sosOff : null,
+            sosDefFaced: Number.isFinite(sosDef) ? sosDef : null,
           };
         })
         .filter(Boolean);
@@ -570,13 +620,13 @@
           : sosBasis === 'window_only'
             ? 'window only'
             : `through Week ${endWeek}`;
-        subtitleParts.push(`SOS-adjusted combined EPA (opp basis: ${basisLabel})`);
+        subtitleParts.push(`SOS-adjusted offense/defense EPA (opp basis: ${basisLabel})`);
       }
       const offenseAxisLabel = metricMode === 'sos'
-        ? 'Offense EPA per play (shifted to match SOS-adjusted combined)'
+        ? 'Offense EPA per play (SOS-adjusted via opponent defenses)'
         : 'Offense EPA per play (higher = better offense)';
       const defenseAxisLabel = metricMode === 'sos'
-        ? 'Defense EPA per play (shifted to match SOS-adjusted combined)'
+        ? 'Defense EPA per play (SOS-adjusted via opponent offenses)'
         : 'Defense EPA per play (higher = better defense)';
 
       chart = new Chart(ctx, {
@@ -613,7 +663,7 @@
               callbacks: {
                 label: (ctx) => {
                   const { x, y, label } = ctx.raw;
-                  const shiftedNote = metricMode === 'sos' ? ' (shifted)' : '';
+                  const shiftedNote = metricMode === 'sos' ? ' (SOS-adjusted)' : '';
                   return `${label}: Off ${x.toFixed(3)}, Def ${y.toFixed(3)}${shiftedNote}`;
                 },
               },
@@ -695,7 +745,7 @@
     function renderTable(rows, ranksByMetric = { combined: {}, off: {}, def: {} }) {
       tableBody.innerHTML = '';
       if (!rows.length) {
-        tableBody.innerHTML = '<tr><td colspan="6">No EPA data for the selected range.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7">No EPA data for the selected range.</td></tr>';
         return;
       }
       const totalTeams = rows.length;
@@ -704,7 +754,8 @@
         const combinedRank = ranksByMetric.combined[row.team];
         const offRank = ranksByMetric.off[row.team];
         const defRank = ranksByMetric.def[row.team];
-        const sosValue = Number.isFinite(row.sosFaced) ? row.sosFaced.toFixed(6) : 'N/A';
+        const sosOffValue = Number.isFinite(row.sosOffFaced) ? row.sosOffFaced.toFixed(6) : 'N/A';
+        const sosDefValue = Number.isFinite(row.sosDefFaced) ? row.sosDefFaced.toFixed(6) : 'N/A';
         tr.innerHTML = `
           <td class="rank-cell" data-value="${index + 1}">${index + 1}</td>
           <td data-value="${row.team}">${row.displayName} (${row.team})</td>
@@ -712,8 +763,11 @@
             <span class="metric-value">${formatNumber(row.combined)}</span>
             <span class="rank-label" style="color: ${getRankColor(combinedRank, totalTeams)}">(#${combinedRank})</span>
           </td>
-          <td class="metric-cell sos-only" data-value="${sosValue}">
-            <span class="metric-value">${Number.isFinite(row.sosFaced) ? formatNumber(row.sosFaced) : 'N/A'}</span>
+          <td class="metric-cell sos-only" data-value="${sosOffValue}">
+            <span class="metric-value">${Number.isFinite(row.sosOffFaced) ? formatNumber(row.sosOffFaced) : 'N/A'}</span>
+          </td>
+          <td class="metric-cell sos-only" data-value="${sosDefValue}">
+            <span class="metric-value">${Number.isFinite(row.sosDefFaced) ? formatNumber(row.sosDefFaced) : 'N/A'}</span>
           </td>
           <td class="metric-cell" data-value="${row.off.toFixed(6)}">
             <span class="metric-value">${formatNumber(row.off)}</span>
@@ -792,9 +846,11 @@
       const sosData = metricMode === 'sos'
         ? computeSosRatingsForRange(season, start, end, sosBasis)
         : null;
-      const effectiveMetricMode = metricMode === 'sos' && !sosData ? 'raw' : metricMode;
-      if (metricMode === 'sos' && !sosData) {
-        showStatus('SOS metrics unavailable for this selection; showing raw EPA values instead.', 'error');
+      const sosError = metricMode === 'sos' && sosData && sosData.error;
+      const effectiveMetricMode = metricMode === 'sos' && (!sosData || sosError) ? 'raw' : metricMode;
+      if (metricMode === 'sos' && (!sosData || sosError)) {
+        const reason = sosError ? sosData.error : 'SOS metrics unavailable for this selection; showing raw EPA values instead.';
+        showStatus(reason, 'error');
       }
       updateSosControlsVisibility(effectiveMetricMode);
       const rows = buildTeamRows(season, start, end, effectiveMetricMode, sosBasis, sosData);
