@@ -58,6 +58,8 @@ CREATE TABLE IF NOT EXISTS team_epa_games (
     def_epa_sum REAL NOT NULL,
     def_plays INTEGER NOT NULL,
     def_epa_pp REAL NOT NULL,
+    points_for INTEGER NOT NULL DEFAULT -1,
+    points_against INTEGER NOT NULL DEFAULT -1,
     net_epa_sum REAL NOT NULL,
     plays INTEGER NOT NULL,
     net_epa_pp REAL NOT NULL,
@@ -127,6 +129,8 @@ def _migrate_team_game_schema(conn: sqlite3.Connection) -> None:
         ("def_epa_sum", "REAL", "0"),
         ("def_plays", "INTEGER", "0"),
         ("def_epa_pp", "REAL", "0"),
+        ("points_for", "INTEGER", "-1"),
+        ("points_against", "INTEGER", "-1"),
         ("net_epa_sum", "REAL", "0"),
         ("plays", "INTEGER", "0"),
         ("net_epa_pp", "REAL", "0"),
@@ -139,6 +143,22 @@ def _migrate_team_game_schema(conn: sqlite3.Connection) -> None:
                 f"ALTER TABLE team_epa_games ADD COLUMN {name} {col_type} "
                 f"NOT NULL DEFAULT {default};"
             )
+
+    # If an older build wrote missing scores as 0-0, convert them to the new
+    # sentinel so records do not treat them as ties.
+    if {"points_for", "points_against"}.issubset(existing_columns):
+        cur = conn.execute(
+            "SELECT 1 FROM team_epa_games WHERE points_for = 0 AND points_against = 0 LIMIT 1"
+        )
+        if cur.fetchone():
+            with conn:
+                conn.execute(
+                    """
+                    UPDATE team_epa_games
+                    SET points_for = -1, points_against = -1
+                    WHERE points_for = 0 AND points_against = 0;
+                    """
+                )
 
 
 def get_cached_weeks(season: int, db_path: Path | str = DB_PATH) -> list[int]:
@@ -291,6 +311,8 @@ def save_team_game_epa(
         "def_epa_sum",
         "def_plays",
         "def_epa_pp",
+        "points_for",
+        "points_against",
         "net_epa_sum",
         "plays",
         "net_epa_pp",
@@ -311,8 +333,9 @@ def save_team_game_epa(
                 season, week, game_id, team, opp,
                 off_epa_sum, off_plays, off_epa_pp,
                 def_epa_sum, def_plays, def_epa_pp,
+                points_for, points_against,
                 net_epa_sum, plays, net_epa_pp
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(season, game_id, team) DO UPDATE SET
                 week=excluded.week,
                 opp=excluded.opp,
@@ -322,6 +345,8 @@ def save_team_game_epa(
                 def_epa_sum=excluded.def_epa_sum,
                 def_plays=excluded.def_plays,
                 def_epa_pp=excluded.def_epa_pp,
+                points_for=excluded.points_for,
+                points_against=excluded.points_against,
                 net_epa_sum=excluded.net_epa_sum,
                 plays=excluded.plays,
                 net_epa_pp=excluded.net_epa_pp,
@@ -340,6 +365,8 @@ def save_team_game_epa(
                     float(row.def_epa_sum),
                     int(row.def_plays),
                     float(row.def_epa_pp),
+                    int(row.points_for),
+                    int(row.points_against),
                     float(row.net_epa_sum),
                     int(row.plays),
                     float(row.net_epa_pp),
@@ -378,6 +405,7 @@ def load_team_game_epa_from_db(
             game_id, week, team, opp,
             off_epa_sum, off_plays, off_epa_pp,
             def_epa_sum, def_plays, def_epa_pp,
+            points_for, points_against,
             net_epa_sum, plays, net_epa_pp
         FROM team_epa_games
         WHERE season = ? AND week BETWEEN ? AND ?

@@ -63,6 +63,7 @@ def fetch_season_payload(conn: sqlite3.Connection, season: int) -> dict | None:
             game_id, week, team, opp,
             off_epa_pp, def_epa_pp,
             off_plays, def_plays,
+            points_for, points_against,
             net_epa_pp, plays
         FROM team_epa_games
         WHERE season = ?
@@ -90,8 +91,10 @@ def fetch_season_payload(conn: sqlite3.Connection, season: int) -> dict | None:
                 "def_epa_pp": float(row[5]),
                 "off_plays": int(row[6]),
                 "def_plays": int(row[7]),
-                "net_epa_pp": float(row[8]),
-                "plays": int(row[9]),
+                "points_for": int(row[8]),
+                "points_against": int(row[9]),
+                "net_epa_pp": float(row[10]),
+                "plays": int(row[11]),
             }
             for row in game_rows
         ],

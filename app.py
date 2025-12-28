@@ -7,8 +7,9 @@ from typing import Optional
 import pandas as pd
 from flask import Flask, abort, make_response, render_template_string, request, send_file, url_for
 
-from scripts.db_storage import DB_PATH, get_cached_weeks
+from scripts.db_storage import DB_PATH, get_cached_weeks, load_team_game_epa_from_db
 from scripts.plot_epa_scatter import TEAM_DISPLAY_NAMES, load_team_epa, plot_scatter
+from scripts.records import compute_records
 
 app = Flask(__name__)
 
@@ -34,6 +35,8 @@ PAGE_TEMPLATE = """
       tbody tr:nth-child(odd) { background-color: #fbfbfb; }
       tbody tr:nth-child(even) { background-color: #f1f1f1; }
       .table-note { margin: 0.3rem 0 0.6rem; color: #444; font-size: 0.95rem; }
+      .raw-value { color: #9ca3af; font-size: 0.9em; margin-left: 0.35rem; }
+      .rank-note { color: #6b7280; font-size: 0.9em; margin-left: 0.35rem; }
     </style>
 </head>
 <body>
@@ -88,11 +91,13 @@ PAGE_TEMPLATE = """
     {% if table_rows %}
       <div class="table-wrapper">
         <h2>EPA/play table</h2>
-        <p class="table-note">Click any column header to sort. Values match the chart above. SOS columns show play-weighted opponent ratings faced.</p>
+        <p class="table-note">Click any column header to sort. Values match the chart above. SOS columns show play-weighted opponent ratings faced (rank #1 = hardest schedule).</p>
         <table id="epa-table">
           <thead>
             <tr>
               <th data-type="string">Team</th>
+              <th data-type="number">Record</th>
+              <th data-type="number">Win%</th>
               <th data-type="number">Combined EPA/play</th>
               {% if metric_mode == 'sos' %}
               <th data-type="number">SOS faced (opp DEF)</th>
@@ -106,17 +111,19 @@ PAGE_TEMPLATE = """
               {% for row in table_rows %}
               <tr>
                 <td data-value="{{ row.team }}">{{ row.display_name }} ({{ row.team }})</td>
-                <td data-value="{{ "%.6f"|format(row.combined) }}">{{ "%.3f"|format(row.combined) }}</td>
+                <td data-value="{{ row.win_pct if row.win_pct is not none else '' }}">{{ row.record if row.record else 'N/A' }}</td>
+                <td data-value="{{ row.win_pct if row.win_pct is not none else '' }}">{{ row.win_pct is not none and "%.3f"|format(row.win_pct) or 'N/A' }}</td>
+                <td data-value="{{ "%.6f"|format(row.combined) }}">{{ "%.3f"|format(row.combined) }}{% if metric_mode == 'sos' %}<span class="raw-value">(raw {{ "%.3f"|format(row.raw_combined) }})</span>{% endif %}</td>
                 {% if metric_mode == 'sos' %}
                 <td data-value="{{ row.sos_off_faced if row.sos_off_faced is not none else '' }}">
-                  {% if row.sos_off_faced is not none %}{{ "%.3f"|format(row.sos_off_faced) }}{% else %}N/A{% endif %}
+                  {% if row.sos_off_faced is not none %}{{ "%.3f"|format(row.sos_off_faced) }}{% else %}N/A{% endif %}{% if row.sos_off_rank %} <span class="rank-note">(#{{ row.sos_off_rank }})</span>{% endif %}
                 </td>
                 <td data-value="{{ row.sos_def_faced if row.sos_def_faced is not none else '' }}">
-                  {% if row.sos_def_faced is not none %}{{ "%.3f"|format(row.sos_def_faced) }}{% else %}N/A{% endif %}
+                  {% if row.sos_def_faced is not none %}{{ "%.3f"|format(row.sos_def_faced) }}{% else %}N/A{% endif %}{% if row.sos_def_rank %} <span class="rank-note">(#{{ row.sos_def_rank }})</span>{% endif %}
                 </td>
                 {% endif %}
-                <td data-value="{{ "%.6f"|format(row.offense) }}">{{ "%.3f"|format(row.offense) }}</td>
-                <td data-value="{{ "%.6f"|format(row.defense) }}">{{ "%.3f"|format(row.defense) }}</td>
+                <td data-value="{{ "%.6f"|format(row.offense) }}">{{ "%.3f"|format(row.offense) }}{% if metric_mode == 'sos' %}<span class="raw-value">(raw {{ "%.3f"|format(row.raw_offense) }})</span>{% endif %}</td>
+                <td data-value="{{ "%.6f"|format(row.defense) }}">{{ "%.3f"|format(row.defense) }}{% if metric_mode == 'sos' %}<span class="raw-value">(raw {{ "%.3f"|format(row.raw_defense) }})</span>{% endif %}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -243,7 +250,30 @@ def index() -> str:
         include_sos=metric_mode == "sos",
         sos_basis=sos_basis,
     )
+    game_rows = load_team_game_epa_from_db(season, week_start=week_start, week_end=week_end)
+    records_by_team = compute_records(game_rows)
     data_for_table = df.dropna(subset=["EPA_off_per_play", "EPA_def_per_play"])
+    sos_off_ranks: dict[str, int] | None = None
+    sos_def_ranks: dict[str, int] | None = None
+    if metric_mode == "sos":
+        if "sos_off_faced" in data_for_table.columns:
+            ranked = (
+                data_for_table[["sos_off_faced"]]
+                .dropna()
+                .sort_values("sos_off_faced", ascending=False)
+                .reset_index()
+                .rename(columns={"index": "team"})
+            )
+            sos_off_ranks = {str(row.team): idx + 1 for idx, row in ranked.iterrows()}
+        if "sos_def_faced" in data_for_table.columns:
+            ranked = (
+                data_for_table[["sos_def_faced"]]
+                .dropna()
+                .sort_values("sos_def_faced", ascending=False)
+                .reset_index()
+                .rename(columns={"index": "team"})
+            )
+            sos_def_ranks = {str(row.team): idx + 1 for idx, row in ranked.iterrows()}
     table_rows = []
     for team, row in data_for_table.sort_index().iterrows():
         base_off = row["EPA_off_per_play"]
@@ -257,6 +287,7 @@ def index() -> str:
         offense = row.get("EPA_off_sos_adj", base_off) if use_sos else base_off
         defense = row.get("EPA_def_sos_adj", base_def) if use_sos else base_def
         combined = row.get("net_epa_pp_sos_adj", offense + defense) if use_sos else base_net
+        record = records_by_team.get(team)
         table_rows.append(
             {
                 "team": team,
@@ -264,8 +295,18 @@ def index() -> str:
                 "combined": combined,
                 "offense": offense,
                 "defense": defense,
+                "raw_combined": base_net,
+                "raw_offense": base_off,
+                "raw_defense": base_def,
                 "sos_off_faced": row.get("sos_off_faced"),
                 "sos_def_faced": row.get("sos_def_faced"),
+                "wins": record.get("wins") if record else None,
+                "losses": record.get("losses") if record else None,
+                "ties": record.get("ties") if record else None,
+                "record": record.get("record") if record else None,
+                "win_pct": record.get("win_pct") if record else None,
+                "sos_off_rank": sos_off_ranks.get(team) if sos_off_ranks else None,
+                "sos_def_rank": sos_def_ranks.get(team) if sos_def_ranks else None,
             }
         )
 
