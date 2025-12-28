@@ -476,9 +476,8 @@
     }
 
     function summaryLabel(idx, row, metricKey) {
-      const value = formatNumber(row[metricKey]);
       const teamName = TEAM_DISPLAY_NAMES[row.team] || row.team;
-      return `#${idx + 1} · ${value} · ${teamName} – ${row.season}`;
+      return `${teamName} – ${row.season}`;
     }
 
     function renderTable(el, rows, metricKey, metricMode) {
