@@ -335,7 +335,7 @@ def save_team_game_epa(
                 def_epa_sum, def_plays, def_epa_pp,
                 points_for, points_against,
                 net_epa_sum, plays, net_epa_pp
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(season, game_id, team) DO UPDATE SET
                 week=excluded.week,
                 opp=excluded.opp,
