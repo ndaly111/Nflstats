@@ -1,3 +1,4 @@
+<!-- PATCH: fix defense sign convention (def_epa_pp is DEFENSE STRENGTH, higher=better) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -352,18 +353,20 @@
       });
 
       const adjusted = {};
-      // Opponent-adjusted EPA: OffEPA_adj = OffEPA - avgOppDefEPA + leagueAvgDefEPA.
-      // Likewise for defense EPA allowed using opponent offensive EPA.
+      // NOTE: def_epa_pp in this repo is DEFENSE STRENGTH (sign-flipped in the pipeline so higher = better defense).
+      // Opponent-adjusted (one-pass) EPA:
+      //   OffEPA_adj = OffEPA + avgOppDefEPA - leagueAvgDefEPA
+      //   DefEPA_adj = DefEPA + avgOppOffEPA - leagueAvgOffEPA
       Object.entries(baseRatings).forEach(([team, entry]) => {
         const facing = opponentFacings[team] || {};
         const avgOppDefEPA = facing.offPlays ? facing.oppDefEpa / facing.offPlays : leagueAvgDefEPA;
         const avgOppOffEPA = facing.defPlays ? facing.oppOffEpa / facing.defPlays : leagueAvgOffEPA;
 
         const adjOffEPA = Number.isFinite(entry.offEPA)
-          ? entry.offEPA - avgOppDefEPA + leagueAvgDefEPA
+          ? entry.offEPA + avgOppDefEPA - leagueAvgDefEPA
           : null;
         const adjDefEPA = Number.isFinite(entry.defEPA)
-          ? entry.defEPA - avgOppOffEPA + leagueAvgOffEPA
+          ? entry.defEPA + avgOppOffEPA - leagueAvgOffEPA
           : null;
 
         adjusted[team] = {
@@ -426,7 +429,7 @@
       const sortedWeeks = (season.weeks || []).slice().sort((a, b) => Number(a) - Number(b));
       const weeksLabel = sortedWeeks.length ? `${sortedWeeks[0]}-${sortedWeeks[sortedWeeks.length - 1]}` : 'n/a';
       const ratingWeekText = ratingWeek > 0 ? ratingWeek : '0 (no prior games)';
-      metaEl.textContent = `Weeks available: ${weeksLabel}. Ratings use games through Week ${ratingWeekText} (${mode === 'sos' ? 'opponent-adjusted' : 'raw'} EPA/play).`;
+      metaEl.textContent = `Weeks available: ${weeksLabel}. Ratings use games through Week ${ratingWeekText} (${mode === 'sos' ? 'opponent-adjusted' : 'raw'} EPA/play). Edge = OffEPA - OppDefEPA (defense higher=better).`;
 
       cardsEl.innerHTML = '';
       games.forEach((game) => {
@@ -463,9 +466,9 @@
           const offPlays = offenseEntry.offPlays;
           const defPlays = defenseEntry.defPlays;
 
-          // def_epa_pp represents defensive EPA/play allowed (lower is better), so the edge is offense EPA plus opponent defensive EPA allowed.
+          // def_epa_pp is defense strength (higher = better). Matchup edge = OffEPA - OppDefEPA.
           const hasRowData = !noRatings && Number.isFinite(offEPA) && Number.isFinite(defEPA);
-          const edge = hasRowData ? offEPA + defEPA : null;
+          const edge = hasRowData ? offEPA - defEPA : null;
           const { label, tone } = labelForAdvantage(edge);
 
           const row = document.createElement('div');
@@ -483,7 +486,7 @@
           const detail = document.createElement('div');
           detail.innerHTML = [
             detailLine('Off EPA/play', offEPA, offPlays),
-            detailLine('Def EPA/play allowed', defEPA, defPlays),
+            detailLine('Def EPA/play (higher = better defense)', defEPA, defPlays),
             `Edge: ${formatNumber(edge)}`,
           ].join('<br>');
 
