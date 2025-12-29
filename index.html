@@ -113,6 +113,13 @@
       box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
     }
 
+    .nav-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
     .chart-wrap {
       position: relative;
       width: 100%;
@@ -228,7 +235,10 @@
         <h1>NFL Offense vs Defense Efficiency</h1>
         <p class="lead">Explore team EPA/play without running a server. Pick your season and week range to redraw the chart in-place.</p>
       </div>
-      <a class="hof-link" href="hof.html" aria-label="View EPA Hall of Fame">🏆 HOF</a>
+      <div class="nav-actions">
+        <a class="hof-link" href="hof.html" aria-label="View EPA Hall of Fame">🏆 HOF</a>
+        <a class="hof-link" href="matchups.html" aria-label="View Weekly Matchups">📅 Weekly Matchups</a>
+      </div>
     </div>
     <div id="data-meta" class="meta"></div>
     <div id="status" class="notice" hidden></div>

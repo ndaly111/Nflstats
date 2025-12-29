@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NFL Weekly Matchups</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #475569;
+      --panel: #f8fafc;
+      --pill-strong: #2563eb;
+      --pill-slight: #0ea5e9;
+      --pill-neutral: #94a3b8;
+      --pill-def: #f97316;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      margin: 0;
+      padding: 2rem 1.5rem 3rem;
+      background: #ffffff;
+    }
+
+    main { max-width: 1100px; margin: 0 auto; }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    h1 { margin: 0 0 0.35rem; font-size: 1.9rem; }
+    p.lead { margin: 0 0 0.65rem; color: var(--muted); }
+    .meta { color: var(--muted); margin: 0 0 0.5rem; }
+
+    .nav-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .hof-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: white;
+      font-weight: 700;
+      color: #0f172a;
+      text-decoration: none;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+      transition: transform 120ms ease, box-shadow 120ms ease;
+      white-space: nowrap;
+    }
+
+    .hof-link:hover { transform: translateY(-1px); box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12); }
+
+    .controls {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1rem 0 1.5rem;
+    }
+
+    label { font-weight: 600; display: block; margin-bottom: 0.25rem; }
+
+    select, button {
+      width: 100%;
+      padding: 0.6rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
+      background: white;
+    }
+
+    .toggle {
+      display: inline-flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .toggle button {
+      flex: 1;
+      cursor: pointer;
+      font-weight: 700;
+      color: #0f172a;
+      background: white;
+      box-shadow: none;
+      border: 1px solid var(--border);
+    }
+
+    .toggle button.active {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.2);
+      border: none;
+    }
+
+    .notice {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      color: #9a3412;
+    }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .card-header { display: flex; justify-content: space-between; gap: 0.5rem; align-items: center; }
+    .teams { font-weight: 700; font-size: 1.05rem; }
+    .week-label { color: var(--muted); font-size: 0.95rem; }
+
+    .matchup-row {
+      display: flex;
+      gap: 0.65rem;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.6rem 0.7rem;
+      background: var(--panel);
+    }
+
+    .matchup-row .label { font-weight: 700; }
+    .metrics { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      font-weight: 700;
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    .pill.strong { background: var(--pill-strong); }
+    .pill.slight { background: var(--pill-slight); }
+    .pill.neutral { background: var(--pill-neutral); color: white; }
+    .pill.defense { background: var(--pill-def); }
+
+    .odds { color: var(--muted); font-size: 0.95rem; display: flex; justify-content: space-between; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+    .odds .odds-meta { flex-basis: 100%; font-size: 0.9rem; color: var(--muted); }
+
+    .empty { text-align: center; color: var(--muted); border: 1px dashed var(--border); border-radius: 12px; padding: 1rem; }
+
+    @media (max-width: 640px) {
+      body { padding: 1.5rem 1rem 2.5rem; }
+      .matchup-row { flex-direction: column; align-items: flex-start; }
+      .metrics { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top-bar">
+      <div>
+        <h1>Weekly Matchups</h1>
+        <p class="lead">Offense vs defense EPA/play edges for every game. Toggle raw vs opponent-adjusted views and pick any week.</p>
+        <p id="meta" class="meta"></p>
+      </div>
+      <div class="nav-actions">
+        <a class="hof-link" href="index.html" aria-label="Back to EPA chart">⬅️ Back</a>
+        <a class="hof-link" href="hof.html" aria-label="View EPA Hall of Fame">🏆 HOF</a>
+      </div>
+    </div>
+
+    <div id="status" class="notice" hidden></div>
+
+    <section class="controls">
+      <div>
+        <label for="season-select">Season</label>
+        <select id="season-select"></select>
+      </div>
+      <div>
+        <label for="week-select">Week</label>
+        <select id="week-select"></select>
+      </div>
+      <fieldset style="border: none; padding: 0; margin: 0;">
+        <legend style="font-weight: 600; margin-bottom: 0.25rem; padding: 0;">View</legend>
+        <div class="toggle" role="group" aria-label="Raw vs opponent-adjusted">
+          <button id="raw-btn" class="active" type="button">Raw</button>
+          <button id="sos-btn" type="button">Opponent-adjusted</button>
+        </div>
+      </fieldset>
+    </section>
+
+    <div id="cards" class="cards" aria-live="polite"></div>
+  </main>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const metaEl = document.getElementById('meta');
+    const seasonSelect = document.getElementById('season-select');
+    const weekSelect = document.getElementById('week-select');
+    const cardsEl = document.getElementById('cards');
+    const rawBtn = document.getElementById('raw-btn');
+    const sosBtn = document.getElementById('sos-btn');
+
+    const DATA_URL = new URL('data/epa.json', document.baseURI);
+    const ODDS_URL = new URL('data/odds.json', document.baseURI);
+
+    let data;
+    let oddsPayload = null;
+    let oddsIndex = {};
+    let mode = 'raw';
+
+    function showStatus(message, variant = 'info') {
+      statusEl.textContent = message;
+      statusEl.hidden = false;
+      statusEl.style.display = 'block';
+      statusEl.style.borderColor = variant === 'error' ? '#f97316' : '#fed7aa';
+      statusEl.style.background = variant === 'error' ? '#fff1f2' : '#fff7ed';
+      statusEl.style.color = variant === 'error' ? '#9f1239' : '#9a3412';
+    }
+
+    function hideStatus() {
+      statusEl.hidden = true;
+      statusEl.textContent = '';
+    }
+
+    function getCurrentWeek(season) {
+      if (Array.isArray(season?.weeks) && season.weeks.length > 0) {
+        return Math.max(...season.weeks);
+      }
+      const maxWeek = season?.games?.reduce((max, g) => Math.max(max, g.week || 0), 0) || 1;
+      return maxWeek;
+    }
+
+    function fillSelect(selectEl, values) {
+      selectEl.innerHTML = '';
+      values.forEach((val) => {
+        const option = document.createElement('option');
+        option.value = val;
+        option.textContent = `Week ${val}`;
+        selectEl.appendChild(option);
+      });
+    }
+
+    function groupGamesForWeek(season, week) {
+      const byId = {};
+      (season.games || []).forEach((g) => {
+        if (Number(g.week) !== Number(week)) return;
+        if (!byId[g.game_id]) {
+          byId[g.game_id] = { game_id: g.game_id, teams: [] };
+        }
+        byId[g.game_id].teams.push(g);
+      });
+      return Object.values(byId);
+    }
+
+    function computeTeamAggregates(season, week) {
+      const aggregates = {};
+      const includeGame = (g, limit) => Number(g.week) < Number(limit);
+
+      const addGame = (g) => {
+        if (!aggregates[g.team]) {
+          aggregates[g.team] = { offSum: 0, offPlays: 0, defSum: 0, defPlays: 0 };
+        }
+        const entry = aggregates[g.team];
+        if (Number.isFinite(g.off_epa_pp) && Number.isFinite(g.off_plays)) {
+          entry.offSum += g.off_epa_pp * g.off_plays;
+          entry.offPlays += g.off_plays;
+        }
+        if (Number.isFinite(g.def_epa_pp) && Number.isFinite(g.def_plays)) {
+          entry.defSum += g.def_epa_pp * g.def_plays;
+          entry.defPlays += g.def_plays;
+        }
+      };
+
+      (season.games || []).forEach((g) => {
+        if (includeGame(g, week)) addGame(g);
+      });
+
+      const ratings = {};
+      Object.entries(aggregates).forEach(([team, entry]) => {
+        const offEPA = entry.offPlays > 0 ? entry.offSum / entry.offPlays : null;
+        const defEPA = entry.defPlays > 0 ? entry.defSum / entry.defPlays : null;
+        ratings[team] = {
+          offEPA,
+          defEPA,
+          offPlays: entry.offPlays,
+          defPlays: entry.defPlays,
+        };
+      });
+      return ratings;
+    }
+
+    function computeSOSAdjustedRatings(season, week, baseRatings) {
+      const totals = { offEpaSum: 0, offPlays: 0, defEpaSum: 0, defPlays: 0 };
+      Object.values(baseRatings).forEach((entry) => {
+        if (Number.isFinite(entry.offEPA)) {
+          totals.offEpaSum += entry.offEPA * entry.offPlays;
+          totals.offPlays += entry.offPlays;
+        }
+        if (Number.isFinite(entry.defEPA)) {
+          totals.defEpaSum += entry.defEPA * entry.defPlays;
+          totals.defPlays += entry.defPlays;
+        }
+      });
+
+      const leagueAvgOffEPA = totals.offPlays ? totals.offEpaSum / totals.offPlays : 0;
+      const leagueAvgDefEPA = totals.defPlays ? totals.defEpaSum / totals.defPlays : 0;
+
+      const opponentFacings = {};
+      (season.games || []).forEach((g) => {
+        if (g.week >= week) return;
+        if (!opponentFacings[g.team]) {
+          opponentFacings[g.team] = { oppOffEpa: 0, oppDefEpa: 0, offPlays: 0, defPlays: 0 };
+        }
+        const oppRatings = baseRatings[g.opp];
+        if (!oppRatings) return;
+        const facing = opponentFacings[g.team];
+        if (Number.isFinite(g.off_plays) && Number.isFinite(oppRatings.defEPA)) {
+          facing.offPlays += g.off_plays;
+          facing.oppDefEpa += g.off_plays * oppRatings.defEPA;
+        }
+        if (Number.isFinite(g.def_plays) && Number.isFinite(oppRatings.offEPA)) {
+          facing.defPlays += g.def_plays;
+          facing.oppOffEpa += g.def_plays * oppRatings.offEPA;
+        }
+      });
+
+      const adjusted = {};
+      // Opponent-adjusted EPA: OffEPA_adj = OffEPA - avgOppDefEPA + leagueAvgDefEPA.
+      // Likewise for defense EPA allowed using opponent offensive EPA.
+      Object.entries(baseRatings).forEach(([team, entry]) => {
+        const facing = opponentFacings[team] || {};
+        const avgOppDefEPA = facing.offPlays ? facing.oppDefEpa / facing.offPlays : leagueAvgDefEPA;
+        const avgOppOffEPA = facing.defPlays ? facing.oppOffEpa / facing.defPlays : leagueAvgOffEPA;
+
+        const adjOffEPA = Number.isFinite(entry.offEPA)
+          ? entry.offEPA - avgOppDefEPA + leagueAvgDefEPA
+          : null;
+        const adjDefEPA = Number.isFinite(entry.defEPA)
+          ? entry.defEPA - avgOppOffEPA + leagueAvgOffEPA
+          : null;
+
+        adjusted[team] = {
+          ...entry,
+          adjOffEPA,
+          adjDefEPA,
+        };
+      });
+
+      return adjusted;
+    }
+
+    function labelForAdvantage(edge) {
+      if (!Number.isFinite(edge)) return { label: 'Insufficient data', tone: 'neutral' };
+      if (edge >= 0.06) return { label: 'Strong edge (offense)', tone: 'strong' };
+      if (edge >= 0.02) return { label: 'Slight edge (offense)', tone: 'slight' };
+      if (edge > -0.02) return { label: 'Neutral', tone: 'neutral' };
+      if (edge > -0.06) return { label: 'Slight edge (defense)', tone: 'defense' };
+      return { label: 'Strong edge (defense)', tone: 'defense' };
+    }
+
+    function formatNumber(val) {
+      return Number.isFinite(val) ? val.toFixed(3) : '—';
+    }
+
+    function detailLine(label, value, plays) {
+      const playsLabel = Number.isFinite(plays) ? ` (${plays} plays)` : '';
+      return `${label}: ${formatNumber(value)}${playsLabel}`;
+    }
+
+    function getOdds(gameId, season, week) {
+      const key = `${Number(season)}-${Number(week)}-${String(gameId)}`;
+      return oddsIndex[key] || null;
+    }
+
+    function renderMatchups() {
+      hideStatus();
+      const infoMessages = [];
+      const seasonKey = seasonSelect.value;
+      const season = data?.seasons?.[seasonKey];
+      if (!season) {
+        showStatus('Season data not found.', 'error');
+        cardsEl.innerHTML = '';
+        return;
+      }
+      const week = Number(weekSelect.value);
+      const games = groupGamesForWeek(season, week);
+      if (games.length === 0) {
+        cardsEl.innerHTML = '<div class="empty">No games found for this week.</div>';
+        return;
+      }
+
+      const baseRatings = computeTeamAggregates(season, Math.max(1, week));
+      const noRatings = Object.keys(baseRatings).length === 0;
+      const ratings = mode === 'sos' ? computeSOSAdjustedRatings(season, Math.max(1, week), baseRatings) : baseRatings;
+      if (noRatings) {
+        infoMessages.push(`No prior games available to compute ratings for Week ${week}. Select Week 2+.`);
+      }
+      const ratingWeek = Math.max(0, week - 1);
+      const sortedWeeks = (season.weeks || []).slice().sort((a, b) => Number(a) - Number(b));
+      const weeksLabel = sortedWeeks.length ? `${sortedWeeks[0]}-${sortedWeeks[sortedWeeks.length - 1]}` : 'n/a';
+      const ratingWeekText = ratingWeek > 0 ? ratingWeek : '0 (no prior games)';
+      metaEl.textContent = `Weeks available: ${weeksLabel}. Ratings use games through Week ${ratingWeekText} (${mode === 'sos' ? 'opponent-adjusted' : 'raw'} EPA/play).`;
+
+      cardsEl.innerHTML = '';
+      games.forEach((game) => {
+        const [teamA, teamB] = game.teams;
+        if (!teamA || !teamB) return;
+        const offA = teamA.team;
+        const offB = teamB.team;
+
+        const matchups = [
+          { off: offA, def: offB, label: `${offA} offense vs ${offB} defense` },
+          { off: offB, def: offA, label: `${offB} offense vs ${offA} defense` },
+        ];
+
+        const card = document.createElement('article');
+        card.className = 'card';
+
+        const header = document.createElement('div');
+        header.className = 'card-header';
+        const teamsLabel = document.createElement('div');
+        teamsLabel.className = 'teams';
+        teamsLabel.textContent = `${offA} vs ${offB}`;
+        const weekLabel = document.createElement('div');
+        weekLabel.className = 'week-label';
+        weekLabel.textContent = `Week ${week}`;
+        header.appendChild(teamsLabel);
+        header.appendChild(weekLabel);
+        card.appendChild(header);
+
+        matchups.forEach((m) => {
+          const offenseEntry = ratings[m.off] || {};
+          const defenseEntry = ratings[m.def] || {};
+          const offEPA = mode === 'sos' ? offenseEntry.adjOffEPA : offenseEntry.offEPA;
+          const defEPA = mode === 'sos' ? defenseEntry.adjDefEPA : defenseEntry.defEPA;
+          const offPlays = offenseEntry.offPlays;
+          const defPlays = defenseEntry.defPlays;
+
+          // def_epa_pp represents defensive EPA/play allowed (lower is better), so the edge is offense EPA plus opponent defensive EPA allowed.
+          const hasRowData = !noRatings && Number.isFinite(offEPA) && Number.isFinite(defEPA);
+          const edge = hasRowData ? offEPA + defEPA : null;
+          const { label, tone } = labelForAdvantage(edge);
+
+          const row = document.createElement('div');
+          row.className = 'matchup-row';
+
+          const labelEl = document.createElement('div');
+          labelEl.className = 'label';
+          labelEl.textContent = m.label;
+
+          const metricsEl = document.createElement('div');
+          metricsEl.className = 'metrics';
+          const pill = document.createElement('span');
+          pill.className = `pill ${tone}`;
+          pill.textContent = label;
+          const detail = document.createElement('div');
+          detail.innerHTML = [
+            detailLine('Off EPA/play', offEPA, offPlays),
+            detailLine('Def EPA/play allowed', defEPA, defPlays),
+            `Edge: ${formatNumber(edge)}`,
+          ].join('<br>');
+
+          metricsEl.appendChild(pill);
+          metricsEl.appendChild(detail);
+
+          row.appendChild(labelEl);
+          row.appendChild(metricsEl);
+          card.appendChild(row);
+        });
+
+        const odds = getOdds(game.game_id, seasonKey, week);
+        const oddsRow = document.createElement('div');
+        oddsRow.className = 'odds';
+        const spreadNum = Number(odds?.spread);
+        const spreadValue = odds?.spread_team && Number.isFinite(spreadNum)
+          ? `${odds.spread_team} ${spreadNum > 0 ? '+' : ''}${spreadNum}`
+          : '—';
+        const totalNum = Number(odds?.total);
+        const totalValue = Number.isFinite(totalNum) ? totalNum.toFixed(1) : '—';
+
+        const oddsPieces = [`Spread: ${spreadValue}`, `O/U: ${totalValue}`];
+        const metaParts = [];
+        if (odds?.source) metaParts.push(`Lines: ${odds.source}`);
+        if (odds?.updated_at) metaParts.push(`updated ${odds.updated_at}`);
+        const metaText = metaParts.length ? metaParts.join(' · ') : '';
+        oddsRow.innerHTML = `<span>${oddsPieces[0]}</span><span>${oddsPieces[1]}</span>${metaText ? `<span class="odds-meta">${metaText}</span>` : ''}`;
+        card.appendChild(oddsRow);
+
+        cardsEl.appendChild(card);
+      });
+
+      if (oddsPayload && !(oddsPayload.odds || []).some((o) => Number(o.season) === Number(seasonKey) && Number(o.week) === Number(week))) {
+        infoMessages.push('Betting lines not available for this week yet.');
+      }
+
+      if (infoMessages.length) {
+        showStatus(infoMessages.join(' '));
+      }
+    }
+
+    function onSeasonChange() {
+      const season = data?.seasons?.[seasonSelect.value];
+      if (!season) return;
+      const weeks = (season.weeks || []).slice().sort((a, b) => Number(a) - Number(b));
+      fillSelect(weekSelect, weeks);
+      const defaultWeek = weeks.length ? Math.max(...weeks.map((w) => Number(w))) : getCurrentWeek(season);
+      weekSelect.value = defaultWeek;
+      renderMatchups();
+    }
+
+    async function fetchOdds() {
+      try {
+        const res = await fetch(ODDS_URL);
+        if (!res.ok) throw new Error('Failed to load odds');
+        oddsPayload = await res.json();
+        oddsIndex = {};
+        (oddsPayload.odds || []).forEach((o) => {
+          const key = `${Number(o.season)}-${Number(o.week)}-${String(o.game_id)}`;
+          oddsIndex[key] = o;
+        });
+      } catch (err) {
+        oddsPayload = null;
+        oddsIndex = {};
+        console.warn('Odds not available', err);
+      }
+    }
+
+    async function init() {
+      showStatus('Loading data...');
+      try {
+        const res = await fetch(DATA_URL);
+        if (!res.ok) throw new Error('Failed to load data file');
+        data = await res.json();
+      } catch (err) {
+        console.error(err);
+        showStatus('Could not load data/epa.json. Please refresh or try again later.', 'error');
+        return;
+      }
+      hideStatus();
+      await fetchOdds();
+
+      const seasons = Object.keys(data.seasons || {}).sort((a, b) => Number(b) - Number(a));
+      seasons.forEach((season) => {
+        const option = document.createElement('option');
+        option.value = season;
+        option.textContent = season;
+        seasonSelect.appendChild(option);
+      });
+      const defaultSeason = seasons[0];
+      seasonSelect.value = defaultSeason;
+      onSeasonChange();
+    }
+
+    seasonSelect.addEventListener('change', onSeasonChange);
+    weekSelect.addEventListener('change', renderMatchups);
+    rawBtn.addEventListener('click', () => {
+      mode = 'raw';
+      rawBtn.classList.add('active');
+      sosBtn.classList.remove('active');
+      renderMatchups();
+    });
+    sosBtn.addEventListener('click', () => {
+      mode = 'sos';
+      sosBtn.classList.add('active');
+      rawBtn.classList.remove('active');
+      renderMatchups();
+    });
+
+    init();
+  </script>
+</body>
+</html>

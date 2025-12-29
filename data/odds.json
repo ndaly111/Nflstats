@@ -1,0 +1,4 @@
+{
+  "__schema": "odds: [{season, week, game_id, spread, spread_team?, total, source?, updated_at?}]",
+  "odds": []
+}
