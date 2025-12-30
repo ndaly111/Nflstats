@@ -175,10 +175,29 @@
 
     .empty { text-align: center; color: var(--muted); border: 1px dashed var(--border); border-radius: 12px; padding: 1rem; }
 
+    /* Dumbbell */
+    .db { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 220px; }
+    .db-label { font-size: 0.9rem; color: var(--muted); }
+    /* NOTE: db-viz must NOT be flex:1 (flex-basis:0). Its children are absolutely positioned,
+       so flex:1 can collapse it to 0px tall and the dumbbell becomes invisible. */
+    .db-viz { position: relative; flex: 0 0 auto; min-width: 220px; height: 18px; background: white; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
+    .db-track { position: absolute; inset: 5px 0; background: var(--panel); border-radius: 999px; }
+    .db-zero { position: absolute; top: 3px; width: 2px; height: 12px; background: var(--border); transform: translateX(-50%); }
+    .db-range { position: absolute; top: 6px; height: 8px; background: linear-gradient(90deg, #2563eb, #f97316); border-radius: 999px; opacity: 0.85; }
+    .db-dot { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15); transform: translate(-50%, -50%); }
+    .db-dot.off { background: #2563eb; }
+    .db-dot.def { background: #f97316; }
+    .db-placeholder { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.85rem; color: var(--muted); background: rgba(226, 232, 240, 0.4); }
+
     @media (max-width: 640px) {
       body { padding: 1.5rem 1rem 2.5rem; }
       .matchup-row { flex-direction: column; align-items: flex-start; }
       .metrics { text-align: left; }
+    }
+
+    @media (max-width: 800px) {
+      .db { min-width: 0; }
+      .db-viz { width: 100%; min-width: 0; }
     }
   </style>
 </head>
@@ -397,40 +416,120 @@
       return `${label}: ${formatNumber(value)}${playsLabel}`;
     }
 
+    function toPct(v, scale) {
+      if (v === null || v === undefined || v === '') return null;
+      const num = Number(v);
+      if (!Number.isFinite(num) || !scale || !Number.isFinite(scale.min) || !Number.isFinite(scale.max) || scale.max === scale.min) return null;
+      const pct = ((num - scale.min) / (scale.max - scale.min)) * 100;
+      return Math.min(100, Math.max(0, pct));
+    }
+
+    function buildDumbbell(offVal, oppDefVal, scale) {
+      const missing = [offVal, oppDefVal].some((v) => v === null || v === undefined || v === '');
+      const viz = document.createElement('div');
+      viz.className = 'db-viz';
+
+      if (missing) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'db-placeholder';
+        placeholder.textContent = 'no EPA';
+        viz.appendChild(placeholder);
+        return viz;
+      }
+
+      const off = Number(offVal);
+      const def = Number(oppDefVal);
+      if (!Number.isFinite(off) || !Number.isFinite(def)) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'db-placeholder';
+        placeholder.textContent = 'no EPA';
+        viz.appendChild(placeholder);
+        return viz;
+      }
+
+      const track = document.createElement('div');
+      track.className = 'db-track';
+      viz.appendChild(track);
+
+      const zeroPct = toPct(0, scale);
+      if (zeroPct !== null && scale && Number.isFinite(scale.min) && Number.isFinite(scale.max) && scale.min <= 0 && scale.max >= 0 && zeroPct >= 0 && zeroPct <= 100) {
+        const zero = document.createElement('div');
+        zero.className = 'db-zero';
+        zero.style.left = `${zeroPct}%`;
+        viz.appendChild(zero);
+      }
+
+      const offPct = toPct(off, scale);
+      const defPct = toPct(def, scale);
+      if (offPct === null || defPct === null) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'db-placeholder';
+        placeholder.textContent = 'no EPA';
+        viz.appendChild(placeholder);
+        return viz;
+      }
+
+      const left = Math.min(offPct, defPct);
+      const right = Math.max(offPct, defPct);
+      const range = document.createElement('div');
+      range.className = 'db-range';
+      range.style.left = `${left}%`;
+      range.style.width = `${Math.max(2, right - left)}%`;
+      viz.appendChild(range);
+
+      const offDot = document.createElement('div');
+      offDot.className = 'db-dot off';
+      offDot.style.left = `${offPct}%`;
+      viz.appendChild(offDot);
+
+      const defDot = document.createElement('div');
+      defDot.className = 'db-dot def';
+      defDot.style.left = `${defPct}%`;
+      viz.appendChild(defDot);
+
+      return viz;
+    }
+
+    function computeScaleFromValues(values) {
+      if (!Array.isArray(values) || values.length === 0) {
+        return { min: -0.15, max: 0.15 };
+      }
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const span = max - min || 0.05;
+      const pad = Math.max(0.01, span * 0.1);
+      return { min: min - pad, max: max + pad };
+    }
+
+    function computeScaleFromGames(games, ratings, mode, noRatings) {
+      const values = [];
+      games.forEach((game) => {
+        const [teamA, teamB] = game.teams;
+        if (!teamA || !teamB) return;
+
+        const pairs = [
+          { off: teamA.team, def: teamB.team },
+          { off: teamB.team, def: teamA.team },
+        ];
+
+        pairs.forEach(({ off, def }) => {
+          const offenseEntry = ratings[off] || {};
+          const defenseEntry = ratings[def] || {};
+          const offEPA = mode === 'sos' ? offenseEntry.adjOffEPA : offenseEntry.offEPA;
+          const defEPA = mode === 'sos' ? defenseEntry.adjDefEPA : defenseEntry.defEPA;
+          if (!noRatings && Number.isFinite(offEPA)) values.push(offEPA);
+          if (!noRatings && Number.isFinite(defEPA)) values.push(defEPA);
+        });
+      });
+      return computeScaleFromValues(values);
+    }
+
     function getOdds(gameId, season, week) {
       const key = `${Number(season)}-${Number(week)}-${String(gameId)}`;
       return oddsIndex[key] || null;
     }
 
-    function renderMatchups() {
-      hideStatus();
-      const infoMessages = [];
-      const seasonKey = seasonSelect.value;
-      const season = data?.seasons?.[seasonKey];
-      if (!season) {
-        showStatus('Season data not found.', 'error');
-        cardsEl.innerHTML = '';
-        return;
-      }
-      const week = Number(weekSelect.value);
-      const games = groupGamesForWeek(season, week);
-      if (games.length === 0) {
-        cardsEl.innerHTML = '<div class="empty">No games found for this week.</div>';
-        return;
-      }
-
-      const baseRatings = computeTeamAggregates(season, Math.max(1, week));
-      const noRatings = Object.keys(baseRatings).length === 0;
-      const ratings = mode === 'sos' ? computeSOSAdjustedRatings(season, Math.max(1, week), baseRatings) : baseRatings;
-      if (noRatings) {
-        infoMessages.push(`No prior games available to compute ratings for Week ${week}. Select Week 2+.`);
-      }
-      const ratingWeek = Math.max(0, week - 1);
-      const sortedWeeks = (season.weeks || []).slice().sort((a, b) => Number(a) - Number(b));
-      const weeksLabel = sortedWeeks.length ? `${sortedWeeks[0]}-${sortedWeeks[sortedWeeks.length - 1]}` : 'n/a';
-      const ratingWeekText = ratingWeek > 0 ? ratingWeek : '0 (no prior games)';
-      metaEl.textContent = `Weeks available: ${weeksLabel}. Ratings use games through Week ${ratingWeekText} (${mode === 'sos' ? 'opponent-adjusted' : 'raw'} EPA/play). Edge = OffEPA - OppDefEPA (defense higher=better).`;
-
+    function renderGames(games, ratings, { noRatings, week, seasonKey, scale }) {
       cardsEl.innerHTML = '';
       games.forEach((game) => {
         const [teamA, teamB] = game.teams;
@@ -478,6 +577,14 @@
           labelEl.className = 'label';
           labelEl.textContent = m.label;
 
+          const vizGroup = document.createElement('div');
+          vizGroup.className = 'db';
+          const vizLabel = document.createElement('div');
+          vizLabel.className = 'db-label';
+          vizLabel.textContent = 'EPA/play dumbbell';
+          vizGroup.appendChild(vizLabel);
+          vizGroup.appendChild(buildDumbbell(offEPA, defEPA, scale));
+
           const metricsEl = document.createElement('div');
           metricsEl.className = 'metrics';
           const pill = document.createElement('span');
@@ -494,6 +601,7 @@
           metricsEl.appendChild(detail);
 
           row.appendChild(labelEl);
+          row.appendChild(vizGroup);
           row.appendChild(metricsEl);
           card.appendChild(row);
         });
@@ -518,6 +626,39 @@
 
         cardsEl.appendChild(card);
       });
+    }
+
+    function renderMatchups() {
+      hideStatus();
+      const infoMessages = [];
+      const seasonKey = seasonSelect.value;
+      const season = data?.seasons?.[seasonKey];
+      if (!season) {
+        showStatus('Season data not found.', 'error');
+        cardsEl.innerHTML = '';
+        return;
+      }
+      const week = Number(weekSelect.value);
+      const games = groupGamesForWeek(season, week);
+      if (games.length === 0) {
+        cardsEl.innerHTML = '<div class="empty">No games found for this week.</div>';
+        return;
+      }
+
+      const baseRatings = computeTeamAggregates(season, Math.max(1, week));
+      const noRatings = Object.keys(baseRatings).length === 0;
+      const ratings = mode === 'sos' ? computeSOSAdjustedRatings(season, Math.max(1, week), baseRatings) : baseRatings;
+      if (noRatings) {
+        infoMessages.push(`No prior games available to compute ratings for Week ${week}. Select Week 2+.`);
+      }
+      const ratingWeek = Math.max(0, week - 1);
+      const sortedWeeks = (season.weeks || []).slice().sort((a, b) => Number(a) - Number(b));
+      const weeksLabel = sortedWeeks.length ? `${sortedWeeks[0]}-${sortedWeeks[sortedWeeks.length - 1]}` : 'n/a';
+      const ratingWeekText = ratingWeek > 0 ? ratingWeek : '0 (no prior games)';
+      metaEl.textContent = `Weeks available: ${weeksLabel}. Ratings use games through Week ${ratingWeekText} (${mode === 'sos' ? 'opponent-adjusted' : 'raw'} EPA/play). Edge = OffEPA - OppDefEPA (defense higher=better).`;
+
+      const scale = computeScaleFromGames(games, ratings, mode, noRatings);
+      renderGames(games, ratings, { noRatings, week, seasonKey, scale });
 
       if (oddsPayload && !(oddsPayload.odds || []).some((o) => Number(o.season) === Number(seasonKey) && Number(o.week) === Number(week))) {
         infoMessages.push('Betting lines not available for this week yet.');
@@ -525,6 +666,12 @@
 
       if (infoMessages.length) {
         showStatus(infoMessages.join(' '));
+      }
+
+      const fixtureFlag = new URLSearchParams(window.location.search).get('fixture');
+      if (fixtureFlag === '1') {
+        const dumbbells = cardsEl.querySelectorAll('.db-viz').length;
+        console.log('dumbbell count', dumbbells);
       }
     }
 
