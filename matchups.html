@@ -20,6 +20,7 @@
       --pill-slight: #0ea5e9;
       --pill-neutral: #94a3b8;
       --pill-def: #f97316;
+      --neutral-edge: #cbd5e1;
     }
 
     * { box-sizing: border-box; }
@@ -124,7 +125,9 @@
       color: #9a3412;
     }
 
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
+    /* Give cards enough room for lane: label + dumbbell + badge without overflow/squish */
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1rem; }
+    .cards.ranked { grid-template-columns: 1fr; }
 
     .card {
       border: 1px solid var(--border);
@@ -140,35 +143,48 @@
     .teams { font-weight: 700; font-size: 1.05rem; }
     .week-label { color: var(--muted); font-size: 0.95rem; }
 
-    .matchup-row {
-      display: flex;
-      gap: 0.65rem;
-      align-items: center;
-      justify-content: space-between;
+    .scoreboard {
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.6rem 0.7rem;
+      border-radius: 12px;
       background: var(--panel);
     }
 
-    .matchup-row .label { font-weight: 700; }
-    .metrics { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
-
-    .pill {
-      display: inline-flex;
+    .lane {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+      gap: 0.75rem;
+      padding: 0.75rem 0.9rem;
       align-items: center;
-      gap: 0.3rem;
-      padding: 0.25rem 0.55rem;
-      border-radius: 999px;
-      font-weight: 700;
-      color: white;
-      font-size: 0.9rem;
     }
 
-    .pill.strong { background: var(--pill-strong); }
-    .pill.slight { background: var(--pill-slight); }
-    .pill.neutral { background: var(--pill-neutral); color: white; }
-    .pill.defense { background: var(--pill-def); }
+    .lane + .lane { border-top: 1px solid var(--border); }
+
+    .lane-label { font-weight: 700; display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+    .lane-label .sub { color: var(--muted); font-weight: 600; font-size: 0.95rem; }
+
+    .edge-badge {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.1rem;
+      padding: 0.45rem 0.65rem;
+      border-radius: 10px;
+      min-width: 96px;
+      font-weight: 700;
+      color: white;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15);
+    }
+
+    .edge-badge .value { font-size: 1.1rem; line-height: 1.1; }
+    .edge-badge .meta { font-size: 0.85rem; opacity: 0.95; }
+
+    .legend { color: var(--muted); margin: 0 0 1rem; font-size: 0.95rem; }
+
+    .details { font-size: 0.9rem; color: var(--muted); }
+    .details summary { cursor: pointer; font-weight: 600; }
+    .details div { margin-top: 0.35rem; line-height: 1.3; }
 
     .odds { color: var(--muted); font-size: 0.95rem; display: flex; justify-content: space-between; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
     .odds .odds-meta { flex-basis: 100%; font-size: 0.9rem; color: var(--muted); }
@@ -176,23 +192,24 @@
     .empty { text-align: center; color: var(--muted); border: 1px dashed var(--border); border-radius: 12px; padding: 1rem; }
 
     /* Dumbbell */
-    .db { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 220px; }
-    .db-label { font-size: 0.9rem; color: var(--muted); }
-    /* NOTE: db-viz must NOT be flex:1 (flex-basis:0). Its children are absolutely positioned,
-       so flex:1 can collapse it to 0px tall and the dumbbell becomes invisible. */
-    .db-viz { position: relative; flex: 0 0 auto; min-width: 220px; height: 18px; background: white; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
-    .db-track { position: absolute; inset: 5px 0; background: var(--panel); border-radius: 999px; }
-    .db-zero { position: absolute; top: 3px; width: 2px; height: 12px; background: var(--border); transform: translateX(-50%); }
-    .db-range { position: absolute; top: 6px; height: 8px; background: linear-gradient(90deg, #2563eb, #f97316); border-radius: 999px; opacity: 0.85; }
+    .db { width: 100%; }
+    .db-viz { position: relative; width: 100%; min-width: 0; height: 18px; background: white; border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
+    .db-inner { position: relative; width: 100%; height: 100%; }
+    .db-track { position: absolute; inset: 4px 0; background: var(--panel); border-radius: 999px; }
+    .db-zero { position: absolute; top: 1px; width: 2px; height: 14px; background: var(--border); transform: translateX(-50%); }
+    .db-range { position: absolute; top: 5px; height: 8px; background: linear-gradient(90deg, var(--offColor), var(--defColor)); border-radius: 999px; opacity: 0.9; }
     .db-dot { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15); transform: translate(-50%, -50%); }
-    .db-dot.off { background: #2563eb; }
-    .db-dot.def { background: #f97316; }
-    .db-placeholder { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.85rem; color: var(--muted); background: rgba(226, 232, 240, 0.4); }
+    .db-dot.off { background: var(--offColor); }
+    .db-dot.def { background: var(--defColor); }
+    .db-placeholder { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.85rem; color: var(--muted); background: rgba(226, 232, 240, 0.4); border-radius: 999px; }
 
     @media (max-width: 640px) {
       body { padding: 1.5rem 1rem 2.5rem; }
-      .matchup-row { flex-direction: column; align-items: flex-start; }
-      .metrics { text-align: left; }
+      .controls { grid-template-columns: 1fr; }
+      .lane { grid-template-columns: 1fr; }
+      .lane-label { flex-direction: row; justify-content: space-between; align-items: center; }
+      .edge-badge { align-items: flex-start; }
+      .db-viz { min-width: 0; }
     }
 
     @media (max-width: 800px) {
@@ -233,7 +250,16 @@
           <button id="sos-btn" type="button">Opponent-adjusted</button>
         </div>
       </fieldset>
+      <fieldset style="border: none; padding: 0; margin: 0;">
+        <legend style="font-weight: 600; margin-bottom: 0.25rem; padding: 0;">Layout</legend>
+        <div class="toggle" role="group" aria-label="Games vs ranked list">
+          <button id="games-btn" class="active" type="button">Games</button>
+          <button id="ranked-btn" type="button">Ranked</button>
+        </div>
+      </fieldset>
     </section>
+
+    <p class="legend">Dots use team colors for the offense team and the opponent defense team. Edge: <strong>+</strong> favors offense, <strong>−</strong> favors defense. Ranked view sorts by |Edge| and shows week-relative percentile.</p>
 
     <div id="cards" class="cards" aria-live="polite"></div>
   </main>
@@ -246,14 +272,34 @@
     const cardsEl = document.getElementById('cards');
     const rawBtn = document.getElementById('raw-btn');
     const sosBtn = document.getElementById('sos-btn');
+    const gamesBtn = document.getElementById('games-btn');
+    const rankedBtn = document.getElementById('ranked-btn');
 
     const DATA_URL = new URL('data/epa.json', document.baseURI);
     const ODDS_URL = new URL('data/odds.json', document.baseURI);
+
+    const TEAM_COLORS = {
+      ARI: '#97233F', ATL: '#A71930', BAL: '#241773', BUF: '#00338D', CAR: '#0085CA', CHI: '#0B162A',
+      CIN: '#FB4F14', CLE: '#311D00', DAL: '#003594', DEN: '#FB4F14', DET: '#0076B6', GB: '#203731',
+      HOU: '#03202F', IND: '#002C5F', JAX: '#101820', KC: '#E31837', LAC: '#0080C6', LAR: '#003594',
+      LV: '#000000', MIA: '#008E97', MIN: '#4F2683', NE: '#002244', NO: '#D3BC8D', NYG: '#0B2265',
+      NYJ: '#125740', PHI: '#004C54', PIT: '#101820', SEA: '#002244', SF: '#AA0000', TB: '#D50A0A',
+      TEN: '#4B92DB', WAS: '#5A1414'
+    };
+
+    // Common aliases (data sources vary)
+    TEAM_COLORS.WSH = TEAM_COLORS.WAS;
+    TEAM_COLORS.JAC = TEAM_COLORS.JAX;
+    TEAM_COLORS.OAK = TEAM_COLORS.LV;
+    TEAM_COLORS.SD  = TEAM_COLORS.LAC;
+    TEAM_COLORS.STL = TEAM_COLORS.LAR;
 
     let data;
     let oddsPayload = null;
     let oddsIndex = {};
     let mode = 'raw';
+    let layoutMode = localStorage.getItem('layoutMode') || 'games';
+    if (!['games', 'ranked'].includes(layoutMode)) layoutMode = 'games';
 
     function showStatus(message, variant = 'info') {
       statusEl.textContent = message;
@@ -398,22 +444,36 @@
       return adjusted;
     }
 
-    function labelForAdvantage(edge) {
-      if (!Number.isFinite(edge)) return { label: 'Insufficient data', tone: 'neutral' };
-      if (edge >= 0.06) return { label: 'Strong edge (offense)', tone: 'strong' };
-      if (edge >= 0.02) return { label: 'Slight edge (offense)', tone: 'slight' };
-      if (edge > -0.02) return { label: 'Neutral', tone: 'neutral' };
-      if (edge > -0.06) return { label: 'Slight edge (defense)', tone: 'defense' };
-      return { label: 'Strong edge (defense)', tone: 'defense' };
+    function teamColor(team) {
+      const id = String(team || '').toUpperCase().trim();
+      return TEAM_COLORS[id] || '#0f172a';
+    }
+
+    function contrastColor(hex) {
+      if (!hex || typeof hex !== 'string' || !hex.startsWith('#')) return '#0f172a';
+      const num = parseInt(hex.slice(1), 16);
+      const r = (num >> 16) & 255;
+      const g = (num >> 8) & 255;
+      const b = num & 255;
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      return luminance > 0.6 ? '#0f172a' : '#ffffff';
+    }
+
+    function describeAdvantage(edge) {
+      if (!Number.isFinite(edge)) return { strength: 'nodata', direction: 'nodata', tier: 'NO DATA' };
+      if (edge >= 0.06) return { strength: 'strong', direction: 'off', tier: 'STRONG' };
+      if (edge >= 0.02) return { strength: 'slight', direction: 'off', tier: 'SLIGHT' };
+      if (edge <= -0.06) return { strength: 'strong', direction: 'def', tier: 'STRONG' };
+      if (edge <= -0.02) return { strength: 'slight', direction: 'def', tier: 'SLIGHT' };
+      return { strength: 'even', direction: 'even', tier: 'EVEN' };
     }
 
     function formatNumber(val) {
       return Number.isFinite(val) ? val.toFixed(3) : '—';
     }
 
-    function detailLine(label, value, plays) {
-      const playsLabel = Number.isFinite(plays) ? ` (${plays} plays)` : '';
-      return `${label}: ${formatNumber(value)}${playsLabel}`;
+    function detailLine(label, value) {
+      return `${label}: ${formatNumber(value)}`;
     }
 
     function toPct(v, scale) {
@@ -424,10 +484,12 @@
       return Math.min(100, Math.max(0, pct));
     }
 
-    function buildDumbbell(offVal, oppDefVal, scale) {
+    function buildDumbbell(offVal, oppDefVal, scale, offTeam, defTeam) {
       const missing = [offVal, oppDefVal].some((v) => v === null || v === undefined || v === '');
       const viz = document.createElement('div');
       viz.className = 'db-viz';
+      viz.style.setProperty('--offColor', teamColor(offTeam));
+      viz.style.setProperty('--defColor', teamColor(defTeam));
 
       if (missing) {
         const placeholder = document.createElement('div');
@@ -447,16 +509,20 @@
         return viz;
       }
 
+      const inner = document.createElement('div');
+      inner.className = 'db-inner';
+      viz.appendChild(inner);
+
       const track = document.createElement('div');
       track.className = 'db-track';
-      viz.appendChild(track);
+      inner.appendChild(track);
 
       const zeroPct = toPct(0, scale);
       if (zeroPct !== null && scale && Number.isFinite(scale.min) && Number.isFinite(scale.max) && scale.min <= 0 && scale.max >= 0 && zeroPct >= 0 && zeroPct <= 100) {
         const zero = document.createElement('div');
         zero.className = 'db-zero';
         zero.style.left = `${zeroPct}%`;
-        viz.appendChild(zero);
+        inner.appendChild(zero);
       }
 
       const offPct = toPct(off, scale);
@@ -475,17 +541,19 @@
       range.className = 'db-range';
       range.style.left = `${left}%`;
       range.style.width = `${Math.max(2, right - left)}%`;
-      viz.appendChild(range);
+      inner.appendChild(range);
 
       const offDot = document.createElement('div');
       offDot.className = 'db-dot off';
       offDot.style.left = `${offPct}%`;
-      viz.appendChild(offDot);
+      offDot.title = `${offTeam} Off EPA/play: ${formatNumber(offVal)}`;
+      inner.appendChild(offDot);
 
       const defDot = document.createElement('div');
       defDot.className = 'db-dot def';
       defDot.style.left = `${defPct}%`;
-      viz.appendChild(defDot);
+      defDot.title = `${defTeam} Def EPA/play: ${formatNumber(oppDefVal)}`;
+      inner.appendChild(defDot);
 
       return viz;
     }
@@ -524,23 +592,156 @@
       return computeScaleFromValues(values);
     }
 
+    function buildLaneEntries(games, ratings, { noRatings, week, seasonKey }) {
+      const lanes = [];
+      const lanesByGame = {};
+
+      games.forEach((game) => {
+        const [teamA, teamB] = game.teams;
+        if (!teamA || !teamB) return;
+
+        const pairs = [
+          { off: teamA.team, def: teamB.team },
+          { off: teamB.team, def: teamA.team },
+        ];
+
+        pairs.forEach(({ off, def }) => {
+          const offenseEntry = ratings[off] || {};
+          const defenseEntry = ratings[def] || {};
+          const offEPA = mode === 'sos' ? offenseEntry.adjOffEPA : offenseEntry.offEPA;
+          const defEPA = mode === 'sos' ? defenseEntry.adjDefEPA : defenseEntry.defEPA;
+
+          const hasRowData = !noRatings && Number.isFinite(offEPA) && Number.isFinite(defEPA);
+          const edge = hasRowData ? offEPA - defEPA : null;
+          const desc = describeAdvantage(edge);
+
+          const lane = {
+            gameId: game.game_id,
+            teamsLabel: `${teamA.team} vs ${teamB.team}`,
+            off,
+            def,
+            offEPA,
+            defEPA,
+            edge,
+            absEdge: Number.isFinite(edge) ? Math.abs(edge) : null,
+            desc,
+            week,
+            seasonKey,
+          };
+
+          lanes.push(lane);
+          if (!lanesByGame[game.game_id]) lanesByGame[game.game_id] = [];
+          lanesByGame[game.game_id].push(lane);
+        });
+      });
+
+      return { lanes, lanesByGame };
+    }
+
+    function annotateEdgeDistribution(lanes) {
+      const valid = lanes.filter((l) => Number.isFinite(l.absEdge));
+      const total = valid.length;
+      const sorted = valid.slice().sort((a, b) => b.absEdge - a.absEdge);
+      sorted.forEach((lane, idx) => {
+        lane.rank = idx + 1;
+        lane.percentile = Math.max(1, Math.min(100, Math.round(((total - idx) / total) * 100)));
+      });
+      return total;
+    }
+
+    function buildEdgeBadge(lane, totalEdges) {
+      const badge = document.createElement('div');
+      badge.className = 'edge-badge';
+      const neutralColor = getComputedStyle(document.documentElement).getPropertyValue('--neutral-edge')?.trim() || '#cbd5e1';
+      const isNoData = lane.desc.tier === 'NO DATA';
+      const advantagedColor = lane.desc.direction === 'off'
+        ? teamColor(lane.off)
+        : lane.desc.direction === 'def'
+          ? teamColor(lane.def)
+          : neutralColor;
+      badge.style.background = advantagedColor;
+      badge.style.color = contrastColor(advantagedColor);
+
+      const valueEl = document.createElement('div');
+      valueEl.className = 'value';
+      valueEl.textContent = Number.isFinite(lane.edge) ? `${lane.edge >= 0 ? '+' : ''}${lane.edge.toFixed(2)}` : '—';
+
+      const metaEl = document.createElement('div');
+      metaEl.className = 'meta';
+      const directionLabel = lane.desc.direction === 'off' ? 'OFF' : lane.desc.direction === 'def' ? 'DEF' : 'EVEN';
+      const tierLabel = isNoData
+        ? 'NO DATA'
+        : (lane.desc.tier === 'EVEN' ? 'EVEN' : `${lane.desc.tier} ${directionLabel}`);
+      const pctText = (!isNoData && lane.percentile != null) ? `P${lane.percentile}` : null;
+      const rankText = (!isNoData && lane.rank && totalEdges) ? `#${lane.rank}/${totalEdges}` : null;
+      metaEl.textContent = [tierLabel, pctText, rankText].filter(Boolean).join(' · ');
+
+      const tooltipParts = [
+        `${lane.off} Off EPA/play: ${formatNumber(lane.offEPA)}`,
+        `${lane.def} Def EPA/play: ${formatNumber(lane.defEPA)}`,
+        `Edge: ${formatNumber(lane.edge)}`,
+        tierLabel,
+        pctText,
+        rankText,
+      ].filter(Boolean);
+      badge.title = tooltipParts.join(' | ');
+
+      badge.appendChild(valueEl);
+      badge.appendChild(metaEl);
+      return badge;
+    }
+
+    function buildLaneRow(lane, totalEdges, scale, { showGameContext = false } = {}) {
+      const row = document.createElement('div');
+      row.className = 'lane';
+
+      const labelEl = document.createElement('div');
+      labelEl.className = 'lane-label';
+      const main = document.createElement('div');
+      main.innerHTML = `<span style="font-weight:700">${lane.off} OFF</span> vs <span class="sub">${lane.def} DEF</span>`;
+      labelEl.appendChild(main);
+      if (showGameContext) {
+        const sub = document.createElement('div');
+        sub.className = 'sub';
+        sub.textContent = `${lane.teamsLabel} · Week ${lane.week}`;
+        labelEl.appendChild(sub);
+      }
+      row.appendChild(labelEl);
+
+      const vizGroup = document.createElement('div');
+      vizGroup.className = 'db';
+      vizGroup.appendChild(buildDumbbell(lane.offEPA, lane.defEPA, scale, lane.off, lane.def));
+      row.appendChild(vizGroup);
+
+      row.appendChild(buildEdgeBadge(lane, totalEdges));
+
+      const detail = document.createElement('details');
+      detail.className = 'details';
+      detail.style.gridColumn = '1 / -1';
+      const isNoData = lane.desc.tier === 'NO DATA';
+      const tierLabel = isNoData
+        ? 'NO DATA'
+        : (lane.desc.tier === 'EVEN' ? 'EVEN' : `${lane.desc.tier} ${lane.desc.direction === 'off' ? 'OFF' : 'DEF'}`);
+      const pctText = (!isNoData && lane.percentile != null) ? `P${lane.percentile}` : null;
+      const rankText = (!isNoData && lane.rank && totalEdges) ? `#${lane.rank}/${totalEdges}` : null;
+      const distributionText = [pctText, rankText].filter(Boolean).join(' · ');
+      detail.innerHTML = `<summary>Details</summary><div>${detailLine('Off EPA/play', lane.offEPA)}<br>${detailLine('Opp Def EPA/play', lane.defEPA)}<br>Edge: ${formatNumber(lane.edge)}<br>${tierLabel}${distributionText ? ` · ${distributionText}` : ''}</div>`;
+      row.appendChild(detail);
+
+      return row;
+    }
+
     function getOdds(gameId, season, week) {
       const key = `${Number(season)}-${Number(week)}-${String(gameId)}`;
       return oddsIndex[key] || null;
     }
 
-    function renderGames(games, ratings, { noRatings, week, seasonKey, scale }) {
+    function renderGames(games, lanesByGame, edgeCount, { week, seasonKey, scale }) {
       cardsEl.innerHTML = '';
+      cardsEl.classList.remove('ranked');
       games.forEach((game) => {
         const [teamA, teamB] = game.teams;
         if (!teamA || !teamB) return;
-        const offA = teamA.team;
-        const offB = teamB.team;
-
-        const matchups = [
-          { off: offA, def: offB, label: `${offA} offense vs ${offB} defense` },
-          { off: offB, def: offA, label: `${offB} offense vs ${offA} defense` },
-        ];
 
         const card = document.createElement('article');
         card.className = 'card';
@@ -549,7 +750,7 @@
         header.className = 'card-header';
         const teamsLabel = document.createElement('div');
         teamsLabel.className = 'teams';
-        teamsLabel.textContent = `${offA} vs ${offB}`;
+        teamsLabel.textContent = `${teamA.team} vs ${teamB.team}`;
         const weekLabel = document.createElement('div');
         weekLabel.className = 'week-label';
         weekLabel.textContent = `Week ${week}`;
@@ -557,54 +758,12 @@
         header.appendChild(weekLabel);
         card.appendChild(header);
 
-        matchups.forEach((m) => {
-          const offenseEntry = ratings[m.off] || {};
-          const defenseEntry = ratings[m.def] || {};
-          const offEPA = mode === 'sos' ? offenseEntry.adjOffEPA : offenseEntry.offEPA;
-          const defEPA = mode === 'sos' ? defenseEntry.adjDefEPA : defenseEntry.defEPA;
-          const offPlays = offenseEntry.offPlays;
-          const defPlays = defenseEntry.defPlays;
-
-          // def_epa_pp is defense strength (higher = better). Matchup edge = OffEPA - OppDefEPA.
-          const hasRowData = !noRatings && Number.isFinite(offEPA) && Number.isFinite(defEPA);
-          const edge = hasRowData ? offEPA - defEPA : null;
-          const { label, tone } = labelForAdvantage(edge);
-
-          const row = document.createElement('div');
-          row.className = 'matchup-row';
-
-          const labelEl = document.createElement('div');
-          labelEl.className = 'label';
-          labelEl.textContent = m.label;
-
-          const vizGroup = document.createElement('div');
-          vizGroup.className = 'db';
-          const vizLabel = document.createElement('div');
-          vizLabel.className = 'db-label';
-          vizLabel.textContent = 'EPA/play dumbbell';
-          vizGroup.appendChild(vizLabel);
-          vizGroup.appendChild(buildDumbbell(offEPA, defEPA, scale));
-
-          const metricsEl = document.createElement('div');
-          metricsEl.className = 'metrics';
-          const pill = document.createElement('span');
-          pill.className = `pill ${tone}`;
-          pill.textContent = label;
-          const detail = document.createElement('div');
-          detail.innerHTML = [
-            detailLine('Off EPA/play', offEPA, offPlays),
-            detailLine('Def EPA/play (higher = better defense)', defEPA, defPlays),
-            `Edge: ${formatNumber(edge)}`,
-          ].join('<br>');
-
-          metricsEl.appendChild(pill);
-          metricsEl.appendChild(detail);
-
-          row.appendChild(labelEl);
-          row.appendChild(vizGroup);
-          row.appendChild(metricsEl);
-          card.appendChild(row);
+        const scoreboard = document.createElement('div');
+        scoreboard.className = 'scoreboard';
+        (lanesByGame[game.game_id] || []).forEach((lane) => {
+          scoreboard.appendChild(buildLaneRow(lane, edgeCount, scale));
         });
+        card.appendChild(scoreboard);
 
         const odds = getOdds(game.game_id, seasonKey, week);
         const oddsRow = document.createElement('div');
@@ -626,6 +785,33 @@
 
         cardsEl.appendChild(card);
       });
+    }
+
+    function renderRankedList(lanes, edgeCount, { week, scale }) {
+      cardsEl.innerHTML = '';
+      cardsEl.classList.add('ranked');
+      const card = document.createElement('article');
+      card.className = 'card';
+
+      const header = document.createElement('div');
+      header.className = 'card-header';
+      const title = document.createElement('div');
+      title.className = 'teams';
+      title.textContent = `Ranked edges (Week ${week})`;
+      header.appendChild(title);
+      card.appendChild(header);
+
+      const list = document.createElement('div');
+      list.className = 'scoreboard';
+      lanes
+        .slice()
+        .sort((a, b) => ((b.absEdge ?? -Infinity) - (a.absEdge ?? -Infinity)))
+        .forEach((lane) => {
+          list.appendChild(buildLaneRow(lane, edgeCount, scale, { showGameContext: true }));
+        });
+
+      card.appendChild(list);
+      cardsEl.appendChild(card);
     }
 
     function renderMatchups() {
@@ -655,10 +841,20 @@
       const sortedWeeks = (season.weeks || []).slice().sort((a, b) => Number(a) - Number(b));
       const weeksLabel = sortedWeeks.length ? `${sortedWeeks[0]}-${sortedWeeks[sortedWeeks.length - 1]}` : 'n/a';
       const ratingWeekText = ratingWeek > 0 ? ratingWeek : '0 (no prior games)';
-      metaEl.textContent = `Weeks available: ${weeksLabel}. Ratings use games through Week ${ratingWeekText} (${mode === 'sos' ? 'opponent-adjusted' : 'raw'} EPA/play). Edge = OffEPA - OppDefEPA (defense higher=better).`;
+      metaEl.textContent = `Weeks: ${weeksLabel}. Ratings through Week ${ratingWeekText} (${mode === 'sos' ? 'opponent-adjusted' : 'raw'}). Edge: + favors OFF, − favors DEF.`;
 
       const scale = computeScaleFromGames(games, ratings, mode, noRatings);
-      renderGames(games, ratings, { noRatings, week, seasonKey, scale });
+      const { lanes, lanesByGame } = buildLaneEntries(games, ratings, { noRatings, week, seasonKey });
+      const edgeCount = annotateEdgeDistribution(lanes);
+
+      gamesBtn.classList.toggle('active', layoutMode === 'games');
+      rankedBtn.classList.toggle('active', layoutMode === 'ranked');
+
+      if (layoutMode === 'ranked') {
+        renderRankedList(lanes, edgeCount, { week, scale });
+      } else {
+        renderGames(games, lanesByGame, edgeCount, { week, seasonKey, scale });
+      }
 
       if (oddsPayload && !(oddsPayload.odds || []).some((o) => Number(o.season) === Number(seasonKey) && Number(o.week) === Number(week))) {
         infoMessages.push('Betting lines not available for this week yet.');
@@ -740,6 +936,18 @@
       mode = 'sos';
       sosBtn.classList.add('active');
       rawBtn.classList.remove('active');
+      renderMatchups();
+    });
+
+    gamesBtn.addEventListener('click', () => {
+      layoutMode = 'games';
+      localStorage.setItem('layoutMode', layoutMode);
+      renderMatchups();
+    });
+
+    rankedBtn.addEventListener('click', () => {
+      layoutMode = 'ranked';
+      localStorage.setItem('layoutMode', layoutMode);
       renderMatchups();
     });
 
