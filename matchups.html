@@ -45,6 +45,18 @@
     p.lead { margin: 0 0 0.65rem; color: var(--muted); }
     .meta { color: var(--muted); margin: 0 0 0.5rem; }
 
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 1rem;
+      align-items: center;
+      margin: 0.2rem 0 0.8rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .legend strong { color: var(--text); }
+
     .nav-actions {
       display: flex;
       flex-direction: column;
@@ -134,6 +146,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.65rem;
+      container-type: inline-size;
     }
 
     .card-header { display: flex; justify-content: space-between; gap: 0.5rem; align-items: center; }
@@ -141,34 +154,41 @@
     .week-label { color: var(--muted); font-size: 0.95rem; }
 
     .matchup-row {
-      display: flex;
-      gap: 0.65rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 2.2fr) auto;
+      gap: 1rem;
       align-items: center;
-      justify-content: space-between;
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 0.6rem 0.7rem;
+      padding: 0.85rem 1rem;
       background: var(--panel);
     }
 
     .matchup-row .label { font-weight: 700; }
-    .metrics { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .metrics { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-end; }
 
-    .pill {
+    .edge-badge {
       display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
-      padding: 0.25rem 0.55rem;
-      border-radius: 999px;
-      font-weight: 700;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 0.05rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 10px;
       color: white;
-      font-size: 0.9rem;
+      font-weight: 800;
+      font-size: 1.24rem;
+      line-height: 1.05;
+      min-width: 110px;
+      text-align: right;
+      white-space: nowrap;
     }
 
-    .pill.strong { background: var(--pill-strong); }
-    .pill.slight { background: var(--pill-slight); }
-    .pill.neutral { background: var(--pill-neutral); color: white; }
-    .pill.defense { background: var(--pill-def); }
+    .edge-badge .edge-value { font-size: 1.24rem; letter-spacing: 0.02em; }
+
+    .edge-badge.strong { background: var(--pill-strong); }
+    .edge-badge.slight { background: var(--pill-slight); }
+    .edge-badge.neutral { background: var(--pill-neutral); color: var(--text); }
+    .edge-badge.defense { background: var(--pill-def); }
 
     .odds { color: var(--muted); font-size: 0.95rem; display: flex; justify-content: space-between; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
     .odds .odds-meta { flex-basis: 100%; font-size: 0.9rem; color: var(--muted); }
@@ -177,25 +197,45 @@
 
     /* Dumbbell */
     .db { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 220px; }
-    .db-label { font-size: 0.9rem; color: var(--muted); }
     /* NOTE: db-viz must NOT be flex:1 (flex-basis:0). Its children are absolutely positioned,
        so flex:1 can collapse it to 0px tall and the dumbbell becomes invisible. */
-    .db-viz { position: relative; flex: 0 0 auto; min-width: 220px; height: 18px; background: white; border: 1px solid var(--border); border-radius: 999px; overflow: hidden; }
-    .db-track { position: absolute; inset: 5px 0; background: var(--panel); border-radius: 999px; }
-    .db-zero { position: absolute; top: 3px; width: 2px; height: 12px; background: var(--border); transform: translateX(-50%); }
-    .db-range { position: absolute; top: 6px; height: 8px; background: linear-gradient(90deg, #2563eb, #f97316); border-radius: 999px; opacity: 0.85; }
-    .db-dot { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15); transform: translate(-50%, -50%); }
+    .db-viz { position: relative; flex: 0 0 auto; min-width: 220px; height: 26px; background: white; border: 1px solid var(--border); border-radius: 999px; }
+    /* Inner frame creates real horizontal padding for %-positioned dots/range */
+    .db-inner { position: absolute; inset: 0 14px; }
+
+    .db-track { position: absolute; inset: 7px 0; background: var(--panel); border-radius: 999px; }
+    .db-zero { position: absolute; top: 5px; width: 2px; height: 16px; background: var(--border); transform: translateX(-50%); }
+    .db-range { position: absolute; top: 9px; height: 8px; background: linear-gradient(90deg, #2563eb, #f97316); border-radius: 999px; opacity: 0.85; }
+    .db-dot { position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 8px rgba(15, 23, 42, 0.16); transform: translate(-50%, -50%); }
     .db-dot.off { background: #2563eb; }
     .db-dot.def { background: #f97316; }
-    .db-placeholder { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.85rem; color: var(--muted); background: rgba(226, 232, 240, 0.4); }
+    .db-placeholder { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.85rem; color: var(--muted); background: rgba(226, 232, 240, 0.4); border-radius: 999px; }
+
+    details.matchup-details { color: var(--muted); font-size: 0.95rem; }
+    details.matchup-details summary { cursor: pointer; font-weight: 600; color: var(--text); list-style: none; }
+    details.matchup-details summary::-webkit-details-marker { display: none; }
+    details.matchup-details summary::marker { content: ""; }
+    details.matchup-details summary::after { content: '▸'; margin-left: 0.35rem; font-size: 0.8rem; }
+    details.matchup-details[open] summary::after { content: '▾'; }
+    details.matchup-details .detail-lines { margin-top: 0.4rem; line-height: 1.3; }
 
     @media (max-width: 640px) {
       body { padding: 1.5rem 1rem 2.5rem; }
-      .matchup-row { flex-direction: column; align-items: flex-start; }
-      .metrics { text-align: left; }
+      .matchup-row { grid-template-columns: 1fr; align-items: flex-start; }
+      .edge-badge { align-self: flex-start; }
+      .metrics { text-align: left; align-items: flex-start; }
     }
 
     @media (max-width: 800px) {
+      .db { min-width: 0; }
+      .db-viz { width: 100%; min-width: 0; }
+    }
+
+    /* Card-width responsiveness (cards can be narrow even on wide viewports) */
+    @container (max-width: 520px) {
+      .matchup-row { grid-template-columns: 1fr; align-items: flex-start; }
+      .edge-badge { align-self: flex-start; }
+      .metrics { text-align: left; align-items: flex-start; }
       .db { min-width: 0; }
       .db-viz { width: 100%; min-width: 0; }
     }
@@ -208,6 +248,12 @@
         <h1>Weekly Matchups</h1>
         <p class="lead">Offense vs defense EPA/play edges for every game. Toggle raw vs opponent-adjusted views and pick any week.</p>
         <p id="meta" class="meta"></p>
+        <div class="legend" aria-label="Dumbbell legend">
+          <span><strong>Blue dot</strong> = Off EPA/play</span>
+          <span><strong>Orange dot</strong> = Opponent Def EPA/play (higher = better)</span>
+          <span><strong>Center tick</strong> shows 0 only when the scale includes it</span>
+          <span><strong>Edge</strong> = Off − OppDef (positive favors offense)</span>
+        </div>
       </div>
       <div class="nav-actions">
         <a class="hof-link" href="index.html" aria-label="Back to EPA chart">⬅️ Back</a>
@@ -411,6 +457,14 @@
       return Number.isFinite(val) ? val.toFixed(3) : '—';
     }
 
+    function formatBadgeNumber(val) {
+      if (!Number.isFinite(val)) return '—';
+      const fixed = Math.abs(val).toFixed(2);
+      if (val > 0) return `+${fixed}`;
+      if (val < 0) return `−${fixed}`;
+      return '0.00';
+    }
+
     function detailLine(label, value, plays) {
       const playsLabel = Number.isFinite(plays) ? ` (${plays} plays)` : '';
       return `${label}: ${formatNumber(value)}${playsLabel}`;
@@ -424,7 +478,7 @@
       return Math.min(100, Math.max(0, pct));
     }
 
-    function buildDumbbell(offVal, oppDefVal, scale) {
+    function buildDumbbell(offVal, oppDefVal, scale, { offPlays, defPlays, offLabel = 'Offense', defLabel = 'Defense' } = {}) {
       const missing = [offVal, oppDefVal].some((v) => v === null || v === undefined || v === '');
       const viz = document.createElement('div');
       viz.className = 'db-viz';
@@ -447,16 +501,20 @@
         return viz;
       }
 
+      const inner = document.createElement('div');
+      inner.className = 'db-inner';
+      viz.appendChild(inner);
+
       const track = document.createElement('div');
       track.className = 'db-track';
-      viz.appendChild(track);
+      inner.appendChild(track);
 
       const zeroPct = toPct(0, scale);
       if (zeroPct !== null && scale && Number.isFinite(scale.min) && Number.isFinite(scale.max) && scale.min <= 0 && scale.max >= 0 && zeroPct >= 0 && zeroPct <= 100) {
         const zero = document.createElement('div');
         zero.className = 'db-zero';
         zero.style.left = `${zeroPct}%`;
-        viz.appendChild(zero);
+        inner.appendChild(zero);
       }
 
       const offPct = toPct(off, scale);
@@ -475,17 +533,19 @@
       range.className = 'db-range';
       range.style.left = `${left}%`;
       range.style.width = `${Math.max(2, right - left)}%`;
-      viz.appendChild(range);
+      inner.appendChild(range);
 
       const offDot = document.createElement('div');
       offDot.className = 'db-dot off';
       offDot.style.left = `${offPct}%`;
-      viz.appendChild(offDot);
+      offDot.title = `${offLabel}: ${formatNumber(off)}${Number.isFinite(offPlays) ? ` (${offPlays} plays)` : ''}`;
+      inner.appendChild(offDot);
 
       const defDot = document.createElement('div');
       defDot.className = 'db-dot def';
       defDot.style.left = `${defPct}%`;
-      viz.appendChild(defDot);
+      defDot.title = `${defLabel}: ${formatNumber(def)}${Number.isFinite(defPlays) ? ` (${defPlays} plays)` : ''}`;
+      inner.appendChild(defDot);
 
       return viz;
     }
@@ -568,7 +628,7 @@
           // def_epa_pp is defense strength (higher = better). Matchup edge = OffEPA - OppDefEPA.
           const hasRowData = !noRatings && Number.isFinite(offEPA) && Number.isFinite(defEPA);
           const edge = hasRowData ? offEPA - defEPA : null;
-          const { label, tone } = labelForAdvantage(edge);
+          const { tone } = labelForAdvantage(edge);
 
           const row = document.createElement('div');
           row.className = 'matchup-row';
@@ -579,25 +639,45 @@
 
           const vizGroup = document.createElement('div');
           vizGroup.className = 'db';
-          const vizLabel = document.createElement('div');
-          vizLabel.className = 'db-label';
-          vizLabel.textContent = 'EPA/play dumbbell';
-          vizGroup.appendChild(vizLabel);
-          vizGroup.appendChild(buildDumbbell(offEPA, defEPA, scale));
+          vizGroup.appendChild(buildDumbbell(offEPA, defEPA, scale, {
+            offPlays,
+            defPlays,
+            offLabel: `${m.off} offense`,
+            defLabel: `${m.def} defense`,
+          }));
 
           const metricsEl = document.createElement('div');
           metricsEl.className = 'metrics';
-          const pill = document.createElement('span');
-          pill.className = `pill ${tone}`;
-          pill.textContent = label;
-          const detail = document.createElement('div');
-          detail.innerHTML = [
+
+          const badge = document.createElement('div');
+          badge.className = `edge-badge ${tone}`;
+          const playsTooltip = [
             detailLine('Off EPA/play', offEPA, offPlays),
-            detailLine('Def EPA/play (higher = better defense)', defEPA, defPlays),
+            detailLine('Opp Def EPA/play (higher = better defense)', defEPA, defPlays),
+            `Edge: ${formatNumber(edge)} (Off plays: ${Number.isFinite(offPlays) ? offPlays : '—'}, OppDef plays: ${Number.isFinite(defPlays) ? defPlays : '—'})`,
+          ];
+          badge.title = playsTooltip.join('\n');
+          const badgeValue = document.createElement('div');
+          badgeValue.className = 'edge-value';
+          const badgeDirection = tone === 'defense' ? 'DEF' : tone === 'neutral' ? 'EVEN' : 'OFF';
+          badgeValue.textContent = `${formatBadgeNumber(edge)} ${badgeDirection}`;
+          badge.appendChild(badgeValue);
+
+          const detail = document.createElement('details');
+          detail.className = 'matchup-details';
+          const summary = document.createElement('summary');
+          summary.textContent = 'Details';
+          const detailLines = document.createElement('div');
+          detailLines.className = 'detail-lines';
+          detailLines.innerHTML = [
+            detailLine('Off EPA/play', offEPA, offPlays),
+            detailLine('Opp Def EPA/play (higher = better defense)', defEPA, defPlays),
             `Edge: ${formatNumber(edge)}`,
           ].join('<br>');
+          detail.appendChild(summary);
+          detail.appendChild(detailLines);
 
-          metricsEl.appendChild(pill);
+          metricsEl.appendChild(badge);
           metricsEl.appendChild(detail);
 
           row.appendChild(labelEl);
