@@ -226,6 +226,13 @@
 
     /* Dumbbell */
     .db { width: 100%; }
+    .db-wrap { display: flex; flex-direction: column; gap: 0.3rem; }
+    .db-labels { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--muted); gap: 0.5rem; }
+    .db-label { display: inline-flex; align-items: center; gap: 0.35rem; min-width: 0; white-space: nowrap; }
+    .db-label span:last-child { overflow: hidden; text-overflow: ellipsis; }
+    .db-key { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.18); }
+    .db-key.off { background: var(--offColor); border-color: white; }
+    .db-key.def { background: white; border: 2px solid var(--defColor); }
     .db-viz { position: relative; width: 100%; min-width: 0; height: 22px; background: white; border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
     .db-inner { position: relative; width: 100%; height: 100%; }
     .db-track { position: absolute; inset: 4px 0; background: var(--panel); border-radius: 999px; }
@@ -310,6 +317,7 @@
 
     const DATA_URL = new URL('data/epa.json', document.baseURI);
     const ODDS_URL = new URL('data/odds.json', document.baseURI);
+    const urlParams = new URLSearchParams(window.location.search);
 
     const PLAYS_PER_GAME = 65;
 
@@ -335,6 +343,7 @@
     let mode = 'raw';
     let layoutMode = localStorage.getItem('layoutMode') || 'games';
     if (!['games', 'ranked'].includes(layoutMode)) layoutMode = 'games';
+    let userSelectedWeek = false;
 
     function showStatus(message, variant = 'info') {
       statusEl.textContent = message;
@@ -350,12 +359,61 @@
       statusEl.textContent = '';
     }
 
-    function getCurrentWeek(season) {
-      if (Array.isArray(season?.weeks) && season.weeks.length > 0) {
-        return Math.max(...season.weeks);
+    const WEEK_ALIASES = {
+      WC: 19,
+      'WILD CARD': 19,
+      WILDCARD: 19,
+      DIV: 20,
+      DIVISIONAL: 20,
+      CONF: 21,
+      CONFERENCE: 21,
+      SB: 22,
+      'SUPER BOWL': 22,
+      SUPERBOWL: 22,
+    };
+
+    function normalizeWeekValue(value) {
+      const num = Number(value);
+      if (Number.isFinite(num) && num > 0) return num;
+      if (typeof value === 'string') {
+        const key = value.trim().toUpperCase();
+        if (key in WEEK_ALIASES) return WEEK_ALIASES[key];
       }
-      const maxWeek = season?.games?.reduce((max, g) => Math.max(max, g.week || 0), 0) || 1;
-      return maxWeek;
+      return null;
+    }
+
+    function formatWeekLabel(value) {
+      switch (value) {
+        case 19:
+          return 'Wild Card';
+        case 20:
+          return 'Divisional';
+        case 21:
+          return 'Conference';
+        case 22:
+          return 'Super Bowl';
+        default:
+          return `Week ${value}`;
+      }
+    }
+
+    function getSeasonWeeks(season) {
+      const weeks = [];
+      (season?.weeks || []).forEach((w) => weeks.push(normalizeWeekValue(w)));
+      (season?.games || []).forEach((g) => weeks.push(normalizeWeekValue(g.week)));
+      return Array.from(new Set(weeks.filter((w) => Number.isFinite(w)))).sort((a, b) => a - b);
+    }
+
+    function getCurrentWeek(season) {
+      const weeks = getSeasonWeeks(season);
+      return weeks.length ? weeks[weeks.length - 1] : 1;
+    }
+
+    function getWeekOverride(weeks) {
+      const override = normalizeWeekValue(urlParams.get('week'));
+      if (!Number.isFinite(override)) return null;
+      const weekSet = new Set((weeks || []).map((w) => normalizeWeekValue(w)).filter((w) => Number.isFinite(w)));
+      return weekSet.has(override) ? override : null;
     }
 
     function fillSelect(selectEl, values) {
@@ -363,15 +421,18 @@
       values.forEach((val) => {
         const option = document.createElement('option');
         option.value = val;
-        option.textContent = `Week ${val}`;
+        option.textContent = formatWeekLabel(val);
         selectEl.appendChild(option);
       });
     }
 
     function groupGamesForWeek(season, week) {
       const byId = {};
+      const normalizedWeek = normalizeWeekValue(week);
+      if (!Number.isFinite(normalizedWeek)) return [];
+
       (season.games || []).forEach((g) => {
-        if (Number(g.week) !== Number(week)) return;
+        if (normalizeWeekValue(g.week) !== normalizedWeek) return;
         if (!byId[g.game_id]) {
           byId[g.game_id] = { game_id: g.game_id, teams: [] };
         }
@@ -382,7 +443,12 @@
 
     function computeTeamAggregates(season, week) {
       const aggregates = {};
-      const includeGame = (g, limit) => Number(g.week) < Number(limit);
+      const includeGame = (g, limit) => {
+        const gameWeek = normalizeWeekValue(g.week);
+        const limitWeek = normalizeWeekValue(limit);
+        if (!Number.isFinite(gameWeek) || !Number.isFinite(limitWeek)) return false;
+        return gameWeek < limitWeek;
+      };
 
       const addGame = (g) => {
         if (!aggregates[g.team]) {
@@ -435,7 +501,9 @@
 
       const opponentFacings = {};
       (season.games || []).forEach((g) => {
-        if (g.week >= week) return;
+        const gameWeek = normalizeWeekValue(g.week);
+        const limitWeek = normalizeWeekValue(week);
+        if (!Number.isFinite(gameWeek) || !Number.isFinite(limitWeek) || gameWeek >= limitWeek) return;
         if (!opponentFacings[g.team]) {
           opponentFacings[g.team] = { oppOffEpa: 0, oppDefEpa: 0, offPlays: 0, defPlays: 0 };
         }
@@ -555,27 +623,59 @@
 
     function buildDumbbell(offVal, oppDefVal, scale, offTeam, defTeam) {
       const missing = [offVal, oppDefVal].some((v) => v === null || v === undefined || v === '');
+      const wrap = document.createElement('div');
+      wrap.className = 'db-wrap';
+      wrap.style.setProperty('--offColor', teamColor(offTeam));
+      wrap.style.setProperty('--defColor', teamColor(defTeam));
+
+      const labels = document.createElement('div');
+      labels.className = 'db-labels';
+      const leftLabel = document.createElement('div');
+      leftLabel.className = 'db-label';
+      const rightLabel = document.createElement('div');
+      rightLabel.className = 'db-label';
+      labels.appendChild(leftLabel);
+      labels.appendChild(rightLabel);
+
+      const setLabel = (el, text, keyClass) => {
+        el.innerHTML = '';
+        const key = document.createElement('span');
+        key.className = `db-key ${keyClass}`;
+        const textNode = document.createElement('span');
+        textNode.textContent = text;
+        el.appendChild(key);
+        el.appendChild(textNode);
+      };
+
       const viz = document.createElement('div');
       viz.className = 'db-viz';
       viz.style.setProperty('--offColor', teamColor(offTeam));
       viz.style.setProperty('--defColor', teamColor(defTeam));
 
       if (missing) {
+        setLabel(leftLabel, `${offTeam} OFF`, 'off');
+        setLabel(rightLabel, `${defTeam} DEF`, 'def');
         const placeholder = document.createElement('div');
         placeholder.className = 'db-placeholder';
         placeholder.textContent = 'no EPA';
         viz.appendChild(placeholder);
-        return viz;
+        wrap.appendChild(labels);
+        wrap.appendChild(viz);
+        return wrap;
       }
 
       const off = Number(offVal);
       const def = Number(oppDefVal);
       if (!Number.isFinite(off) || !Number.isFinite(def)) {
+        setLabel(leftLabel, `${offTeam} OFF`, 'off');
+        setLabel(rightLabel, `${defTeam} DEF`, 'def');
         const placeholder = document.createElement('div');
         placeholder.className = 'db-placeholder';
         placeholder.textContent = 'no EPA';
         viz.appendChild(placeholder);
-        return viz;
+        wrap.appendChild(labels);
+        wrap.appendChild(viz);
+        return wrap;
       }
 
       const inner = document.createElement('div');
@@ -597,11 +697,23 @@
       const offPct = toPct(off, scale);
       const defPct = toPct(def, scale);
       if (offPct === null || defPct === null) {
+        setLabel(leftLabel, `${offTeam} OFF`, 'off');
+        setLabel(rightLabel, `${defTeam} DEF`, 'def');
         const placeholder = document.createElement('div');
         placeholder.className = 'db-placeholder';
         placeholder.textContent = 'no EPA';
         viz.appendChild(placeholder);
-        return viz;
+        wrap.appendChild(labels);
+        wrap.appendChild(viz);
+        return wrap;
+      }
+
+      if (offPct <= defPct) {
+        setLabel(leftLabel, `${offTeam} OFF`, 'off');
+        setLabel(rightLabel, `${defTeam} DEF`, 'def');
+      } else {
+        setLabel(leftLabel, `${defTeam} DEF`, 'def');
+        setLabel(rightLabel, `${offTeam} OFF`, 'off');
       }
 
       const left = Math.min(offPct, defPct);
@@ -624,7 +736,9 @@
       defDot.title = `${defTeam} Def EPA/play: ${formatNumber(oppDefVal)}`;
       inner.appendChild(defDot);
 
-      return viz;
+      wrap.appendChild(labels);
+      wrap.appendChild(viz);
+      return wrap;
     }
 
     function computeScaleFromValues(values) {
@@ -796,27 +910,36 @@
 
       const metaEl = document.createElement('div');
       metaEl.className = 'badge-sub';
-      const directionLabel = lane.desc.direction === 'off' ? 'OFF' : lane.desc.direction === 'def' ? 'DEF' : 'EVEN';
-      const tierLabel = isNoData
-        ? 'NO DATA'
-        : (lane.desc.tier === 'EVEN' ? 'EVEN' : `${lane.desc.tier} ${directionLabel}`);
+      const isEven = lane.desc.direction === 'even';
+      const advantagedUnit = lane.desc.direction === 'off'
+        ? `${lane.off} Off`
+        : lane.desc.direction === 'def'
+          ? `${lane.def} Def`
+          : 'Even';
+      const approxPoints = (!isNoData && !isEven && Number.isFinite(lane.edge))
+        ? Math.abs(lane.edge * PLAYS_PER_GAME)
+        : null;
+      const pointsLabel = Number.isFinite(approxPoints) ? `+${approxPoints.toFixed(1)}` : null;
       const pctText = (!isNoData && lane.percentile != null) ? `P${lane.percentile}` : null;
       const rankText = showRankMeta && (!isNoData && lane.rank && totalEdges) ? `#${lane.rank}/${totalEdges}` : null;
-      const pointsText = Number.isFinite(lane.edge) ? formatPoints(epaToPoints(lane.edge)) : null;
-      const metaParts = [tierLabel];
+      const primaryLabel = isNoData
+        ? 'NO DATA'
+        : (isEven ? 'Even' : `${advantagedUnit}${pointsLabel ? ` ${pointsLabel}` : ''}`);
+      const metaParts = [primaryLabel];
       if (showRankMeta && pctText) metaParts.push(pctText);
       if (rankText) metaParts.push(rankText);
-      if (pointsText) metaParts.push(pointsText);
       metaEl.textContent = metaParts.filter(Boolean).join(' · ');
 
       const tooltipParts = [
         `${lane.off} Off EPA/play: ${formatNumber(lane.offEPA)}`,
         `${lane.def} Def EPA/play: ${formatNumber(lane.defEPA)}`,
         `Edge: ${formatNumber(lane.edge)}`,
-        tierLabel,
+        isNoData
+          ? 'NO DATA'
+          : (lane.desc.tier === 'EVEN' ? 'EVEN' : `${lane.desc.tier} ${lane.desc.direction === 'off' ? 'OFF' : 'DEF'}`),
         pctText,
         rankText,
-        pointsText,
+        (!isNoData && !isEven && pointsLabel) ? formatPoints(approxPoints) : null,
       ].filter(Boolean);
       badge.title = tooltipParts.join(' | ');
 
@@ -837,7 +960,7 @@
       if (showGameContext) {
         const sub = document.createElement('div');
         sub.className = 'sub';
-        sub.textContent = `${lane.teamsLabel} · Week ${lane.week}`;
+        sub.textContent = `${lane.teamsLabel} · ${formatWeekLabel(lane.week)}`;
         labelEl.appendChild(sub);
       }
       row.appendChild(labelEl);
@@ -868,7 +991,10 @@
     }
 
     function getOdds(gameId, season, week) {
-      const key = `${Number(season)}-${Number(week)}-${String(gameId)}`;
+      const seasonNum = Number(season);
+      const normalizedWeek = normalizeWeekValue(week);
+      if (!Number.isFinite(seasonNum) || !Number.isFinite(normalizedWeek)) return null;
+      const key = `${seasonNum}-${normalizedWeek}-${String(gameId)}`;
       return oddsIndex[key] || null;
     }
 
@@ -932,7 +1058,7 @@
         teamsLabel.textContent = `${teamA} vs ${teamB}`;
         const weekLabel = document.createElement('div');
         weekLabel.className = 'week-label';
-        weekLabel.textContent = `Week ${game.week}`;
+        weekLabel.textContent = formatWeekLabel(game.week);
         header.appendChild(teamsLabel);
         header.appendChild(weekLabel);
         card.appendChild(header);
@@ -998,7 +1124,12 @@
         cardsEl.innerHTML = '';
         return;
       }
-      const week = Number(weekSelect.value);
+      const weeks = getSeasonWeeks(season);
+      const week = normalizeWeekValue(weekSelect.value);
+      if (!Number.isFinite(week)) {
+        cardsEl.innerHTML = '<div class="empty">No games found for this week.</div>';
+        return;
+      }
       const games = groupGamesForWeek(season, week);
       if (games.length === 0) {
         cardsEl.innerHTML = '<div class="empty">No games found for this week.</div>';
@@ -1009,13 +1140,12 @@
       const noRatings = Object.keys(baseRatings).length === 0;
       const ratings = mode === 'sos' ? computeSOSAdjustedRatings(season, Math.max(1, week), baseRatings) : baseRatings;
       if (noRatings) {
-        infoMessages.push(`No prior games available to compute ratings for Week ${week}. Select Week 2+.`);
+        infoMessages.push(`No prior games available to compute ratings for ${formatWeekLabel(week)}.`);
       }
       const ratingWeek = Math.max(0, week - 1);
-      const sortedWeeks = (season.weeks || []).slice().sort((a, b) => Number(a) - Number(b));
-      const weeksLabel = sortedWeeks.length ? `${sortedWeeks[0]}-${sortedWeeks[sortedWeeks.length - 1]}` : 'n/a';
-      const ratingWeekText = ratingWeek > 0 ? ratingWeek : '0 (no prior games)';
-      metaEl.textContent = `Weeks: ${weeksLabel}. Ratings through Week ${ratingWeekText} (${mode === 'sos' ? 'opponent-adjusted' : 'raw'}). Edge: + favors OFF, − favors DEF.`;
+      const weeksLabel = weeks.length ? `${formatWeekLabel(weeks[0])}–${formatWeekLabel(weeks[weeks.length - 1])}` : 'n/a';
+      const ratingWeekText = ratingWeek > 0 ? formatWeekLabel(ratingWeek) : '0 (no prior games)';
+      metaEl.textContent = `Weeks: ${weeksLabel}. Ratings through ${ratingWeekText} (${mode === 'sos' ? 'opponent-adjusted' : 'raw'}). Edge: + favors OFF, − favors DEF.`;
 
       const scale = computeScaleFromGames(games, ratings, mode, noRatings);
       const { gameEntries, lanes, lanesByGame } = buildGameEntries(games, ratings, { noRatings, week, seasonKey });
@@ -1031,7 +1161,7 @@
 
       renderGameCards(entriesToRender, lanesByGame, edgeCount, { seasonKey, scale, gameTotal: gameCount || gameEntries.length });
 
-      if (oddsPayload && !(oddsPayload.odds || []).some((o) => Number(o.season) === Number(seasonKey) && Number(o.week) === Number(week))) {
+      if (oddsPayload && !(oddsPayload.odds || []).some((o) => Number(o.season) === Number(seasonKey) && normalizeWeekValue(o.week) === week)) {
         infoMessages.push('Betting lines not available for this week yet.');
       }
 
@@ -1049,21 +1179,30 @@
     function onSeasonChange() {
       const season = data?.seasons?.[seasonSelect.value];
       if (!season) return;
-      const weeks = (season.weeks || []).slice().sort((a, b) => Number(a) - Number(b));
+      const previousWeek = normalizeWeekValue(weekSelect.value);
+      const weeks = getSeasonWeeks(season);
       fillSelect(weekSelect, weeks);
-      const defaultWeek = weeks.length ? Math.max(...weeks.map((w) => Number(w))) : getCurrentWeek(season);
+      const latestWeek = weeks.length ? weeks[weeks.length - 1] : getCurrentWeek(season);
+      const overrideWeek = getWeekOverride(weeks);
+      const keepPrevious = userSelectedWeek && Number.isFinite(previousWeek) && weeks.includes(previousWeek);
+      const defaultWeek = overrideWeek ?? (keepPrevious ? previousWeek : latestWeek);
       weekSelect.value = defaultWeek;
       renderMatchups();
     }
 
     async function fetchOdds() {
       try {
-        const res = await fetch(ODDS_URL);
+        const oddsUrl = new URL(ODDS_URL);
+        oddsUrl.searchParams.set('v', String(Date.now()));
+        const res = await fetch(oddsUrl, { cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to load odds');
         oddsPayload = await res.json();
         oddsIndex = {};
         (oddsPayload.odds || []).forEach((o) => {
-          const key = `${Number(o.season)}-${Number(o.week)}-${String(o.game_id)}`;
+          const seasonNum = Number(o.season);
+          const weekNum = normalizeWeekValue(o.week);
+          if (!Number.isFinite(seasonNum) || !Number.isFinite(weekNum)) return;
+          const key = `${seasonNum}-${weekNum}-${String(o.game_id)}`;
           oddsIndex[key] = o;
         });
       } catch (err) {
@@ -1076,7 +1215,9 @@
     async function init() {
       showStatus('Loading data...');
       try {
-        const res = await fetch(DATA_URL);
+        const dataUrl = new URL(DATA_URL);
+        dataUrl.searchParams.set('v', String(Date.now()));
+        const res = await fetch(dataUrl, { cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to load data file');
         data = await res.json();
       } catch (err) {
@@ -1099,8 +1240,14 @@
       onSeasonChange();
     }
 
-    seasonSelect.addEventListener('change', onSeasonChange);
-    weekSelect.addEventListener('change', renderMatchups);
+    seasonSelect.addEventListener('change', () => {
+      userSelectedWeek = false;
+      onSeasonChange();
+    });
+    weekSelect.addEventListener('change', () => {
+      userSelectedWeek = true;
+      renderMatchups();
+    });
     rawBtn.addEventListener('click', () => {
       mode = 'raw';
       rawBtn.classList.add('active');
