@@ -126,7 +126,7 @@
     }
 
     /* Give cards enough room for lane: label + dumbbell + badge without overflow/squish */
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1rem; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 1rem; }
     .cards.ranked { grid-template-columns: 1fr; }
 
     .card {
@@ -147,38 +147,71 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       background: var(--panel);
+      padding: 0.85rem 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .game-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .game-summary .summary-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      font-weight: 700;
+    }
+
+    .game-summary .drivers { color: var(--muted); font-weight: 600; font-size: 0.95rem; }
+
+    .lane-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+      gap: 0.6rem;
     }
 
     .lane {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
-      gap: 0.75rem;
-      padding: 0.75rem 0.9rem;
+      gap: 0.65rem;
+      padding: 0.65rem 0.75rem;
       align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: white;
     }
-
-    .lane + .lane { border-top: 1px solid var(--border); }
 
     .lane-label { font-weight: 700; display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
     .lane-label .sub { color: var(--muted); font-weight: 600; font-size: 0.95rem; }
 
-    .edge-badge {
+    .edge-badge, .net-badge {
       display: inline-flex;
       flex-direction: column;
       align-items: flex-end;
       gap: 0.1rem;
-      padding: 0.45rem 0.65rem;
+      padding: 0.5rem 0.7rem;
       border-radius: 10px;
-      min-width: 96px;
+      min-width: 120px;
       font-weight: 700;
-      color: white;
       text-align: right;
       font-variant-numeric: tabular-nums;
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.15);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 8px solid var(--accent, var(--neutral-edge));
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+      color: var(--text);
     }
 
-    .edge-badge .value { font-size: 1.1rem; line-height: 1.1; }
-    .edge-badge .meta { font-size: 0.85rem; opacity: 0.95; }
+    .net-badge { align-items: flex-start; min-width: 140px; }
+
+    .edge-badge .value, .net-badge .value { font-size: 1.1rem; line-height: 1.1; color: var(--accentText, var(--text)); }
+    .edge-badge .badge-sub, .net-badge .badge-sub { font-size: 0.9rem; color: var(--muted); font-weight: 600; }
 
     .legend { color: var(--muted); margin: 0 0 1rem; font-size: 0.95rem; }
 
@@ -193,14 +226,14 @@
 
     /* Dumbbell */
     .db { width: 100%; }
-    .db-viz { position: relative; width: 100%; min-width: 0; height: 18px; background: white; border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
+    .db-viz { position: relative; width: 100%; min-width: 0; height: 22px; background: white; border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
     .db-inner { position: relative; width: 100%; height: 100%; }
     .db-track { position: absolute; inset: 4px 0; background: var(--panel); border-radius: 999px; }
-    .db-zero { position: absolute; top: 1px; width: 2px; height: 14px; background: var(--border); transform: translateX(-50%); }
-    .db-range { position: absolute; top: 5px; height: 8px; background: linear-gradient(90deg, var(--offColor), var(--defColor)); border-radius: 999px; opacity: 0.9; }
-    .db-dot { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15); transform: translate(-50%, -50%); }
-    .db-dot.off { background: var(--offColor); }
-    .db-dot.def { background: var(--defColor); }
+    .db-zero { position: absolute; top: 2px; width: 2px; height: 18px; background: var(--border); transform: translateX(-50%); }
+    .db-range { position: absolute; top: 6px; height: 10px; background: linear-gradient(90deg, var(--offColor), var(--defColor)); border-radius: 999px; opacity: 0.9; }
+    .db-dot { position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15); transform: translate(-50%, -50%); }
+    .db-dot.off { background: var(--offColor); border: 2px solid white; }
+    .db-dot.def { background: #fff; border: 3px solid var(--defColor); }
     .db-placeholder { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.85rem; color: var(--muted); background: rgba(226, 232, 240, 0.4); border-radius: 999px; }
 
     @media (max-width: 640px) {
@@ -259,7 +292,7 @@
       </fieldset>
     </section>
 
-    <p class="legend">Dots use team colors for the offense team and the opponent defense team. Edge: <strong>+</strong> favors offense, <strong>−</strong> favors defense. Ranked view sorts by |Edge| and shows week-relative percentile.</p>
+    <p class="legend">Filled dot = offense EPA/play (team color). Ring dot = opponent defense strength (team color). Edge: <strong>+</strong> favors offense, <strong>−</strong> favors defense. <strong>Pxx</strong> = percentile of strength this week (NET for game badge; lane |Edge| in Ranked view). ≈ points uses EPA/play × 65. Rank (#/N) is shown in Ranked view.</p>
 
     <div id="cards" class="cards" aria-live="polite"></div>
   </main>
@@ -277,6 +310,8 @@
 
     const DATA_URL = new URL('data/epa.json', document.baseURI);
     const ODDS_URL = new URL('data/odds.json', document.baseURI);
+
+    const PLAYS_PER_GAME = 65;
 
     const TEAM_COLORS = {
       ARI: '#97233F', ATL: '#A71930', BAL: '#241773', BUF: '#00338D', CAR: '#0085CA', CHI: '#0B162A',
@@ -449,14 +484,48 @@
       return TEAM_COLORS[id] || '#0f172a';
     }
 
-    function contrastColor(hex) {
-      if (!hex || typeof hex !== 'string' || !hex.startsWith('#')) return '#0f172a';
-      const num = parseInt(hex.slice(1), 16);
-      const r = (num >> 16) & 255;
-      const g = (num >> 8) & 255;
-      const b = num & 255;
-      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-      return luminance > 0.6 ? '#0f172a' : '#ffffff';
+    function hexToRgb(hex) {
+      const normalized = hex.replace('#', '').trim();
+      if (![3, 6].includes(normalized.length)) return null;
+      const value = normalized.length === 3
+        ? normalized.split('').map((c) => parseInt(c.repeat(2), 16))
+        : [normalized.slice(0, 2), normalized.slice(2, 4), normalized.slice(4, 6)].map((c) => parseInt(c, 16));
+      if (value.some((v) => Number.isNaN(v))) return null;
+      return { r: value[0], g: value[1], b: value[2] };
+    }
+
+    function relativeLuminance(hex) {
+      const rgb = hexToRgb(hex);
+      if (!rgb) return null;
+      const channel = (v) => {
+        const c = v / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      };
+      return 0.2126 * channel(rgb.r) + 0.7152 * channel(rgb.g) + 0.0722 * channel(rgb.b);
+    }
+
+    function accentTextColor(hex) {
+      const lum = relativeLuminance(hex);
+      if (!Number.isFinite(lum)) return hex;
+      return lum > 0.55 ? '#0f172a' : hex;
+    }
+
+    function epaToPoints(epa) {
+      return Number.isFinite(epa) ? epa * PLAYS_PER_GAME : null;
+    }
+
+    function formatSigned(val, digits = 2) {
+      if (!Number.isFinite(val)) return '—';
+      const rounded = val.toFixed(digits);
+      if (Number(rounded) === 0) return '0.00';
+      return `${val > 0 ? '+' : '−'}${Math.abs(Number(rounded)).toFixed(digits)}`;
+    }
+
+    function formatPoints(val, digits = 1) {
+      if (!Number.isFinite(val)) return '—';
+      const rounded = Number(val).toFixed(digits);
+      if (Number(rounded) === 0) return '≈ 0.0 pts';
+      return `≈ ${val > 0 ? '+' : '−'}${Math.abs(Number(rounded)).toFixed(digits)} pts`;
     }
 
     function describeAdvantage(edge) {
@@ -592,50 +661,98 @@
       return computeScaleFromValues(values);
     }
 
-    function buildLaneEntries(games, ratings, { noRatings, week, seasonKey }) {
+    function rankToPercentile(idx, total) {
+      if (total <= 1) return 100;
+      const pct = (1 - (idx / (total - 1))) * 100;
+      return Math.max(1, Math.min(100, Math.round(pct)));
+    }
+
+    function buildGameEntries(games, ratings, { noRatings, week, seasonKey }) {
       const lanes = [];
       const lanesByGame = {};
+      const gameEntries = [];
 
       games.forEach((game) => {
         const [teamA, teamB] = game.teams;
         if (!teamA || !teamB) return;
 
-        const pairs = [
-          { off: teamA.team, def: teamB.team },
-          { off: teamB.team, def: teamA.team },
-        ];
+        const offA = mode === 'sos' ? ratings[teamA.team]?.adjOffEPA : ratings[teamA.team]?.offEPA;
+        const defA = mode === 'sos' ? ratings[teamA.team]?.adjDefEPA : ratings[teamA.team]?.defEPA;
+        const offB = mode === 'sos' ? ratings[teamB.team]?.adjOffEPA : ratings[teamB.team]?.offEPA;
+        const defB = mode === 'sos' ? ratings[teamB.team]?.adjDefEPA : ratings[teamB.team]?.defEPA;
 
-        pairs.forEach(({ off, def }) => {
-          const offenseEntry = ratings[off] || {};
-          const defenseEntry = ratings[def] || {};
-          const offEPA = mode === 'sos' ? offenseEntry.adjOffEPA : offenseEntry.offEPA;
-          const defEPA = mode === 'sos' ? defenseEntry.adjDefEPA : defenseEntry.defEPA;
+        const laneAEdge = !noRatings && Number.isFinite(offA) && Number.isFinite(defB) ? offA - defB : null;
+        const laneBEdge = !noRatings && Number.isFinite(offB) && Number.isFinite(defA) ? offB - defA : null;
 
-          const hasRowData = !noRatings && Number.isFinite(offEPA) && Number.isFinite(defEPA);
-          const edge = hasRowData ? offEPA - defEPA : null;
-          const desc = describeAdvantage(edge);
+        const laneA = {
+          gameId: game.game_id,
+          teamsLabel: `${teamA.team} vs ${teamB.team}`,
+          off: teamA.team,
+          def: teamB.team,
+          offEPA: offA,
+          defEPA: defB,
+          edge: laneAEdge,
+          absEdge: Number.isFinite(laneAEdge) ? Math.abs(laneAEdge) : null,
+          desc: describeAdvantage(laneAEdge),
+          week,
+          seasonKey,
+        };
 
-          const lane = {
-            gameId: game.game_id,
-            teamsLabel: `${teamA.team} vs ${teamB.team}`,
-            off,
-            def,
-            offEPA,
-            defEPA,
-            edge,
-            absEdge: Number.isFinite(edge) ? Math.abs(edge) : null,
-            desc,
-            week,
-            seasonKey,
-          };
+        const laneB = {
+          gameId: game.game_id,
+          teamsLabel: `${teamA.team} vs ${teamB.team}`,
+          off: teamB.team,
+          def: teamA.team,
+          offEPA: offB,
+          defEPA: defA,
+          edge: laneBEdge,
+          absEdge: Number.isFinite(laneBEdge) ? Math.abs(laneBEdge) : null,
+          desc: describeAdvantage(laneBEdge),
+          week,
+          seasonKey,
+        };
 
-          lanes.push(lane);
-          if (!lanesByGame[game.game_id]) lanesByGame[game.game_id] = [];
-          lanesByGame[game.game_id].push(lane);
+        lanes.push(laneA, laneB);
+        if (!lanesByGame[game.game_id]) lanesByGame[game.game_id] = [];
+        lanesByGame[game.game_id].push(laneA, laneB);
+
+        const hasTotals = Number.isFinite(offA) && Number.isFinite(defA) && Number.isFinite(offB) && Number.isFinite(defB);
+        const netA = hasTotals ? (offA + defA) - (offB + defB) : null;
+
+        const winnerTeam = Number.isFinite(netA) ? (netA >= 0 ? teamA.team : teamB.team) : null;
+        const netAbs = Number.isFinite(netA) ? Math.abs(netA) : null;
+        const netEdge = netAbs;
+
+        const offDriver = winnerTeam
+          ? (winnerTeam === teamA.team ? laneAEdge : laneBEdge)
+          : null;
+        const defDriver = winnerTeam
+          ? (winnerTeam === teamA.team ? (Number.isFinite(laneBEdge) ? -laneBEdge : null) : (Number.isFinite(laneAEdge) ? -laneAEdge : null))
+          : null;
+
+        gameEntries.push({
+          game_id: game.game_id,
+          teams: [teamA.team, teamB.team],
+          offA,
+          defA,
+          offB,
+          defB,
+          laneA,
+          laneB,
+          netA,
+          netEdge,
+          netAbs,
+          offDriver,
+          defDriver,
+          winnerTeam,
+          totalA: Number.isFinite(offA) && Number.isFinite(defA) ? offA + defA : null,
+          totalB: Number.isFinite(offB) && Number.isFinite(defB) ? offB + defB : null,
+          week,
+          seasonKey,
         });
       });
 
-      return { lanes, lanesByGame };
+      return { gameEntries, lanes, lanesByGame };
     }
 
     function annotateEdgeDistribution(lanes) {
@@ -644,12 +761,23 @@
       const sorted = valid.slice().sort((a, b) => b.absEdge - a.absEdge);
       sorted.forEach((lane, idx) => {
         lane.rank = idx + 1;
-        lane.percentile = Math.max(1, Math.min(100, Math.round(((total - idx) / total) * 100)));
+        lane.percentile = rankToPercentile(idx, total);
       });
       return total;
     }
 
-    function buildEdgeBadge(lane, totalEdges) {
+    function annotateGameDistribution(gameEntries) {
+      const valid = gameEntries.filter((g) => Number.isFinite(g.netAbs));
+      const total = valid.length;
+      const sorted = valid.slice().sort((a, b) => b.netAbs - a.netAbs);
+      sorted.forEach((game, idx) => {
+        game.rank = idx + 1;
+        game.percentile = rankToPercentile(idx, total);
+      });
+      return total;
+    }
+
+    function buildEdgeBadge(lane, totalEdges, { showRankMeta = true } = {}) {
       const badge = document.createElement('div');
       badge.className = 'edge-badge';
       const neutralColor = getComputedStyle(document.documentElement).getPropertyValue('--neutral-edge')?.trim() || '#cbd5e1';
@@ -659,22 +787,27 @@
         : lane.desc.direction === 'def'
           ? teamColor(lane.def)
           : neutralColor;
-      badge.style.background = advantagedColor;
-      badge.style.color = contrastColor(advantagedColor);
+      badge.style.setProperty('--accent', advantagedColor);
+      badge.style.setProperty('--accentText', accentTextColor(advantagedColor));
 
       const valueEl = document.createElement('div');
       valueEl.className = 'value';
-      valueEl.textContent = Number.isFinite(lane.edge) ? `${lane.edge >= 0 ? '+' : ''}${lane.edge.toFixed(2)}` : '—';
+      valueEl.textContent = formatSigned(lane.edge);
 
       const metaEl = document.createElement('div');
-      metaEl.className = 'meta';
+      metaEl.className = 'badge-sub';
       const directionLabel = lane.desc.direction === 'off' ? 'OFF' : lane.desc.direction === 'def' ? 'DEF' : 'EVEN';
       const tierLabel = isNoData
         ? 'NO DATA'
         : (lane.desc.tier === 'EVEN' ? 'EVEN' : `${lane.desc.tier} ${directionLabel}`);
       const pctText = (!isNoData && lane.percentile != null) ? `P${lane.percentile}` : null;
-      const rankText = (!isNoData && lane.rank && totalEdges) ? `#${lane.rank}/${totalEdges}` : null;
-      metaEl.textContent = [tierLabel, pctText, rankText].filter(Boolean).join(' · ');
+      const rankText = showRankMeta && (!isNoData && lane.rank && totalEdges) ? `#${lane.rank}/${totalEdges}` : null;
+      const pointsText = Number.isFinite(lane.edge) ? formatPoints(epaToPoints(lane.edge)) : null;
+      const metaParts = [tierLabel];
+      if (showRankMeta && pctText) metaParts.push(pctText);
+      if (rankText) metaParts.push(rankText);
+      if (pointsText) metaParts.push(pointsText);
+      metaEl.textContent = metaParts.filter(Boolean).join(' · ');
 
       const tooltipParts = [
         `${lane.off} Off EPA/play: ${formatNumber(lane.offEPA)}`,
@@ -683,6 +816,7 @@
         tierLabel,
         pctText,
         rankText,
+        pointsText,
       ].filter(Boolean);
       badge.title = tooltipParts.join(' | ');
 
@@ -691,7 +825,7 @@
       return badge;
     }
 
-    function buildLaneRow(lane, totalEdges, scale, { showGameContext = false } = {}) {
+    function buildLaneRow(lane, totalEdges, scale, { showGameContext = false, includeDetails = false, showRankMeta = true } = {}) {
       const row = document.createElement('div');
       row.className = 'lane';
 
@@ -713,20 +847,22 @@
       vizGroup.appendChild(buildDumbbell(lane.offEPA, lane.defEPA, scale, lane.off, lane.def));
       row.appendChild(vizGroup);
 
-      row.appendChild(buildEdgeBadge(lane, totalEdges));
+      row.appendChild(buildEdgeBadge(lane, totalEdges, { showRankMeta }));
 
-      const detail = document.createElement('details');
-      detail.className = 'details';
-      detail.style.gridColumn = '1 / -1';
-      const isNoData = lane.desc.tier === 'NO DATA';
-      const tierLabel = isNoData
-        ? 'NO DATA'
-        : (lane.desc.tier === 'EVEN' ? 'EVEN' : `${lane.desc.tier} ${lane.desc.direction === 'off' ? 'OFF' : 'DEF'}`);
-      const pctText = (!isNoData && lane.percentile != null) ? `P${lane.percentile}` : null;
-      const rankText = (!isNoData && lane.rank && totalEdges) ? `#${lane.rank}/${totalEdges}` : null;
-      const distributionText = [pctText, rankText].filter(Boolean).join(' · ');
-      detail.innerHTML = `<summary>Details</summary><div>${detailLine('Off EPA/play', lane.offEPA)}<br>${detailLine('Opp Def EPA/play', lane.defEPA)}<br>Edge: ${formatNumber(lane.edge)}<br>${tierLabel}${distributionText ? ` · ${distributionText}` : ''}</div>`;
-      row.appendChild(detail);
+      if (includeDetails) {
+        const detail = document.createElement('details');
+        detail.className = 'details';
+        detail.style.gridColumn = '1 / -1';
+        const isNoData = lane.desc.tier === 'NO DATA';
+        const tierLabel = isNoData
+          ? 'NO DATA'
+          : (lane.desc.tier === 'EVEN' ? 'EVEN' : `${lane.desc.tier} ${lane.desc.direction === 'off' ? 'OFF' : 'DEF'}`);
+        const pctText = (!isNoData && lane.percentile != null) ? `P${lane.percentile}` : null;
+        const rankText = (!isNoData && lane.rank && totalEdges) ? `#${lane.rank}/${totalEdges}` : null;
+        const distributionText = [pctText, rankText].filter(Boolean).join(' · ');
+        detail.innerHTML = `<summary>Details</summary><div>${detailLine('Off EPA/play', lane.offEPA)}<br>${detailLine('Opp Def EPA/play', lane.defEPA)}<br>Edge: ${formatNumber(lane.edge)}<br>${tierLabel}${distributionText ? ` · ${distributionText}` : ''}</div>`;
+        row.appendChild(detail);
+      }
 
       return row;
     }
@@ -736,13 +872,56 @@
       return oddsIndex[key] || null;
     }
 
-    function renderGames(games, lanesByGame, edgeCount, { week, seasonKey, scale }) {
-      cardsEl.innerHTML = '';
-      cardsEl.classList.remove('ranked');
-      games.forEach((game) => {
-        const [teamA, teamB] = game.teams;
-        if (!teamA || !teamB) return;
+    function buildNetBadge(game, gameTotal, { showRankMeta = true, showPercentile = true } = {}) {
+      const badge = document.createElement('div');
+      badge.className = 'net-badge';
+      const accent = game.winnerTeam ? teamColor(game.winnerTeam) : (getComputedStyle(document.documentElement).getPropertyValue('--neutral-edge')?.trim() || '#cbd5e1');
+      badge.style.setProperty('--accent', accent);
+      badge.style.setProperty('--accentText', accentTextColor(accent));
 
+      const valueEl = document.createElement('div');
+      valueEl.className = 'value';
+      valueEl.textContent = formatSigned(game.netEdge);
+      const pointsEl = document.createElement('div');
+      pointsEl.className = 'badge-sub';
+      const pctText = showPercentile && Number.isFinite(game.percentile) ? `P${game.percentile}` : null;
+      const rankText = showRankMeta && game.rank ? (gameTotal ? `#${game.rank}/${gameTotal}` : `#${game.rank}`) : null;
+      const approxPoints = Number.isFinite(game.netEdge) ? formatPoints(epaToPoints(game.netEdge)) : null;
+      const metaParts = [approxPoints, pctText, rankText].filter(Boolean);
+      pointsEl.textContent = metaParts.join(' · ');
+
+      badge.appendChild(valueEl);
+      badge.appendChild(pointsEl);
+      return badge;
+    }
+
+    function buildGameDetails(game, gameTotal) {
+      const detail = document.createElement('details');
+      detail.className = 'details';
+      const summary = document.createElement('summary');
+      summary.textContent = 'Details';
+      detail.appendChild(summary);
+
+      const body = document.createElement('div');
+      const [teamA, teamB] = game.teams;
+      const lines = [
+        `${teamA}: Off ${formatNumber(game.offA)} · Def ${formatNumber(game.defA)} · Total ${formatNumber(game.totalA)} (${formatPoints(epaToPoints(game.totalA))})`,
+        `${teamB}: Off ${formatNumber(game.offB)} · Def ${formatNumber(game.defB)} · Total ${formatNumber(game.totalB)} (${formatPoints(epaToPoints(game.totalB))})`,
+        `${teamA} OFF vs ${teamB} DEF: ${formatNumber(game.laneA.edge)} (${formatPoints(epaToPoints(game.laneA.edge))})`,
+        `${teamB} OFF vs ${teamA} DEF: ${formatNumber(game.laneB.edge)} (${formatPoints(epaToPoints(game.laneB.edge))})`,
+        `NET advantage (${game.winnerTeam || '—'}): ${formatSigned(game.netEdge)} (${formatPoints(epaToPoints(game.netEdge))})`,
+        Number.isFinite(game.rank) ? `Rank: #${game.rank}/${gameTotal} · P${game.percentile}` : null,
+      ].filter(Boolean);
+      body.innerHTML = lines.join('<br>');
+      detail.appendChild(body);
+      return detail;
+    }
+
+    function renderGameCards(gameEntries, lanesByGame, edgeCount, { seasonKey, scale, gameTotal }) {
+      cardsEl.innerHTML = '';
+      cardsEl.classList.toggle('ranked', layoutMode === 'ranked');
+      gameEntries.forEach((game) => {
+        const [teamA, teamB] = game.teams;
         const card = document.createElement('article');
         card.className = 'card';
 
@@ -750,22 +929,44 @@
         header.className = 'card-header';
         const teamsLabel = document.createElement('div');
         teamsLabel.className = 'teams';
-        teamsLabel.textContent = `${teamA.team} vs ${teamB.team}`;
+        teamsLabel.textContent = `${teamA} vs ${teamB}`;
         const weekLabel = document.createElement('div');
         weekLabel.className = 'week-label';
-        weekLabel.textContent = `Week ${week}`;
+        weekLabel.textContent = `Week ${game.week}`;
         header.appendChild(teamsLabel);
         header.appendChild(weekLabel);
         card.appendChild(header);
 
         const scoreboard = document.createElement('div');
         scoreboard.className = 'scoreboard';
+
+        const summaryRow = document.createElement('div');
+        summaryRow.className = 'game-summary';
+        const summaryText = document.createElement('div');
+        summaryText.className = 'summary-text';
+        const netSummary = game.winnerTeam
+          ? `NET: ${game.winnerTeam} ${formatSigned(game.netEdge)} (${formatPoints(epaToPoints(game.netEdge))})`
+          : 'NET: —';
+        summaryText.innerHTML = `<div>${netSummary}</div>`;
+        const drivers = document.createElement('div');
+        drivers.className = 'drivers';
+        drivers.textContent = `Components: OFF ${formatSigned(game.offDriver)} (${formatPoints(epaToPoints(game.offDriver))}) · DEF ${formatSigned(game.defDriver)} (${formatPoints(epaToPoints(game.defDriver))})`;
+        if (game.winnerTeam) summaryText.appendChild(drivers);
+        summaryRow.appendChild(summaryText);
+        summaryRow.appendChild(buildNetBadge(game, gameTotal, { showRankMeta: layoutMode === 'ranked', showPercentile: true }));
+        scoreboard.appendChild(summaryRow);
+
+        const laneGrid = document.createElement('div');
+        laneGrid.className = 'lane-grid';
         (lanesByGame[game.game_id] || []).forEach((lane) => {
-          scoreboard.appendChild(buildLaneRow(lane, edgeCount, scale));
+          laneGrid.appendChild(buildLaneRow(lane, edgeCount, scale, { includeDetails: false, showRankMeta: layoutMode === 'ranked' }));
         });
+        scoreboard.appendChild(laneGrid);
+
+        scoreboard.appendChild(buildGameDetails(game, gameTotal));
         card.appendChild(scoreboard);
 
-        const odds = getOdds(game.game_id, seasonKey, week);
+        const odds = getOdds(game.game_id, seasonKey, game.week);
         const oddsRow = document.createElement('div');
         oddsRow.className = 'odds';
         const spreadNum = Number(odds?.spread);
@@ -785,33 +986,6 @@
 
         cardsEl.appendChild(card);
       });
-    }
-
-    function renderRankedList(lanes, edgeCount, { week, scale }) {
-      cardsEl.innerHTML = '';
-      cardsEl.classList.add('ranked');
-      const card = document.createElement('article');
-      card.className = 'card';
-
-      const header = document.createElement('div');
-      header.className = 'card-header';
-      const title = document.createElement('div');
-      title.className = 'teams';
-      title.textContent = `Ranked edges (Week ${week})`;
-      header.appendChild(title);
-      card.appendChild(header);
-
-      const list = document.createElement('div');
-      list.className = 'scoreboard';
-      lanes
-        .slice()
-        .sort((a, b) => ((b.absEdge ?? -Infinity) - (a.absEdge ?? -Infinity)))
-        .forEach((lane) => {
-          list.appendChild(buildLaneRow(lane, edgeCount, scale, { showGameContext: true }));
-        });
-
-      card.appendChild(list);
-      cardsEl.appendChild(card);
     }
 
     function renderMatchups() {
@@ -844,17 +1018,18 @@
       metaEl.textContent = `Weeks: ${weeksLabel}. Ratings through Week ${ratingWeekText} (${mode === 'sos' ? 'opponent-adjusted' : 'raw'}). Edge: + favors OFF, − favors DEF.`;
 
       const scale = computeScaleFromGames(games, ratings, mode, noRatings);
-      const { lanes, lanesByGame } = buildLaneEntries(games, ratings, { noRatings, week, seasonKey });
+      const { gameEntries, lanes, lanesByGame } = buildGameEntries(games, ratings, { noRatings, week, seasonKey });
       const edgeCount = annotateEdgeDistribution(lanes);
+      const gameCount = annotateGameDistribution(gameEntries);
 
       gamesBtn.classList.toggle('active', layoutMode === 'games');
       rankedBtn.classList.toggle('active', layoutMode === 'ranked');
 
-      if (layoutMode === 'ranked') {
-        renderRankedList(lanes, edgeCount, { week, scale });
-      } else {
-        renderGames(games, lanesByGame, edgeCount, { week, seasonKey, scale });
-      }
+      const entriesToRender = layoutMode === 'ranked'
+        ? gameEntries.slice().sort((a, b) => ((b.netAbs ?? -Infinity) - (a.netAbs ?? -Infinity)))
+        : gameEntries;
+
+      renderGameCards(entriesToRender, lanesByGame, edgeCount, { seasonKey, scale, gameTotal: gameCount || gameEntries.length });
 
       if (oddsPayload && !(oddsPayload.odds || []).some((o) => Number(o.season) === Number(seasonKey) && Number(o.week) === Number(week))) {
         infoMessages.push('Betting lines not available for this week yet.');
