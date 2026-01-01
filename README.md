@@ -50,6 +50,15 @@ python -m http.server 8000
 Swap in the season you need, then open `index.html` (or visit
 `http://localhost:8000`) to see the refreshed data.
 
+Run the schedule/odds updater whenever you want future weeks and/or the latest betting lines:
+
+```bash
+pip install -r requirements-dev.txt
+python scripts/update_schedule_and_odds.py
+```
+
+Commit the updated `data/schedule.json` and `data/odds.json` alongside any other changes.
+
 ### Workflow usage examples
 
 - `update_current`: runs weekly automatically.
