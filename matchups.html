@@ -518,25 +518,44 @@
       });
     }
 
+    function _rowKey(gameId, week, team) {
+      const w = normalizeWeekValue(week);
+      const t = normalizeTeam(team);
+      return `${String(gameId)}::${String(w)}::${t}`;
+    }
+
+    function _recomputeWeeksFromGames(season) {
+      const weeks = Array.from(new Set(
+        (season.games || [])
+          .map((g) => normalizeWeekValue(g.week))
+          .filter((w) => Number.isFinite(w))
+      )).sort((a, b) => a - b);
+      season.weeks = weeks;
+    }
+
+    function _ensureSeason(seasonKey) {
+      if (!data.seasons) data.seasons = {};
+      if (!data.seasons[seasonKey]) data.seasons[seasonKey] = { weeks: [], games: [] };
+      if (!Array.isArray(data.seasons[seasonKey].games)) data.seasons[seasonKey].games = [];
+      if (!Array.isArray(data.seasons[seasonKey].weeks)) data.seasons[seasonKey].weeks = [];
+      return data.seasons[seasonKey];
+    }
+
     function mergeOddsScheduleIntoData() {
       if (!data || !oddsPayload) return;
       if (!data.seasons) data.seasons = {};
 
-      const matchupKey = (team, opp, week) => `${normalizeWeekValue(week)}::${team}::${opp}`;
       const seenBySeason = {};
 
       Object.entries(data.seasons).forEach(([seasonKey, season]) => {
         const seen = new Set();
         if (!Array.isArray(season.games)) season.games = [];
         season.games.forEach((g) => {
-          const team = normalizeTeam(g.team || g.home || g.away);
-          const oppGuess = g.opp || (team && (g.home || g.away)
-            ? (team === normalizeTeam(g.home) ? g.away : g.home)
-            : '');
-          const opp = normalizeTeam(oppGuess);
-          const week = normalizeWeekValue(g.week);
-          if (!team || !opp || !Number.isFinite(week)) return;
-          seen.add(matchupKey(team, opp, week));
+          const gid = g?.game_id;
+          const week = normalizeWeekValue(g?.week);
+          const team = normalizeTeam(g?.team || g?.home || g?.away);
+          if (!gid || !Number.isFinite(week) || !team) return;
+          seen.add(_rowKey(gid, week, team));
         });
         seenBySeason[seasonKey] = seen;
       });
@@ -552,27 +571,109 @@
 
         if (!Number.isFinite(seasonNum) || !Number.isFinite(weekNum) || !teamA || !teamB) return;
         const seasonKey = String(seasonNum);
-        if (!data.seasons[seasonKey]) data.seasons[seasonKey] = { weeks: [], games: [] };
-        const season = data.seasons[seasonKey];
+        const season = _ensureSeason(seasonKey);
         if (!Array.isArray(season.games)) season.games = [];
         if (!Array.isArray(season.weeks)) season.weeks = [];
         if (!season.weeks.includes(weekNum)) season.weeks.push(weekNum);
 
         if (!seenBySeason[seasonKey]) seenBySeason[seasonKey] = new Set();
         const seen = seenBySeason[seasonKey];
+        const keyA = _rowKey(gameId, weekNum, teamA);
+        const keyB = _rowKey(gameId, weekNum, teamB);
+        // Add missing directions independently (important for repairing one-sided games)
+        if (!seen.has(keyA)) {
+          season.games.push({ game_id: gameId, week: weekNum, team: teamA, opp: teamB, _placeholder: true });
+          seen.add(keyA);
+        }
+        if (!seen.has(keyB)) {
+          season.games.push({ game_id: gameId, week: weekNum, team: teamB, opp: teamA, _placeholder: true });
+          seen.add(keyB);
+        }
+      });
+    }
 
-        const entries = [
-          { game_id: gameId, week: weekNum, team: teamA, opp: teamB, _placeholder: true },
-          { game_id: gameId, week: weekNum, team: teamB, opp: teamA, _placeholder: true },
-        ];
+    // Hard guarantee: every scheduled game results in TWO rows (team + opponent).
+    // This prevents "missing a ton of games" when only one side exists in season.games.
+    function repairGamesFromScheduleAndOdds() {
+      if (!data) return;
+      if (!data.seasons) data.seasons = {};
 
-        entries.forEach((entry) => {
-          const key = matchupKey(entry.team, entry.opp, entry.week);
-          if (seen.has(key)) return;
-          season.games.push(entry);
-          seen.add(key);
+      // Build a per-season set of existing rows by (game_id, week, team)
+      const existingBySeason = {};
+      Object.entries(data.seasons).forEach(([seasonKey, season]) => {
+        if (!Array.isArray(season.games)) season.games = [];
+        const set = new Set();
+        season.games.forEach((g) => {
+          const gid = g?.game_id;
+          const week = normalizeWeekValue(g?.week);
+          const team = normalizeTeam(g?.team || g?.home || g?.away);
+          if (!gid || !Number.isFinite(week) || !team) return;
+          set.add(_rowKey(gid, week, team));
+        });
+        existingBySeason[seasonKey] = set;
+      });
+
+      // 1) Repair from schedulePayload (authoritative home/away)
+      const schedules = Array.isArray(schedulePayload?.schedules) ? schedulePayload.schedules : [];
+      schedules.forEach((sched) => {
+        const seasonNum = _parseIntLoose(sched?.season);
+        if (!Number.isFinite(seasonNum)) return;
+        const seasonKey = String(seasonNum);
+        const season = _ensureSeason(seasonKey);
+        if (!existingBySeason[seasonKey]) existingBySeason[seasonKey] = new Set();
+        const seen = existingBySeason[seasonKey];
+
+        (sched?.games || []).forEach((g) => {
+          const gid = g?.game_id;
+          const week = normalizeWeekValue(g?.week);
+          const home = normalizeTeam(g?.home);
+          const away = normalizeTeam(g?.away);
+          if (!gid || !Number.isFinite(week) || !home || !away) return;
+
+          const kHome = _rowKey(gid, week, home);
+          const kAway = _rowKey(gid, week, away);
+
+          if (!seen.has(kHome)) {
+            season.games.push({ game_id: gid, week, team: home, opp: away, _placeholder: true });
+            seen.add(kHome);
+          }
+          if (!seen.has(kAway)) {
+            season.games.push({ game_id: gid, week, team: away, opp: home, _placeholder: true });
+            seen.add(kAway);
+          }
         });
       });
+
+      // 2) Repair from oddsPayload (backup; uses game_id parsing)
+      (oddsPayload?.odds || []).forEach((o) => {
+        const gameId = o?.game_id || o?.gameId;
+        const parsed = parseGameId(gameId);
+        const seasonNum = Number.isFinite(_parseIntLoose(o?.season)) ? _parseIntLoose(o?.season) : parsed?.season;
+        const rawWeek = Number.isFinite(_parseIntLoose(o?.week)) ? _parseIntLoose(o?.week) : parsed?.week;
+        const week = normalizeWeekValue(rawWeek);
+        const teamA = normalizeTeam(parsed?.teamA);
+        const teamB = normalizeTeam(parsed?.teamB);
+        if (!gameId || !Number.isFinite(seasonNum) || !Number.isFinite(week) || !teamA || !teamB) return;
+
+        const seasonKey = String(seasonNum);
+        const season = _ensureSeason(seasonKey);
+        if (!existingBySeason[seasonKey]) existingBySeason[seasonKey] = new Set();
+        const seen = existingBySeason[seasonKey];
+
+        const kA = _rowKey(gameId, week, teamA);
+        const kB = _rowKey(gameId, week, teamB);
+        if (!seen.has(kA)) {
+          season.games.push({ game_id: gameId, week, team: teamA, opp: teamB, _placeholder: true });
+          seen.add(kA);
+        }
+        if (!seen.has(kB)) {
+          season.games.push({ game_id: gameId, week, team: teamB, opp: teamA, _placeholder: true });
+          seen.add(kB);
+        }
+      });
+
+      // Recompute weeks from games so the dropdown can’t "lose" weeks.
+      Object.values(data.seasons).forEach((season) => _recomputeWeeksFromGames(season));
     }
 
     function groupGamesForWeek(season, week) {
@@ -1397,6 +1498,7 @@
       hideStatus();
       await fetchOdds();
       mergeOddsScheduleIntoData();
+      repairGamesFromScheduleAndOdds();
 
       const seasons = Object.keys(data.seasons || {}).sort((a, b) => Number(b) - Number(a));
       seasons.forEach((season) => {
