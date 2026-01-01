@@ -1,4 +1,42 @@
 {
-  "__schema": "odds: [{season, week, game_id, spread, spread_team?, total, source?, updated_at?}]",
-  "odds": []
+  "generated_at": "2026-01-01T03:12:22Z",
+  "source": "nflverse-data schedules/games via nflreadpy",
+  "odds": [
+    {
+      "season": 2025,
+      "week": 18,
+      "game_id": "2025_18_MIN_DET",
+      "spread": -3.5,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-01-01T03:12:22Z"
+    },
+    {
+      "season": 2025,
+      "week": 18,
+      "game_id": "2025_18_GB_CHI",
+      "spread": 1.5,
+      "total": 42.0,
+      "source": "nflverse",
+      "updated_at": "2026-01-01T03:12:22Z"
+    },
+    {
+      "season": 2025,
+      "week": 18,
+      "game_id": "2025_18_DAL_PHI",
+      "spread": -2.5,
+      "total": 48.0,
+      "source": "nflverse",
+      "updated_at": "2026-01-01T03:12:22Z"
+    },
+    {
+      "season": 2025,
+      "week": 18,
+      "game_id": "2025_18_KC_LAC",
+      "spread": -2.0,
+      "total": 50.5,
+      "source": "nflverse",
+      "updated_at": "2026-01-01T03:12:22Z"
+    }
+  ]
 }

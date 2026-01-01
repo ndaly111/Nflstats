@@ -1,0 +1,109 @@
+{
+  "generated_at": "2026-01-01T03:12:22Z",
+  "source": "nflverse-data schedules/games via nflreadpy",
+  "seasons": {
+    "2000": {
+      "games": []
+    },
+    "2001": {
+      "games": []
+    },
+    "2002": {
+      "games": []
+    },
+    "2003": {
+      "games": []
+    },
+    "2004": {
+      "games": []
+    },
+    "2005": {
+      "games": []
+    },
+    "2006": {
+      "games": []
+    },
+    "2007": {
+      "games": []
+    },
+    "2008": {
+      "games": []
+    },
+    "2009": {
+      "games": []
+    },
+    "2010": {
+      "games": []
+    },
+    "2011": {
+      "games": []
+    },
+    "2012": {
+      "games": []
+    },
+    "2013": {
+      "games": []
+    },
+    "2014": {
+      "games": []
+    },
+    "2015": {
+      "games": []
+    },
+    "2016": {
+      "games": []
+    },
+    "2017": {
+      "games": []
+    },
+    "2018": {
+      "games": []
+    },
+    "2019": {
+      "games": []
+    },
+    "2020": {
+      "games": []
+    },
+    "2021": {
+      "games": []
+    },
+    "2022": {
+      "games": []
+    },
+    "2023": {
+      "games": []
+    },
+    "2024": {
+      "games": []
+    },
+    "2025": {
+      "games": [
+        {
+          "game_id": "2025_18_MIN_DET",
+          "week": 18,
+          "home": "DET",
+          "away": "MIN"
+        },
+        {
+          "game_id": "2025_18_GB_CHI",
+          "week": 18,
+          "home": "CHI",
+          "away": "GB"
+        },
+        {
+          "game_id": "2025_18_DAL_PHI",
+          "week": 18,
+          "home": "PHI",
+          "away": "DAL"
+        },
+        {
+          "game_id": "2025_18_KC_LAC",
+          "week": 18,
+          "home": "LAC",
+          "away": "KC"
+        }
+      ]
+    }
+  }
+}

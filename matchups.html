@@ -316,6 +316,7 @@
     const rankedBtn = document.getElementById('ranked-btn');
 
     const DATA_URL = new URL('data/epa.json', document.baseURI);
+    const SCHEDULE_URL = new URL('data/schedule.json', document.baseURI);
     const ODDS_URL = new URL('data/odds.json', document.baseURI);
     const urlParams = new URLSearchParams(window.location.search);
 
@@ -337,7 +338,15 @@
     TEAM_COLORS.SD  = TEAM_COLORS.LAC;
     TEAM_COLORS.STL = TEAM_COLORS.LAR;
 
+    const TEAM_ALIASES = { WSH: 'WAS', JAC: 'JAX', OAK: 'LV', SD: 'LAC', STL: 'LAR' };
+
+    function normalizeTeam(code) {
+      const value = String(code || '').trim().toUpperCase();
+      return TEAM_ALIASES[value] || value;
+    }
+
     let data;
+    let schedulePayload = null;
     let oddsPayload = null;
     let oddsIndex = {};
     let mode = 'raw';
@@ -426,17 +435,86 @@
       });
     }
 
+    async function fetchSchedule() {
+      try {
+        const scheduleUrl = new URL(SCHEDULE_URL);
+        scheduleUrl.searchParams.set('v', String(Date.now()));
+        const res = await fetch(scheduleUrl, { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to load schedule');
+        schedulePayload = await res.json();
+      } catch (err) {
+        schedulePayload = null;
+        console.warn('Schedule not available', err);
+      }
+    }
+
+    function mergeScheduleIntoData() {
+      if (!data || !schedulePayload) return;
+      const scheduleSeasons = schedulePayload.seasons || {};
+      Object.entries(scheduleSeasons).forEach(([seasonKey, sched]) => {
+        if (!data.seasons) data.seasons = {};
+        if (!data.seasons[seasonKey]) data.seasons[seasonKey] = { weeks: [], games: [] };
+        const season = data.seasons[seasonKey];
+        if (!Array.isArray(season.games)) season.games = [];
+
+        const matchupKey = (team, opp, week) => `${normalizeWeekValue(week)}::${team}::${opp}`;
+        const existingMatchups = new Set();
+        (season.games || []).forEach((g) => {
+          const team = normalizeTeam(g.team || g.home || g.away);
+          const oppGuess = g.opp || (team && (g.home || g.away)
+            ? (team === normalizeTeam(g.home) ? g.away : g.home)
+            : '');
+          const opp = normalizeTeam(oppGuess);
+          const week = normalizeWeekValue(g.week);
+          if (!team || !opp || !Number.isFinite(week)) return;
+          existingMatchups.add(matchupKey(team, opp, week));
+          existingMatchups.add(matchupKey(opp, team, week));
+        });
+
+        (sched?.games || []).forEach((g) => {
+          const week = normalizeWeekValue(g.week);
+          const gameId = g.game_id;
+          const home = normalizeTeam(g.home);
+          const away = normalizeTeam(g.away);
+          if (!gameId || !Number.isFinite(week) || !home || !away) return;
+
+          const entries = [
+            { game_id: gameId, week, team: home, opp: away },
+            { game_id: gameId, week, team: away, opp: home },
+          ];
+
+          entries.forEach((entry) => {
+            const key = matchupKey(entry.team, entry.opp, entry.week);
+            if (existingMatchups.has(key)) return;
+            season.games.push(entry);
+            existingMatchups.add(key);
+            existingMatchups.add(matchupKey(entry.opp, entry.team, entry.week));
+          });
+        });
+      });
+    }
+
     function groupGamesForWeek(season, week) {
       const byId = {};
       const normalizedWeek = normalizeWeekValue(week);
       if (!Number.isFinite(normalizedWeek)) return [];
 
       (season.games || []).forEach((g) => {
-        if (normalizeWeekValue(g.week) !== normalizedWeek) return;
-        if (!byId[g.game_id]) {
-          byId[g.game_id] = { game_id: g.game_id, teams: [] };
+        const gameId = g.game_id;
+        const gameWeek = normalizeWeekValue(g.week);
+        if (!gameId || gameWeek !== normalizedWeek) return;
+        const team = normalizeTeam(g.team || g.home || g.away);
+        const oppGuess = g.opp || (team && (g.home || g.away)
+          ? (team === normalizeTeam(g.home) ? g.away : g.home)
+          : '');
+        const opp = normalizeTeam(oppGuess);
+        if (!team || !opp) return;
+
+        const enriched = { ...g, team, opp };
+        if (!byId[gameId]) {
+          byId[gameId] = { game_id: gameId, teams: [] };
         }
-        byId[g.game_id].teams.push(g);
+        byId[gameId].teams.push(enriched);
       });
       return Object.values(byId);
     }
@@ -451,10 +529,12 @@
       };
 
       const addGame = (g) => {
-        if (!aggregates[g.team]) {
-          aggregates[g.team] = { offSum: 0, offPlays: 0, defSum: 0, defPlays: 0 };
+        const team = normalizeTeam(g.team || g.home || g.away);
+        if (!team) return;
+        if (!aggregates[team]) {
+          aggregates[team] = { offSum: 0, offPlays: 0, defSum: 0, defPlays: 0 };
         }
-        const entry = aggregates[g.team];
+        const entry = aggregates[team];
         if (Number.isFinite(g.off_epa_pp) && Number.isFinite(g.off_plays)) {
           entry.offSum += g.off_epa_pp * g.off_plays;
           entry.offPlays += g.off_plays;
@@ -504,12 +584,18 @@
         const gameWeek = normalizeWeekValue(g.week);
         const limitWeek = normalizeWeekValue(week);
         if (!Number.isFinite(gameWeek) || !Number.isFinite(limitWeek) || gameWeek >= limitWeek) return;
-        if (!opponentFacings[g.team]) {
-          opponentFacings[g.team] = { oppOffEpa: 0, oppDefEpa: 0, offPlays: 0, defPlays: 0 };
+        const team = normalizeTeam(g.team || g.home || g.away);
+        const oppGuess = g.opp || (team && (g.home || g.away)
+          ? (team === normalizeTeam(g.home) ? g.away : g.home)
+          : '');
+        const opp = normalizeTeam(oppGuess);
+        if (!team || !opp) return;
+        if (!opponentFacings[team]) {
+          opponentFacings[team] = { oppOffEpa: 0, oppDefEpa: 0, offPlays: 0, defPlays: 0 };
         }
-        const oppRatings = baseRatings[g.opp];
+        const oppRatings = baseRatings[opp];
         if (!oppRatings) return;
-        const facing = opponentFacings[g.team];
+        const facing = opponentFacings[team];
         if (Number.isFinite(g.off_plays) && Number.isFinite(oppRatings.defEPA)) {
           facing.offPlays += g.off_plays;
           facing.oppDefEpa += g.off_plays * oppRatings.defEPA;
@@ -1095,11 +1181,11 @@
         const odds = getOdds(game.game_id, seasonKey, game.week);
         const oddsRow = document.createElement('div');
         oddsRow.className = 'odds';
-        const spreadNum = Number(odds?.spread);
+        const spreadNum = odds?.spread == null ? NaN : Number(odds.spread);
         const spreadValue = odds?.spread_team && Number.isFinite(spreadNum)
           ? `${odds.spread_team} ${spreadNum > 0 ? '+' : ''}${spreadNum}`
           : '—';
-        const totalNum = Number(odds?.total);
+        const totalNum = odds?.total == null ? NaN : Number(odds.total);
         const totalValue = Number.isFinite(totalNum) ? totalNum.toFixed(1) : '—';
 
         const oddsPieces = [`Spread: ${spreadValue}`, `O/U: ${totalValue}`];
@@ -1225,6 +1311,8 @@
         showStatus('Could not load data/epa.json. Please refresh or try again later.', 'error');
         return;
       }
+      await fetchSchedule();
+      mergeScheduleIntoData();
       hideStatus();
       await fetchOdds();
 
