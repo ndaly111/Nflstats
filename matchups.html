@@ -345,6 +345,32 @@
       return TEAM_ALIASES[value] || value;
     }
 
+    function normalizeOdds(payload) {
+      if (Array.isArray(payload?.odds)) return payload;
+      return { odds: [] };
+    }
+
+    // If EPA data only contains completed games, future weeks (e.g., Week 18) won't exist.
+    // Use odds.json as a lightweight schedule source to add placeholder games.
+    function _parseIntLoose(value) {
+      const n = Number(value);
+      if (Number.isFinite(n)) return n;
+      const m = String(value ?? '').match(/(\d+)/);
+      return m ? Number(m[1]) : NaN;
+    }
+
+    function parseGameId(gameId) {
+      const parts = String(gameId ?? '').split('_');
+      // Expected: SEASON_WEEK_TEAM_TEAM (e.g., 2025_18_BUF_MIA)
+      if (parts.length < 4) return null;
+      const season = _parseIntLoose(parts[0]);
+      const week = _parseIntLoose(parts[1]);
+      const teamA = parts[2];
+      const teamB = parts[3];
+      if (!Number.isFinite(season) || !Number.isFinite(week) || !teamA || !teamB) return null;
+      return { season, week, teamA, teamB };
+    }
+
     let data;
     let schedulePayload = null;
     let oddsPayload = null;
@@ -468,7 +494,6 @@
           const week = normalizeWeekValue(g.week);
           if (!team || !opp || !Number.isFinite(week)) return;
           existingMatchups.add(matchupKey(team, opp, week));
-          existingMatchups.add(matchupKey(opp, team, week));
         });
 
         (sched?.games || []).forEach((g) => {
@@ -488,8 +513,64 @@
             if (existingMatchups.has(key)) return;
             season.games.push(entry);
             existingMatchups.add(key);
-            existingMatchups.add(matchupKey(entry.opp, entry.team, entry.week));
           });
+        });
+      });
+    }
+
+    function mergeOddsScheduleIntoData() {
+      if (!data || !oddsPayload) return;
+      if (!data.seasons) data.seasons = {};
+
+      const matchupKey = (team, opp, week) => `${normalizeWeekValue(week)}::${team}::${opp}`;
+      const seenBySeason = {};
+
+      Object.entries(data.seasons).forEach(([seasonKey, season]) => {
+        const seen = new Set();
+        if (!Array.isArray(season.games)) season.games = [];
+        season.games.forEach((g) => {
+          const team = normalizeTeam(g.team || g.home || g.away);
+          const oppGuess = g.opp || (team && (g.home || g.away)
+            ? (team === normalizeTeam(g.home) ? g.away : g.home)
+            : '');
+          const opp = normalizeTeam(oppGuess);
+          const week = normalizeWeekValue(g.week);
+          if (!team || !opp || !Number.isFinite(week)) return;
+          seen.add(matchupKey(team, opp, week));
+        });
+        seenBySeason[seasonKey] = seen;
+      });
+
+      (oddsPayload.odds || []).forEach((o) => {
+        const gameId = o?.game_id || o?.gameId;
+        const parsed = parseGameId(gameId);
+        const seasonNum = Number.isFinite(_parseIntLoose(o?.season)) ? _parseIntLoose(o?.season) : parsed?.season;
+        const rawWeek = Number.isFinite(_parseIntLoose(o?.week)) ? _parseIntLoose(o?.week) : parsed?.week;
+        const weekNum = normalizeWeekValue(rawWeek);
+        const teamA = normalizeTeam(parsed?.teamA);
+        const teamB = normalizeTeam(parsed?.teamB);
+
+        if (!Number.isFinite(seasonNum) || !Number.isFinite(weekNum) || !teamA || !teamB) return;
+        const seasonKey = String(seasonNum);
+        if (!data.seasons[seasonKey]) data.seasons[seasonKey] = { weeks: [], games: [] };
+        const season = data.seasons[seasonKey];
+        if (!Array.isArray(season.games)) season.games = [];
+        if (!Array.isArray(season.weeks)) season.weeks = [];
+        if (!season.weeks.includes(weekNum)) season.weeks.push(weekNum);
+
+        if (!seenBySeason[seasonKey]) seenBySeason[seasonKey] = new Set();
+        const seen = seenBySeason[seasonKey];
+
+        const entries = [
+          { game_id: gameId, week: weekNum, team: teamA, opp: teamB, _placeholder: true },
+          { game_id: gameId, week: weekNum, team: teamB, opp: teamA, _placeholder: true },
+        ];
+
+        entries.forEach((entry) => {
+          const key = matchupKey(entry.team, entry.opp, entry.week);
+          if (seen.has(key)) return;
+          season.games.push(entry);
+          seen.add(key);
         });
       });
     }
@@ -1282,7 +1363,7 @@
         oddsUrl.searchParams.set('v', String(Date.now()));
         const res = await fetch(oddsUrl, { cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to load odds');
-        oddsPayload = await res.json();
+        oddsPayload = normalizeOdds(await res.json());
         oddsIndex = {};
         (oddsPayload.odds || []).forEach((o) => {
           const seasonNum = Number(o.season);
@@ -1292,7 +1373,7 @@
           oddsIndex[key] = o;
         });
       } catch (err) {
-        oddsPayload = null;
+        oddsPayload = { odds: [] };
         oddsIndex = {};
         console.warn('Odds not available', err);
       }
@@ -1315,6 +1396,7 @@
       mergeScheduleIntoData();
       hideStatus();
       await fetchOdds();
+      mergeOddsScheduleIntoData();
 
       const seasons = Object.keys(data.seasons || {}).sort((a, b) => Number(b) - Number(a));
       seasons.forEach((season) => {
