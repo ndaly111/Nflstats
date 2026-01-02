@@ -361,10 +361,11 @@
 
     function parseGameId(gameId) {
       const parts = String(gameId ?? '').split('_');
-      // Expected: SEASON_WEEK_TEAM_TEAM (e.g., 2025_18_BUF_MIA)
+      // Expected: SEASON_WEEK_TEAM_TEAM (e.g., 2025_18_BUF_MIA or 2025_WC_BUF_MIA)
       if (parts.length < 4) return null;
       const season = _parseIntLoose(parts[0]);
-      const week = _parseIntLoose(parts[1]);
+      const weekToken = parts[1];
+      const week = normalizeWeekValue(weekToken, season, null);
       const teamA = parts[2];
       const teamB = parts[3];
       if (!Number.isFinite(season) || !Number.isFinite(week) || !teamA || !teamB) return null;
@@ -394,69 +395,126 @@
       statusEl.textContent = '';
     }
 
-    const WEEK_ALIASES = {
-      WC: 19,
-      'WILD CARD': 19,
-      WILDCARD: 19,
-      DIV: 20,
-      DIVISIONAL: 20,
-      CONF: 21,
-      CONFERENCE: 21,
-      SB: 22,
-      'SUPER BOWL': 22,
-      SUPERBOWL: 22,
+    const PLAYOFF_ROUND_ORDER = {
+      WC: 1,
+      WILDCARD: 1,
+      'WILD CARD': 1,
+      DIV: 2,
+      DIVISIONAL: 2,
+      CONF: 3,
+      CONFERENCE: 3,
+      CHAMP: 3,
+      'CONFERENCE CHAMPIONSHIP': 3,
+      SB: 4,
+      'SUPER BOWL': 4,
+      SUPERBOWL: 4,
     };
 
-    function normalizeWeekValue(value) {
-      const num = Number(value);
-      if (Number.isFinite(num) && num > 0) return num;
-      if (typeof value === 'string') {
-        const key = value.trim().toUpperCase();
-        if (key in WEEK_ALIASES) return WEEK_ALIASES[key];
-      }
-      return null;
+    const REG_MAX_BY_SEASON = {};
+
+    function computeRegMaxBySeasonFromSchedule() {
+      Object.keys(REG_MAX_BY_SEASON).forEach((k) => delete REG_MAX_BY_SEASON[k]);
+
+      // Support either {schedules:[...]} or {seasons:{ "2025": {games:[...] }}}
+      const schedules = Array.isArray(schedulePayload?.schedules)
+        ? schedulePayload.schedules
+        : Object.entries(schedulePayload?.seasons || {}).map(([season, sched]) => ({
+            season,
+            games: sched?.games || [],
+          }));
+
+      schedules.forEach((sched) => {
+        const seasonNum = Number(sched?.season);
+        if (!Number.isFinite(seasonNum)) return;
+
+        let max = 0;
+        (sched?.games || []).forEach((g) => {
+          // Exclude postseason games from the "regular season max"
+          const seasonTypeRaw = (g?.season_type ?? g?.seasonType ?? '');
+          const seasonType = String(seasonTypeRaw).trim().toUpperCase();
+          const gameTypeRaw = (g?.game_type ?? g?.gameType ?? '');
+          const gameType = String(gameTypeRaw).trim().toUpperCase();
+          const isPost = g?.postseason === true
+            || seasonType === 'POST'
+            || seasonType === 'POSTSEASON'
+            || seasonType === '2'
+            || (gameType in PLAYOFF_ROUND_ORDER);
+          if (isPost) return;
+
+          const w = Number(String(g?.week ?? '').trim());
+          if (!Number.isFinite(w) || w <= 0) return;
+          if (w <= 18) max = Math.max(max, w);
+        });
+
+        if (max > 0) REG_MAX_BY_SEASON[String(seasonNum)] = max;
+      });
     }
 
-    function formatWeekLabel(value) {
-      switch (value) {
-        case 19:
-          return 'Wild Card';
-        case 20:
-          return 'Divisional';
-        case 21:
-          return 'Conference';
-        case 22:
-          return 'Super Bowl';
-        default:
-          return `Week ${value}`;
+    function normalizeWeekValue(weekValue, seasonNum = null, seasonType = null) {
+      const raw = String(weekValue ?? '').trim();
+      if (!raw) return NaN;
+
+      const seasonKey = seasonNum != null ? String(seasonNum) : null;
+      const base = seasonKey && Number.isFinite(REG_MAX_BY_SEASON[seasonKey]) ? REG_MAX_BY_SEASON[seasonKey] : 18;
+
+      const st = String(seasonType ?? '').trim().toUpperCase();
+      const asNum = Number(raw);
+      if (Number.isFinite(asNum)) {
+        if (asNum <= 0) return NaN;
+        // If postseason is encoded as round numbers 1-4, lift them above regular season.
+        if ((st === 'POST' || st === 'POSTSEASON' || st === '2') && asNum >= 1 && asNum <= 4) {
+          return base + asNum;
+        }
+        return asNum;
       }
+
+      const order = PLAYOFF_ROUND_ORDER[raw.toUpperCase()];
+      if (order) return base + order;
+
+      return NaN;
     }
 
-    function getSeasonWeeks(season) {
+    function formatWeekLabel(value, seasonNum = null) {
+      if (!Number.isFinite(value)) return 'Week ?';
+      const seasonKey = seasonNum != null ? String(seasonNum) : null;
+      const base = seasonKey && REG_MAX_BY_SEASON[seasonKey] ? REG_MAX_BY_SEASON[seasonKey] : null;
+      if (base) {
+        const delta = value - base;
+        if (delta === 1) return 'WC';
+        if (delta === 2) return 'DIV';
+        if (delta === 3) return 'CONF';
+        if (delta === 4) return 'SB';
+      }
+      return `Week ${value}`;
+    }
+
+    function getSeasonWeeks(season, seasonKey = null) {
       const weeks = [];
-      (season?.weeks || []).forEach((w) => weeks.push(normalizeWeekValue(w)));
-      (season?.games || []).forEach((g) => weeks.push(normalizeWeekValue(g.week)));
+      const seasonNum = Number(seasonKey);
+      (season?.weeks || []).forEach((w) => weeks.push(normalizeWeekValue(w, seasonNum)));
+      (season?.games || []).forEach((g) => weeks.push(normalizeWeekValue(g.week, seasonNum, g?.season_type)));
       return Array.from(new Set(weeks.filter((w) => Number.isFinite(w)))).sort((a, b) => a - b);
     }
 
-    function getCurrentWeek(season) {
-      const weeks = getSeasonWeeks(season);
+    function getCurrentWeek(season, seasonKey = null) {
+      const weeks = getSeasonWeeks(season, seasonKey);
       return weeks.length ? weeks[weeks.length - 1] : 1;
     }
 
-    function getWeekOverride(weeks) {
-      const override = normalizeWeekValue(urlParams.get('week'));
+    function getWeekOverride(weeks, seasonKey = null) {
+      const seasonNum = Number(seasonKey);
+      const override = normalizeWeekValue(urlParams.get('week'), seasonNum);
       if (!Number.isFinite(override)) return null;
-      const weekSet = new Set((weeks || []).map((w) => normalizeWeekValue(w)).filter((w) => Number.isFinite(w)));
+      const weekSet = new Set((weeks || []).map((w) => normalizeWeekValue(w, seasonNum)).filter((w) => Number.isFinite(w)));
       return weekSet.has(override) ? override : null;
     }
 
-    function fillSelect(selectEl, values) {
+    function fillSelect(selectEl, values, seasonNum = null) {
       selectEl.innerHTML = '';
       values.forEach((val) => {
         const option = document.createElement('option');
         option.value = val;
-        option.textContent = formatWeekLabel(val);
+        option.textContent = formatWeekLabel(val, seasonNum);
         selectEl.appendChild(option);
       });
     }
@@ -483,7 +541,7 @@
         const season = data.seasons[seasonKey];
         if (!Array.isArray(season.games)) season.games = [];
 
-        const matchupKey = (team, opp, week) => `${normalizeWeekValue(week)}::${team}::${opp}`;
+        const matchupKey = (team, opp, week) => `${normalizeWeekValue(week, seasonKey)}::${team}::${opp}`;
         const existingMatchups = new Set();
         (season.games || []).forEach((g) => {
           const team = normalizeTeam(g.team || g.home || g.away);
@@ -491,13 +549,13 @@
             ? (team === normalizeTeam(g.home) ? g.away : g.home)
             : '');
           const opp = normalizeTeam(oppGuess);
-          const week = normalizeWeekValue(g.week);
+          const week = normalizeWeekValue(g.week, seasonKey, g?.season_type);
           if (!team || !opp || !Number.isFinite(week)) return;
           existingMatchups.add(matchupKey(team, opp, week));
         });
 
         (sched?.games || []).forEach((g) => {
-          const week = normalizeWeekValue(g.week);
+          const week = normalizeWeekValue(g.week, seasonKey, g?.season_type);
           const gameId = g.game_id;
           const home = normalizeTeam(g.home);
           const away = normalizeTeam(g.away);
@@ -518,16 +576,16 @@
       });
     }
 
-    function _rowKey(gameId, week, team) {
-      const w = normalizeWeekValue(week);
+    function _rowKey(gameId, week, team, seasonNum = null, seasonType = null) {
+      const w = normalizeWeekValue(week, seasonNum, seasonType);
       const t = normalizeTeam(team);
       return `${String(gameId)}::${String(w)}::${t}`;
     }
 
-    function _recomputeWeeksFromGames(season) {
+    function _recomputeWeeksFromGames(season, seasonNum = null) {
       const weeks = Array.from(new Set(
         (season.games || [])
-          .map((g) => normalizeWeekValue(g.week))
+          .map((g) => normalizeWeekValue(g.week, seasonNum, g?.season_type))
           .filter((w) => Number.isFinite(w))
       )).sort((a, b) => a - b);
       season.weeks = weeks;
@@ -552,10 +610,10 @@
         if (!Array.isArray(season.games)) season.games = [];
         season.games.forEach((g) => {
           const gid = g?.game_id;
-          const week = normalizeWeekValue(g?.week);
+          const week = normalizeWeekValue(g?.week, seasonKey, g?.season_type);
           const team = normalizeTeam(g?.team || g?.home || g?.away);
           if (!gid || !Number.isFinite(week) || !team) return;
-          seen.add(_rowKey(gid, week, team));
+          seen.add(_rowKey(gid, week, team, seasonKey, g?.season_type));
         });
         seenBySeason[seasonKey] = seen;
       });
@@ -565,7 +623,7 @@
         const parsed = parseGameId(gameId);
         const seasonNum = Number.isFinite(_parseIntLoose(o?.season)) ? _parseIntLoose(o?.season) : parsed?.season;
         const rawWeek = Number.isFinite(_parseIntLoose(o?.week)) ? _parseIntLoose(o?.week) : parsed?.week;
-        const weekNum = normalizeWeekValue(rawWeek);
+        const weekNum = normalizeWeekValue(rawWeek, seasonNum, o?.season_type);
         const teamA = normalizeTeam(parsed?.teamA);
         const teamB = normalizeTeam(parsed?.teamB);
 
@@ -578,8 +636,8 @@
 
         if (!seenBySeason[seasonKey]) seenBySeason[seasonKey] = new Set();
         const seen = seenBySeason[seasonKey];
-        const keyA = _rowKey(gameId, weekNum, teamA);
-        const keyB = _rowKey(gameId, weekNum, teamB);
+        const keyA = _rowKey(gameId, weekNum, teamA, seasonNum, o?.season_type);
+        const keyB = _rowKey(gameId, weekNum, teamB, seasonNum, o?.season_type);
         // Add missing directions independently (important for repairing one-sided games)
         if (!seen.has(keyA)) {
           season.games.push({ game_id: gameId, week: weekNum, team: teamA, opp: teamB, _placeholder: true });
@@ -605,16 +663,21 @@
         const set = new Set();
         season.games.forEach((g) => {
           const gid = g?.game_id;
-          const week = normalizeWeekValue(g?.week);
+          const week = normalizeWeekValue(g?.week, seasonKey, g?.season_type);
           const team = normalizeTeam(g?.team || g?.home || g?.away);
           if (!gid || !Number.isFinite(week) || !team) return;
-          set.add(_rowKey(gid, week, team));
+          set.add(_rowKey(gid, week, team, seasonKey, g?.season_type));
         });
         existingBySeason[seasonKey] = set;
       });
 
       // 1) Repair from schedulePayload (authoritative home/away)
-      const schedules = Array.isArray(schedulePayload?.schedules) ? schedulePayload.schedules : [];
+      const schedules = Array.isArray(schedulePayload?.schedules)
+        ? schedulePayload.schedules
+        : Object.entries(schedulePayload?.seasons || {}).map(([season, sched]) => ({
+            season,
+            games: sched?.games || [],
+          }));
       schedules.forEach((sched) => {
         const seasonNum = _parseIntLoose(sched?.season);
         if (!Number.isFinite(seasonNum)) return;
@@ -625,13 +688,13 @@
 
         (sched?.games || []).forEach((g) => {
           const gid = g?.game_id;
-          const week = normalizeWeekValue(g?.week);
+          const week = normalizeWeekValue(g?.week, seasonNum, g?.season_type);
           const home = normalizeTeam(g?.home);
           const away = normalizeTeam(g?.away);
           if (!gid || !Number.isFinite(week) || !home || !away) return;
 
-          const kHome = _rowKey(gid, week, home);
-          const kAway = _rowKey(gid, week, away);
+          const kHome = _rowKey(gid, week, home, seasonNum, g?.season_type);
+          const kAway = _rowKey(gid, week, away, seasonNum, g?.season_type);
 
           if (!seen.has(kHome)) {
             season.games.push({ game_id: gid, week, team: home, opp: away, _placeholder: true });
@@ -650,7 +713,7 @@
         const parsed = parseGameId(gameId);
         const seasonNum = Number.isFinite(_parseIntLoose(o?.season)) ? _parseIntLoose(o?.season) : parsed?.season;
         const rawWeek = Number.isFinite(_parseIntLoose(o?.week)) ? _parseIntLoose(o?.week) : parsed?.week;
-        const week = normalizeWeekValue(rawWeek);
+        const week = normalizeWeekValue(rawWeek, seasonNum, o?.season_type);
         const teamA = normalizeTeam(parsed?.teamA);
         const teamB = normalizeTeam(parsed?.teamB);
         if (!gameId || !Number.isFinite(seasonNum) || !Number.isFinite(week) || !teamA || !teamB) return;
@@ -660,8 +723,8 @@
         if (!existingBySeason[seasonKey]) existingBySeason[seasonKey] = new Set();
         const seen = existingBySeason[seasonKey];
 
-        const kA = _rowKey(gameId, week, teamA);
-        const kB = _rowKey(gameId, week, teamB);
+        const kA = _rowKey(gameId, week, teamA, seasonNum, o?.season_type);
+        const kB = _rowKey(gameId, week, teamB, seasonNum, o?.season_type);
         if (!seen.has(kA)) {
           season.games.push({ game_id: gameId, week, team: teamA, opp: teamB, _placeholder: true });
           seen.add(kA);
@@ -673,17 +736,17 @@
       });
 
       // Recompute weeks from games so the dropdown can’t "lose" weeks.
-      Object.values(data.seasons).forEach((season) => _recomputeWeeksFromGames(season));
+      Object.entries(data.seasons).forEach(([seasonKey, season]) => _recomputeWeeksFromGames(season, Number(seasonKey)));
     }
 
-    function groupGamesForWeek(season, week) {
+    function groupGamesForWeek(season, week, seasonKey = null) {
       const byId = {};
-      const normalizedWeek = normalizeWeekValue(week);
+      const normalizedWeek = normalizeWeekValue(week, seasonKey);
       if (!Number.isFinite(normalizedWeek)) return [];
 
       (season.games || []).forEach((g) => {
         const gameId = g.game_id;
-        const gameWeek = normalizeWeekValue(g.week);
+        const gameWeek = normalizeWeekValue(g.week, seasonKey, g?.season_type);
         if (!gameId || gameWeek !== normalizedWeek) return;
         const team = normalizeTeam(g.team || g.home || g.away);
         const oppGuess = g.opp || (team && (g.home || g.away)
@@ -701,11 +764,11 @@
       return Object.values(byId);
     }
 
-    function computeTeamAggregates(season, week) {
+    function computeTeamAggregates(season, week, seasonKey = null) {
       const aggregates = {};
       const includeGame = (g, limit) => {
-        const gameWeek = normalizeWeekValue(g.week);
-        const limitWeek = normalizeWeekValue(limit);
+        const gameWeek = normalizeWeekValue(g.week, seasonKey, g?.season_type);
+        const limitWeek = normalizeWeekValue(limit, seasonKey);
         if (!Number.isFinite(gameWeek) || !Number.isFinite(limitWeek)) return false;
         return gameWeek < limitWeek;
       };
@@ -745,7 +808,7 @@
       return ratings;
     }
 
-    function computeSOSAdjustedRatings(season, week, baseRatings) {
+    function computeSOSAdjustedRatings(season, week, baseRatings, seasonKey = null) {
       const totals = { offEpaSum: 0, offPlays: 0, defEpaSum: 0, defPlays: 0 };
       Object.values(baseRatings).forEach((entry) => {
         if (Number.isFinite(entry.offEPA)) {
@@ -763,8 +826,8 @@
 
       const opponentFacings = {};
       (season.games || []).forEach((g) => {
-        const gameWeek = normalizeWeekValue(g.week);
-        const limitWeek = normalizeWeekValue(week);
+        const gameWeek = normalizeWeekValue(g.week, seasonKey ?? season?.season, g?.season_type);
+        const limitWeek = normalizeWeekValue(week, seasonKey ?? season?.season);
         if (!Number.isFinite(gameWeek) || !Number.isFinite(limitWeek) || gameWeek >= limitWeek) return;
         const team = normalizeTeam(g.team || g.home || g.away);
         const oppGuess = g.opp || (team && (g.home || g.away)
@@ -1228,7 +1291,7 @@
       if (showGameContext) {
         const sub = document.createElement('div');
         sub.className = 'sub';
-        sub.textContent = `${lane.teamsLabel} · ${formatWeekLabel(lane.week)}`;
+        sub.textContent = `${lane.teamsLabel} · ${formatWeekLabel(lane.week, lane.seasonKey)}`;
         labelEl.appendChild(sub);
       }
       row.appendChild(labelEl);
@@ -1260,7 +1323,7 @@
 
     function getOdds(gameId, season, week) {
       const seasonNum = Number(season);
-      const normalizedWeek = normalizeWeekValue(week);
+      const normalizedWeek = normalizeWeekValue(week, seasonNum);
       if (!Number.isFinite(seasonNum) || !Number.isFinite(normalizedWeek)) return null;
       const key = `${seasonNum}-${normalizedWeek}-${String(gameId)}`;
       return oddsIndex[key] || null;
@@ -1326,7 +1389,7 @@
         teamsLabel.textContent = `${teamA} vs ${teamB}`;
         const weekLabel = document.createElement('div');
         weekLabel.className = 'week-label';
-        weekLabel.textContent = formatWeekLabel(game.week);
+        weekLabel.textContent = formatWeekLabel(game.week, seasonKey);
         header.appendChild(teamsLabel);
         header.appendChild(weekLabel);
         card.appendChild(header);
@@ -1392,27 +1455,27 @@
         cardsEl.innerHTML = '';
         return;
       }
-      const weeks = getSeasonWeeks(season);
-      const week = normalizeWeekValue(weekSelect.value);
+      const weeks = getSeasonWeeks(season, seasonKey);
+      const week = normalizeWeekValue(weekSelect.value, seasonKey);
       if (!Number.isFinite(week)) {
         cardsEl.innerHTML = '<div class="empty">No games found for this week.</div>';
         return;
       }
-      const games = groupGamesForWeek(season, week);
+      const games = groupGamesForWeek(season, week, seasonKey);
       if (games.length === 0) {
         cardsEl.innerHTML = '<div class="empty">No games found for this week.</div>';
         return;
       }
 
-      const baseRatings = computeTeamAggregates(season, Math.max(1, week));
+      const baseRatings = computeTeamAggregates(season, Math.max(1, week), seasonKey);
       const noRatings = Object.keys(baseRatings).length === 0;
-      const ratings = mode === 'sos' ? computeSOSAdjustedRatings(season, Math.max(1, week), baseRatings) : baseRatings;
+      const ratings = mode === 'sos' ? computeSOSAdjustedRatings(season, Math.max(1, week), baseRatings, seasonKey) : baseRatings;
       if (noRatings) {
-        infoMessages.push(`No prior games available to compute ratings for ${formatWeekLabel(week)}.`);
+        infoMessages.push(`No prior games available to compute ratings for ${formatWeekLabel(week, seasonKey)}.`);
       }
       const ratingWeek = Math.max(0, week - 1);
-      const weeksLabel = weeks.length ? `${formatWeekLabel(weeks[0])}–${formatWeekLabel(weeks[weeks.length - 1])}` : 'n/a';
-      const ratingWeekText = ratingWeek > 0 ? formatWeekLabel(ratingWeek) : '0 (no prior games)';
+      const weeksLabel = weeks.length ? `${formatWeekLabel(weeks[0], seasonKey)}–${formatWeekLabel(weeks[weeks.length - 1], seasonKey)}` : 'n/a';
+      const ratingWeekText = ratingWeek > 0 ? formatWeekLabel(ratingWeek, seasonKey) : '0 (no prior games)';
       metaEl.textContent = `Weeks: ${weeksLabel}. Ratings through ${ratingWeekText} (${mode === 'sos' ? 'opponent-adjusted' : 'raw'}). Edge: + favors OFF, − favors DEF.`;
 
       const scale = computeScaleFromGames(games, ratings, mode, noRatings);
@@ -1429,7 +1492,7 @@
 
       renderGameCards(entriesToRender, lanesByGame, edgeCount, { seasonKey, scale, gameTotal: gameCount || gameEntries.length });
 
-      if (oddsPayload && !(oddsPayload.odds || []).some((o) => Number(o.season) === Number(seasonKey) && normalizeWeekValue(o.week) === week)) {
+      if (oddsPayload && !(oddsPayload.odds || []).some((o) => Number(o.season) === Number(seasonKey) && normalizeWeekValue(o.week, o?.season ?? seasonKey, o?.season_type) === week)) {
         infoMessages.push('Betting lines not available for this week yet.');
       }
 
@@ -1447,11 +1510,12 @@
     function onSeasonChange() {
       const season = data?.seasons?.[seasonSelect.value];
       if (!season) return;
-      const previousWeek = normalizeWeekValue(weekSelect.value);
-      const weeks = getSeasonWeeks(season);
-      fillSelect(weekSelect, weeks);
-      const latestWeek = weeks.length ? weeks[weeks.length - 1] : getCurrentWeek(season);
-      const overrideWeek = getWeekOverride(weeks);
+      const seasonKey = seasonSelect.value;
+      const previousWeek = normalizeWeekValue(weekSelect.value, seasonKey);
+      const weeks = getSeasonWeeks(season, seasonKey);
+      fillSelect(weekSelect, weeks, seasonKey);
+      const latestWeek = weeks.length ? weeks[weeks.length - 1] : getCurrentWeek(season, seasonKey);
+      const overrideWeek = getWeekOverride(weeks, seasonKey);
       const keepPrevious = userSelectedWeek && Number.isFinite(previousWeek) && weeks.includes(previousWeek);
       const defaultWeek = overrideWeek ?? (keepPrevious ? previousWeek : latestWeek);
       weekSelect.value = defaultWeek;
@@ -1468,7 +1532,7 @@
         oddsIndex = {};
         (oddsPayload.odds || []).forEach((o) => {
           const seasonNum = Number(o.season);
-          const weekNum = normalizeWeekValue(o.week);
+          const weekNum = normalizeWeekValue(o.week, seasonNum, o?.season_type);
           if (!Number.isFinite(seasonNum) || !Number.isFinite(weekNum)) return;
           const key = `${seasonNum}-${weekNum}-${String(o.game_id)}`;
           oddsIndex[key] = o;
@@ -1494,6 +1558,7 @@
         return;
       }
       await fetchSchedule();
+      computeRegMaxBySeasonFromSchedule();
       mergeScheduleIntoData();
       hideStatus();
       await fetchOdds();
