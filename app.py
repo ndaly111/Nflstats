@@ -194,21 +194,25 @@ def _parse_int(arg: str, default: Optional[int]) -> Optional[int]:
         return default
 
 
+def _regular_season_max(season: int) -> int:
+    # NFL moved to 18-week regular season starting 2021 season
+    return 18 if season >= 2021 else 17
+
+
 def _format_week_options(season: int, weeks: list[int]) -> list[dict[str, int | str]]:
-    playoff_labels = ["Super Bowl", "Conference Round", "Divisional Round", "Wild Card Round"]
-    total_weeks = len(weeks)
-    formatted = []
-    is_current_season = season == datetime.date.today().year
-    for idx, week in enumerate(weeks):
-        offset_from_end = total_weeks - 1 - idx
-        playoff_label = (
-            None
-            if is_current_season
-            else playoff_labels[offset_from_end]
-            if offset_from_end < len(playoff_labels)
-            else None
-        )
-        label = playoff_label or f"Week {week}"
+    playoff_labels = {
+        1: "Wild Card Round",
+        2: "Divisional Round",
+        3: "Conference Round",
+        4: "Super Bowl",
+    }
+    reg_max = _regular_season_max(season)
+
+    formatted: list[dict[str, int | str]] = []
+    for week in weeks:
+        label = f"Week {week}"
+        if week > reg_max:
+            label = playoff_labels.get(week - reg_max, label)
         formatted.append({"value": week, "label": label})
     return formatted
 
