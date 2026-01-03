@@ -394,15 +394,28 @@
       statusEl.textContent = '';
     }
 
-    const PLAYOFF_LABELS = ['Super Bowl', 'Conf. Round', 'Divisional Round', 'Wild Card Round'];
+    const PLAYOFF_LABELS_BY_ROUND = {
+      1: 'Wild Card Round',
+      2: 'Divisional Round',
+      3: 'Conf. Round',
+      4: 'Super Bowl',
+    };
 
-    function formatWeekLabel(week, index, totalWeeks, season) {
-      const isCurrentSeason = String(season) === String(new Date().getFullYear());
-      if (isCurrentSeason) return `Week ${week}`;
-      const offsetFromEnd = totalWeeks - 1 - index;
-      const playoffLabel = PLAYOFF_LABELS[offsetFromEnd];
-      if (playoffLabel) return playoffLabel;
-      return `Week ${week}`;
+    function regularSeasonMax(season) {
+      const s = Number(season);
+      // NFL moved to 18-week regular season starting 2021 season
+      return Number.isFinite(s) && s >= 2021 ? 18 : 17;
+    }
+
+    function formatWeekLabel(week, _index, _totalWeeks, season) {
+      const w = Number(week);
+      if (!Number.isFinite(w)) return `Week ${week}`;
+
+      const regMax = regularSeasonMax(season);
+      if (w <= regMax) return `Week ${w}`;
+
+      const round = w - regMax;
+      return PLAYOFF_LABELS_BY_ROUND[round] || `Week ${w}`;
     }
 
     function fillWeekSelect(selectEl, weeks, season) {
