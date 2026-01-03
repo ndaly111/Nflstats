@@ -270,9 +270,13 @@ jobs:
           python -c "import sqlite3; conn=sqlite3.connect('data/epa.sqlite'); conn.execute('PRAGMA wal_checkpoint(TRUNCATE);'); conn.close()"
           rm -f data/epa.sqlite-wal data/epa.sqlite-shm
 
+      - name: Update schedule + odds
+        run: |
+          python scripts/update_schedule_and_odds.py
+
       - name: Commit and push updates
         run: |
-          git add data/epa.sqlite data/epa.json
+          git add data/epa.sqlite data/epa.json data/schedule.json data/odds.json
           if git diff --cached --quiet; then
             echo "No changes to commit."
             exit 0
