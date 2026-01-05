@@ -433,6 +433,8 @@
       SEA: 'Seattle', SF: 'San Francisco', TB: 'Tampa Bay', TEN: 'Tennessee', WAS: 'Washington'
     };
 
+    const TEAM_ABBR_ALIASES = { LA: 'LAR' };
+
     const QUADRANT_BACKGROUND_COLORS = {
       'positive-positive': 'rgba(34, 197, 94, 0.12)',
       'positive-negative': 'rgba(56, 189, 248, 0.12)',
@@ -521,6 +523,53 @@
       if (value === null || value === undefined) return null;
       const parsed = Number(value);
       return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function normalizeTeamAbbr(abbr) {
+      const value = String(abbr || '').trim().toUpperCase();
+      return TEAM_ABBR_ALIASES[value] || value;
+    }
+
+    function normalizeSeasonPayloads(rawSeasons) {
+      if (!rawSeasons || typeof rawSeasons !== 'object') return {};
+      const normalized = {};
+
+      Object.entries(rawSeasons).forEach(([seasonKey, season]) => {
+        if (!season || typeof season !== 'object') return;
+        const seasonCopy = { ...season };
+        const teamsByAbbr = {};
+
+        if (Array.isArray(season.teams)) {
+          season.teams.forEach((teamEntry) => {
+            if (!teamEntry || typeof teamEntry !== 'object') return;
+            const abbr = normalizeTeamAbbr(teamEntry.team);
+            const weeks = {};
+            if (teamEntry.weeks && typeof teamEntry.weeks === 'object') {
+              Object.entries(teamEntry.weeks).forEach(([weekKey, values]) => {
+                weeks[weekKey] = values;
+              });
+            }
+            if (!teamsByAbbr[abbr]) {
+              teamsByAbbr[abbr] = { ...teamEntry, team: abbr, weeks };
+            } else {
+              teamsByAbbr[abbr].weeks = { ...teamsByAbbr[abbr].weeks, ...weeks };
+            }
+          });
+          seasonCopy.teams = Object.values(teamsByAbbr);
+        }
+
+        if (Array.isArray(season.games)) {
+          seasonCopy.games = season.games.map((game) => ({
+            ...game,
+            team: normalizeTeamAbbr(game.team),
+            opp: normalizeTeamAbbr(game.opp),
+          }));
+        }
+
+        normalized[seasonKey] = seasonCopy;
+      });
+
+      return normalized;
     }
 
     function showStatus(message, variant = 'info') {
@@ -842,7 +891,7 @@
           plugins: {
             legend: { display: false },
             title: { display: false },
-            subtitle: { display: true, text: subtitleParts.join(' — ') },
+            subtitle: { display: false, text: subtitleParts.join(' — ') },
             datalabels: {
               backgroundColor: null,
               borderWidth: 0,
@@ -1448,7 +1497,7 @@
         if (!json || typeof json !== 'object' || !json.seasons) {
           throw new Error('Unexpected JSON payload: missing seasons');
         }
-        seasonData = json.seasons;
+        seasonData = normalizeSeasonPayloads(json.seasons);
         if (!Object.keys(seasonData).length) throw new Error('No seasons found in data');
         setMetaText(json);
         populateSeasonControls(seasonData);
