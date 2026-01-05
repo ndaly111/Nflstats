@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-03T13:09:30Z",
+  "generated_at": "2026-01-05T16:41:00Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "seasons": {
     "2025": {
@@ -2179,6 +2179,54 @@
           "away": "CAR",
           "season_type": null,
           "game_type": "REG"
+        },
+        {
+          "game_id": "2025_19_GB_CHI",
+          "week": 19,
+          "home": "CHI",
+          "away": "GB",
+          "season_type": null,
+          "game_type": "WC"
+        },
+        {
+          "game_id": "2025_19_BUF_JAX",
+          "week": 19,
+          "home": "JAX",
+          "away": "BUF",
+          "season_type": null,
+          "game_type": "WC"
+        },
+        {
+          "game_id": "2025_19_SF_PHI",
+          "week": 19,
+          "home": "PHI",
+          "away": "SF",
+          "season_type": null,
+          "game_type": "WC"
+        },
+        {
+          "game_id": "2025_19_LAC_NE",
+          "week": 19,
+          "home": "NE",
+          "away": "LAC",
+          "season_type": null,
+          "game_type": "WC"
+        },
+        {
+          "game_id": "2025_19_HOU_PIT",
+          "week": 19,
+          "home": "PIT",
+          "away": "HOU",
+          "season_type": null,
+          "game_type": "WC"
+        },
+        {
+          "game_id": "2025_19_LA_CAR",
+          "week": 19,
+          "home": "CAR",
+          "away": "LA",
+          "season_type": null,
+          "game_type": "WC"
         }
       ]
     }
