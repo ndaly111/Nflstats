@@ -226,6 +226,67 @@
       margin-left: 0.35rem;
     }
 
+    .team-section {
+      margin-top: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      background: #ffffff;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+    }
+
+    .team-section h2 {
+      margin: 0 0 0.35rem;
+    }
+
+    .team-subtitle {
+      margin: 0 0 1rem;
+      color: var(--muted);
+    }
+
+    .team-controls {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .team-controls input[type="number"] {
+      width: 100%;
+      padding: 0.55rem 0.6rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    .team-chart-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .chart-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.75rem;
+      background: #fff;
+      height: 360px;
+    }
+
+    .chart-card h3 {
+      margin: 0 0 0.4rem;
+      font-size: 1.1rem;
+    }
+
+    .chart-card canvas {
+      width: 100% !important;
+      height: calc(100% - 1.6rem) !important;
+    }
+
   </style>
 </head>
 <body>
@@ -303,6 +364,51 @@
         </div>
       </section>
 
+      <section id="team-epa-section" class="team-section" aria-labelledby="team-epa-heading">
+        <h2 id="team-epa-heading">Team EPA by week</h2>
+        <p class="team-subtitle">View offensive, defensive, and combined EPA/play by week. Defensive values already use a higher-is-better convention.</p>
+
+        <div class="team-controls">
+          <div>
+            <label for="team-season-select">Season</label>
+            <select id="team-season-select"></select>
+          </div>
+          <div>
+            <label for="team-select">Team</label>
+            <select id="team-select"></select>
+          </div>
+          <div>
+            <label for="team-mode">EPA mode</label>
+            <select id="team-mode">
+              <option value="weekly" selected>Weekly value</option>
+              <option value="season_to_date_avg">Season-to-date average</option>
+              <option value="trailing_avg">Trailing average</option>
+            </select>
+          </div>
+          <div id="trailing-window-wrap">
+            <label for="trailing-window">Trailing window (weeks)</label>
+            <input type="number" id="trailing-window" min="2" max="8" step="1" value="3" />
+          </div>
+        </div>
+
+        <p id="team-weekly-note" class="team-subtitle" style="display: none;"></p>
+
+        <div class="team-chart-grid">
+          <div class="chart-card">
+            <h3>Combined EPA (Off + Def)</h3>
+            <canvas id="team-combined-chart" aria-label="Team combined EPA chart" role="img"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Offensive EPA</h3>
+            <canvas id="team-off-chart" aria-label="Team offense EPA chart" role="img"></canvas>
+          </div>
+          <div class="chart-card">
+            <h3>Defensive EPA</h3>
+            <canvas id="team-def-chart" aria-label="Team defense EPA chart" role="img"></canvas>
+          </div>
+        </div>
+      </section>
+
     <footer>
       <p><strong>Tip:</strong> values shown come from a bundled dataset (data/epa.json). Replace that file with your own weekly EPA snapshots to publish updated charts on GitHub Pages.</p>
     </footer>
@@ -342,15 +448,27 @@
     const metricModeSelect = document.getElementById('metric-mode');
     const sosBasisSelect = document.getElementById('sos-basis');
     const updateButton = document.getElementById('update-btn');
-    const ctx = document.getElementById('epa-chart').getContext('2d');
+    const scatterCtx = document.getElementById('epa-chart').getContext('2d');
     const tableSection = document.getElementById('table-section');
     const table = document.getElementById('epa-table');
     const tableBody = table.querySelector('tbody');
     const tableHeaders = table.querySelectorAll('th');
+    const teamSeasonSelect = document.getElementById('team-season-select');
+    const teamSelect = document.getElementById('team-select');
+    const teamModeSelect = document.getElementById('team-mode');
+    const trailingWindowWrap = document.getElementById('trailing-window-wrap');
+    const trailingWindowInput = document.getElementById('trailing-window');
+    const teamWeeklyNote = document.getElementById('team-weekly-note');
+    const teamCombinedCtx = document.getElementById('team-combined-chart').getContext('2d');
+    const teamOffCtx = document.getElementById('team-off-chart').getContext('2d');
+    const teamDefCtx = document.getElementById('team-def-chart').getContext('2d');
     const DATA_URL = new URL('data/epa.json', document.baseURI);
     DATA_URL.searchParams.set('v', Date.now().toString());
 
-    let chart;
+    let scatterChart;
+    let teamCombinedChart;
+    let teamOffChart;
+    let teamDefChart;
     let seasonData = {};
     const sortState = { column: null, direction: 'asc' };
 
@@ -379,6 +497,31 @@
         ctx.restore();
       }
     };
+
+    const zeroLinePlugin = {
+      id: 'zeroLine',
+      afterDraw(chartInstance) {
+        const { ctx, chartArea, scales } = chartInstance;
+        if (!chartArea || !scales?.y) return;
+        const yZero = scales.y.getPixelForValue(0);
+        if (!Number.isFinite(yZero)) return;
+        ctx.save();
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, yZero);
+        ctx.lineTo(chartArea.right, yZero);
+        ctx.stroke();
+        ctx.restore();
+      },
+    };
+
+    function toFiniteNumberOrNull(value) {
+      if (value === null || value === undefined) return null;
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
 
     function showStatus(message, variant = 'info') {
       statusEl.textContent = message;
@@ -661,8 +804,8 @@
         .filter(Boolean);
     }
 
-    function renderChart(points, seasonLabel, startWeek, endWeek, metricMode, sosBasis) {
-      if (chart) chart.destroy();
+    function renderScatterChart(points, seasonLabel, startWeek, endWeek, metricMode, sosBasis) {
+      if (scatterChart) scatterChart.destroy();
       const subtitle = startWeek === endWeek ? `Week ${startWeek}` : `Weeks ${startWeek}\u2013${endWeek}`;
       const subtitleParts = [subtitle];
       if (metricMode === 'sos') {
@@ -680,7 +823,7 @@
         ? 'Defense EPA per play (SOS-adjusted via opponent offenses)'
         : 'Defense EPA per play (higher = better defense)';
 
-      chart = new Chart(ctx, {
+      scatterChart = new Chart(scatterCtx, {
         type: 'scatter',
         data: { datasets: [{
           label: 'EPA per play',
@@ -733,6 +876,329 @@
         },
         plugins: [ChartDataLabels, quadrantPlugin],
       });
+    }
+
+    function buildTeamWeeklyRows(seasonKey, team) {
+      const season = seasonData[seasonKey];
+      if (!season) return { rows: [], reason: 'Season not found in dataset.' };
+      const entry = season.teams.find((t) => t.team === team);
+      if (!entry) return { rows: [], reason: 'Team not found for selected season.' };
+
+      const weeksPayload = entry.weeks || {};
+      const rows = Object.entries(weeksPayload)
+        .map(([week, payload]) => {
+          const off = toFiniteNumberOrNull(payload.off);
+          const def = toFiniteNumberOrNull(payload.def);
+          const offPlaysRaw = toFiniteNumberOrNull(payload.off_plays);
+          const defPlaysRaw = toFiniteNumberOrNull(payload.def_plays);
+          const offPlays = off === null ? null : offPlaysRaw;
+          const defPlays = def === null ? null : defPlaysRaw;
+          return {
+            week: Number(week),
+            off,
+            def,
+            offPlays,
+            defPlays,
+          };
+        })
+        .filter((row) => Number.isFinite(row.week) && (row.off !== null || row.def !== null))
+        .sort((a, b) => a.week - b.week);
+
+      const reason = rows.length
+        ? ''
+        : 'Weekly breakdown not available in this dataset export.';
+
+      return { rows, reason };
+    }
+
+    function computeModeSeries(values, weights, mode, window) {
+      const result = [];
+      const hasWeights = Array.isArray(weights)
+        && weights.some((w) => Number.isFinite(w) && Number(w) > 0);
+
+      if (mode === 'weekly') {
+        return values.map((v) => (Number.isFinite(v) ? v : null));
+      }
+
+      if (mode === 'season_to_date_avg') {
+        if (hasWeights) {
+          let numer = 0;
+          let denom = 0;
+          values.forEach((val, idx) => {
+            const valOk = Number.isFinite(val);
+            const weightRaw = Number(weights[idx]);
+            const weight = valOk && Number.isFinite(weightRaw) && weightRaw > 0 ? weightRaw : 0;
+            if (valOk && weight > 0) {
+              numer += val * weight;
+              denom += weight;
+            }
+            result.push(denom > 0 ? numer / denom : null);
+          });
+          return result;
+        }
+        let sum = 0;
+        let count = 0;
+        values.forEach((val) => {
+          if (Number.isFinite(val)) {
+            sum += val;
+            count += 1;
+          }
+          result.push(count ? sum / count : null);
+        });
+        return result;
+      }
+
+      if (mode === 'trailing_avg') {
+        if (hasWeights) {
+          const windowRows = [];
+          values.forEach((val, idx) => {
+            const valOk = Number.isFinite(val);
+            const weightRaw = Number(weights[idx]);
+            const weight = valOk && Number.isFinite(weightRaw) && weightRaw > 0 ? weightRaw : 0;
+            windowRows.push({ val, weight });
+            if (windowRows.length > window) windowRows.shift();
+            let numer = 0;
+            let denom = 0;
+            windowRows.forEach((row) => {
+              if (Number.isFinite(row.val) && row.weight > 0) {
+                numer += row.val * row.weight;
+                denom += row.weight;
+              }
+            });
+            result.push(denom > 0 ? numer / denom : null);
+          });
+          return result;
+        }
+        const windowVals = [];
+        values.forEach((val) => {
+          windowVals.push(val);
+          if (windowVals.length > window) windowVals.shift();
+          const valid = windowVals.filter((v) => Number.isFinite(v));
+          const avg = valid.length ? valid.reduce((acc, v) => acc + v, 0) / valid.length : null;
+          result.push(Number.isFinite(avg) ? avg : null);
+        });
+        return result;
+      }
+
+      return values.map(() => null);
+    }
+
+    function applyTeamEpaMode(rows, mode, window = 3) {
+      const offValues = rows.map((r) => r.off);
+      const defValues = rows.map((r) => r.def);
+      const offWeights = rows.map((r) => r.offPlays);
+      const defWeights = rows.map((r) => r.defPlays);
+
+      const offSeries = computeModeSeries(offValues, offWeights, mode, window);
+      const defSeries = computeModeSeries(defValues, defWeights, mode, window);
+
+      return rows.map((row, idx) => {
+        const offVal = offSeries[idx];
+        const defVal = defSeries[idx];
+        const netVal = Number.isFinite(offVal) && Number.isFinite(defVal) ? offVal + defVal : null;
+        return {
+          ...row,
+          offMode: offVal,
+          defMode: defVal,
+          netMode: netVal,
+        };
+      });
+    }
+
+    function destroyTeamCharts() {
+      if (teamCombinedChart) teamCombinedChart.destroy();
+      if (teamOffChart) teamOffChart.destroy();
+      if (teamDefChart) teamDefChart.destroy();
+    }
+
+    function buildLineOptions(titleText) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'top' },
+          title: { display: Boolean(titleText), text: titleText || '' },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const value = ctx.parsed?.y;
+                return `${ctx.dataset.label}: ${Number.isFinite(value) ? value.toFixed(3) : 'N/A'}`;
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Week' },
+            grid: { color: '#e2e8f0' },
+            ticks: { precision: 0 },
+          },
+          y: {
+            title: { display: true, text: 'EPA per play' },
+            grid: { color: '#e2e8f0' },
+          },
+        },
+      };
+    }
+
+    function renderTeamCharts() {
+      const seasonKey = teamSeasonSelect.value || seasonSelect.value;
+      const team = teamSelect.value;
+      if (!seasonKey || !team) return;
+
+      const { rows, reason } = buildTeamWeeklyRows(seasonKey, team);
+      if (!rows.length) {
+        destroyTeamCharts();
+        if (teamWeeklyNote) {
+          teamWeeklyNote.textContent = reason || 'Weekly breakdown not available for this team.';
+          teamWeeklyNote.style.display = '';
+        }
+        return;
+      }
+
+      if (teamWeeklyNote) {
+        teamWeeklyNote.textContent = '';
+        teamWeeklyNote.style.display = 'none';
+      }
+
+      const mode = teamModeSelect.value;
+      const trailingWindow = clampTrailingWindow(trailingWindowInput.value);
+      trailingWindowInput.value = trailingWindow;
+      toggleTrailingWindowControl(mode);
+
+      const transformed = applyTeamEpaMode(rows, mode, trailingWindow);
+      const labels = transformed.map((row) => row.week);
+      const teamColor = TEAM_COLORS[team] || '#0f172a';
+      const defColor = '#0ea5e9';
+
+      destroyTeamCharts();
+
+      teamCombinedChart = new Chart(teamCombinedCtx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Net EPA (Off + Def)',
+              data: transformed.map((row) => row.netMode),
+              borderColor: '#0f172a',
+              backgroundColor: 'transparent',
+              tension: 0.15,
+              borderWidth: 2.5,
+              spanGaps: true,
+            },
+            {
+              label: 'Offensive EPA',
+              data: transformed.map((row) => row.offMode),
+              borderColor: teamColor,
+              backgroundColor: 'transparent',
+              tension: 0.15,
+              borderWidth: 2,
+              spanGaps: true,
+            },
+            {
+              label: 'Defensive EPA',
+              data: transformed.map((row) => row.defMode),
+              borderColor: defColor,
+              backgroundColor: 'transparent',
+              tension: 0.15,
+              borderWidth: 2,
+              spanGaps: true,
+            },
+          ],
+        },
+        options: buildLineOptions('Combined view'),
+        plugins: [zeroLinePlugin],
+      });
+
+      teamOffChart = new Chart(teamOffCtx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Offensive EPA',
+              data: transformed.map((row) => row.offMode),
+              borderColor: teamColor,
+              backgroundColor: 'transparent',
+              tension: 0.15,
+              borderWidth: 2.5,
+              spanGaps: true,
+            },
+          ],
+        },
+        options: buildLineOptions(),
+        plugins: [zeroLinePlugin],
+      });
+
+      teamDefChart = new Chart(teamDefCtx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Defensive EPA',
+              data: transformed.map((row) => row.defMode),
+              borderColor: defColor,
+              backgroundColor: 'transparent',
+              tension: 0.15,
+              borderWidth: 2.5,
+              spanGaps: true,
+            },
+          ],
+        },
+        options: buildLineOptions(),
+        plugins: [zeroLinePlugin],
+      });
+    }
+
+    function toggleTrailingWindowControl(mode) {
+      if (!trailingWindowWrap) return;
+      trailingWindowWrap.style.display = mode === 'trailing_avg' ? '' : 'none';
+    }
+
+    function clampTrailingWindow(value) {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) return 3;
+      return Math.min(Math.max(parsed, 2), 8);
+    }
+
+    function populateTeamOptions(seasonKey) {
+      if (!teamSelect) return;
+      const season = seasonData[seasonKey];
+      if (!season) return;
+      const teams = season.teams.map((t) => t.team).sort();
+      const previous = teamSelect.value;
+      teamSelect.innerHTML = '';
+      teams.forEach((abbr) => {
+        const opt = document.createElement('option');
+        opt.value = abbr;
+        const display = TEAM_DISPLAY_NAMES[abbr] || abbr;
+        opt.textContent = `${display} (${abbr})`;
+        teamSelect.appendChild(opt);
+      });
+      if (teams.includes(previous)) {
+        teamSelect.value = previous;
+      }
+      if (!teamSelect.value && teams.length) {
+        teamSelect.value = teams[0];
+      }
+    }
+
+    function populateTeamSeasonControls(seasonsMap) {
+      if (!teamSeasonSelect) return;
+      teamSeasonSelect.innerHTML = '';
+      const sortedSeasonKeys = Object.keys(seasonsMap).sort();
+      sortedSeasonKeys.forEach((seasonKey) => {
+        const opt = document.createElement('option');
+        opt.value = seasonKey;
+        opt.textContent = seasonKey;
+        teamSeasonSelect.appendChild(opt);
+      });
+      const defaultSeason = seasonSelect.value || sortedSeasonKeys[sortedSeasonKeys.length - 1];
+      teamSeasonSelect.value = defaultSeason;
+      populateTeamOptions(defaultSeason);
     }
 
     function syncWeekRange() {
@@ -923,7 +1389,7 @@
       const rows = buildTeamRows(season, start, end, effectiveMetricMode, sosBasis, sosData);
       if (rows.length === 0) {
         showStatus('No EPA points available for that range. Try a different week selection.', 'error');
-        if (chart) chart.destroy();
+        if (scatterChart) scatterChart.destroy();
         renderTable([]);
         return;
       }
@@ -935,7 +1401,7 @@
         sosOff: effectiveMetricMode === 'sos' ? computeRanks(rows, 'sosOffFaced') : {},
         sosDef: effectiveMetricMode === 'sos' ? computeRanks(rows, 'sosDefFaced') : {},
       };
-      renderChart(points, season, start, end, effectiveMetricMode, sosBasis);
+      renderScatterChart(points, season, start, end, effectiveMetricMode, sosBasis);
       renderTable(rows, ranksByMetric, effectiveMetricMode);
       sortTable(sortState.column ?? 1, false);
     }
@@ -986,7 +1452,10 @@
         if (!Object.keys(seasonData).length) throw new Error('No seasons found in data');
         setMetaText(json);
         populateSeasonControls(seasonData);
+        populateTeamSeasonControls(seasonData);
+        toggleTrailingWindowControl(teamModeSelect.value);
         refreshChart();
+        renderTeamCharts();
       } catch (err) {
         console.error(err);
         showStatus(`Unable to load data: ${err.message}`, 'error');
@@ -1000,6 +1469,11 @@
       fillWeekSelect(weekEndSelect, selected.weeks, seasonSelect.value);
       weekEndSelect.value = selected.weeks[selected.weeks.length - 1];
       refreshChart();
+      if (teamSeasonSelect) {
+        teamSeasonSelect.value = seasonSelect.value;
+        populateTeamOptions(teamSeasonSelect.value);
+        renderTeamCharts();
+      }
     });
 
     weekStartSelect.addEventListener('change', () => syncWeekRange());
@@ -1010,7 +1484,27 @@
     });
     sosBasisSelect.addEventListener('change', refreshChart);
     updateButton.addEventListener('click', refreshChart);
+    if (teamSeasonSelect) {
+      teamSeasonSelect.addEventListener('change', () => {
+        populateTeamOptions(teamSeasonSelect.value);
+        renderTeamCharts();
+      });
+    }
+    if (teamSelect) teamSelect.addEventListener('change', renderTeamCharts);
+    if (teamModeSelect) {
+      teamModeSelect.addEventListener('change', () => {
+        toggleTrailingWindowControl(teamModeSelect.value);
+        renderTeamCharts();
+      });
+    }
+    if (trailingWindowInput) {
+      trailingWindowInput.addEventListener('change', () => {
+        trailingWindowInput.value = clampTrailingWindow(trailingWindowInput.value);
+        renderTeamCharts();
+      });
+    }
     updateSosControlsVisibility(metricModeSelect.value);
+    toggleTrailingWindowControl(teamModeSelect.value);
     bootstrap();
   </script>
 </body>

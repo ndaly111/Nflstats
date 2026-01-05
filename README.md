@@ -147,6 +147,20 @@ the thread to confirm whether it dispatched the workflow or lacked permission.
   fields. If you see `N/A` for wins/losses, rerun the backfill so scores are
   stored alongside EPA metrics.
 
+### Team EPA modes and definitions
+
+- `off_epa`: weekly offensive EPA/play (higher = better offense).
+- `def_epa`: weekly defensive EPA/play using a higher-is-better convention
+  (already oriented in the SQLite cache and JSON export).
+- `net_epa`: simple sum of offense + defense for that week or averaged window.
+- Mode selector in the static page:
+  - **Weekly**: plots the exact value for that week.
+  - **Season-to-date average**: expanding average through that week (weighted
+    by play counts when available).
+  - **Trailing average**: rolling N-week average (default 3 weeks, play-weighted
+    when play counts exist).
+
+
 ## Preview locally (optional)
 
 Open `index.html` in your browser (double-click from your file explorer or run
