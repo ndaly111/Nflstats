@@ -586,23 +586,87 @@
       statusEl.textContent = '';
     }
 
-    const PLAYOFF_LABELS = ['Super Bowl', 'Conf. Round', 'Divisional Round', 'Wild Card Round'];
+    const POSTSEASON_ORDER = ['WC', 'DIV', 'CON', 'SB'];
+    const POSTSEASON_LABELS = {
+      WC: 'Wild Card Round',
+      DIV: 'Divisional Round',
+      CON: 'Conf. Round',
+      SB: 'Super Bowl',
+    };
 
-    function formatWeekLabel(week, index, totalWeeks, season) {
-      const isCurrentSeason = String(season) === String(new Date().getFullYear());
-      if (isCurrentSeason) return `Week ${week}`;
-      const offsetFromEnd = totalWeeks - 1 - index;
-      const playoffLabel = PLAYOFF_LABELS[offsetFromEnd];
-      if (playoffLabel) return playoffLabel;
-      return `Week ${week}`;
+    function normalizeGameType(raw) {
+      const value = String(raw ?? '').trim().toUpperCase();
+      if (!value) return null;
+      if (value === 'REG' || value === 'REGULAR') return 'REG';
+      if (value === 'POST' || value === 'POSTSEASON' || value === '2') return 'POST';
+      if (['WC', 'WILDCARD', 'WILD CARD'].includes(value)) return 'WC';
+      if (['DIV', 'DIVISIONAL'].includes(value)) return 'DIV';
+      if (['CON', 'CONF', 'CONFERENCE', 'CHAMP', 'CONFERENCE CHAMPIONSHIP'].includes(value)) return 'CON';
+      if (['SB', 'SUPER BOWL', 'SUPERBOWL'].includes(value)) return 'SB';
+      return value;
+    }
+
+    function getGameType(game) {
+      if (game?.postseason === true) return 'POST';
+      return normalizeGameType(
+        game?.game_type ?? game?.gameType ?? game?.season_type ?? game?.seasonType ?? game?.type
+      );
+    }
+
+    function buildWeekTypeMap(season) {
+      const map = {};
+      if (!season || !Array.isArray(season.games)) return map;
+      season.games.forEach((game) => {
+        const week = game?.week;
+        if (week == null) return;
+        const type = getGameType(game);
+        if (!type) return;
+        if (POSTSEASON_LABELS[type]) {
+          map[String(week)] = type;
+        } else if (type === 'POST') {
+          map[String(week)] = 'POST';
+        } else if (type === 'REG' && !map[String(week)]) {
+          map[String(week)] = 'REG';
+        }
+      });
+      return map;
+    }
+
+    function getRegSeasonMax(season) {
+      const seasonNum = Number(season);
+      if (!Number.isFinite(seasonNum)) return 18;
+      return seasonNum >= 2021 ? 18 : 17;
+    }
+
+    function inferPostseasonLabel(week, season) {
+      const regMax = getRegSeasonMax(season);
+      const delta = Number(week) - regMax;
+      if (!Number.isFinite(delta) || delta <= 0 || delta > POSTSEASON_ORDER.length) return null;
+      const roundKey = POSTSEASON_ORDER[delta - 1];
+      return POSTSEASON_LABELS[roundKey] || null;
+    }
+
+    function formatWeekLabel(week, season) {
+      const weekKey = String(week ?? '');
+      const typeMap = season && season.games ? buildWeekTypeMap(season) : {};
+      const mappedType = typeMap[weekKey];
+      if (mappedType && POSTSEASON_LABELS[mappedType]) return POSTSEASON_LABELS[mappedType];
+      if (mappedType === 'POST') {
+        const inferred = inferPostseasonLabel(week, season?.season || season);
+        if (inferred) return inferred;
+      }
+      const normalized = normalizeGameType(weekKey);
+      if (normalized && POSTSEASON_LABELS[normalized]) return POSTSEASON_LABELS[normalized];
+      const postseasonLabel = inferPostseasonLabel(week, season?.season || season);
+      return postseasonLabel || `Week ${week}`;
     }
 
     function fillWeekSelect(selectEl, weeks, season) {
       selectEl.innerHTML = '';
-      weeks.forEach((week, index) => {
+      weeks.forEach((week) => {
         const option = document.createElement('option');
         option.value = week;
-        option.textContent = formatWeekLabel(week, index, weeks.length, season);
+        option.textContent = formatWeekLabel(week, seasonData?.[season] ?? season);
         selectEl.appendChild(option);
       });
     }
