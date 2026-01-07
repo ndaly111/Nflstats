@@ -242,6 +242,8 @@
     .db-dot.off { background: var(--offColor); border: 2px solid white; }
     .db-dot.def { background: #fff; border: 3px solid var(--defColor); }
     .db-placeholder { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.85rem; color: var(--muted); background: rgba(226, 232, 240, 0.4); border-radius: 999px; }
+    .inline-toggle { display: inline-flex; gap: 0.5rem; align-items: center; font-weight: 600; }
+    .inline-toggle input { accent-color: #0f172a; }
 
     @media (max-width: 640px) {
       body { padding: 1.5rem 1rem 2.5rem; }
@@ -290,6 +292,12 @@
           <button id="sos-btn" type="button">Opponent-adjusted</button>
         </div>
       </fieldset>
+      <div>
+        <label class="inline-toggle" for="momentum-toggle">
+          <input id="momentum-toggle" type="checkbox" />
+          Momentum Mode (last 3 games)
+        </label>
+      </div>
       <fieldset style="border: none; padding: 0; margin: 0;">
         <legend style="font-weight: 600; margin-bottom: 0.25rem; padding: 0;">Layout</legend>
         <div class="toggle" role="group" aria-label="Games vs ranked list">
@@ -299,7 +307,7 @@
       </fieldset>
     </section>
 
-    <p class="legend">Filled dot = offense EPA/play (team color). Ring dot = opponent defense strength (team color). Edge: <strong>+</strong> favors offense, <strong>−</strong> favors defense. <strong>Pxx</strong> = percentile of strength this week (NET for game badge; lane |Edge| in Ranked view). ≈ points uses EPA/play × 65. Rank (#/N) is shown in Ranked view.</p>
+    <p class="legend">Filled dot = offense EPA/play (team color). Ring dot = opponent defense strength (team color). Edge: <strong>+</strong> favors offense, <strong>−</strong> favors defense. <strong>Pxx</strong> = percentile of strength this week (NET for game badge; lane |Edge| in Ranked view). EPA×65 (≈65 offensive plays per team) is shown as the primary number; raw EPA/play is secondary. Rank (#/N) is shown in Ranked view.</p>
 
     <div id="cards" class="cards" aria-live="polite"></div>
   </main>
@@ -314,13 +322,15 @@
     const sosBtn = document.getElementById('sos-btn');
     const gamesBtn = document.getElementById('games-btn');
     const rankedBtn = document.getElementById('ranked-btn');
+    const momentumToggle = document.getElementById('momentum-toggle');
 
     const DATA_URL = new URL('data/epa.json', document.baseURI);
     const SCHEDULE_URL = new URL('data/schedule.json', document.baseURI);
     const ODDS_URL = new URL('data/odds.json', document.baseURI);
     const urlParams = new URLSearchParams(window.location.search);
 
-    const PLAYS_PER_GAME = 65;
+    const PLAYS_PER_TEAM_GAME = 65;
+    const MOMENTUM_WINDOW = 3;
 
     const TEAM_COLORS = {
       ARI: '#97233F', ATL: '#A71930', BAL: '#241773', BUF: '#00338D', CAR: '#0085CA', CHI: '#0B162A',
@@ -378,6 +388,7 @@
     let oddsPayload = null;
     let oddsIndex = {};
     let mode = 'raw';
+    let momentumMode = urlParams.get('momentum') === '1';
     let layoutMode = localStorage.getItem('layoutMode') || 'games';
     if (!['games', 'ranked'].includes(layoutMode)) layoutMode = 'games';
     let userSelectedWeek = false;
@@ -396,6 +407,13 @@
       statusEl.textContent = '';
     }
 
+    const POSTSEASON_ORDER = ['WC', 'DIV', 'CON', 'SB'];
+    const POSTSEASON_LABELS = {
+      WC: 'Wild Card Round',
+      DIV: 'Divisional Round',
+      CON: 'Conf. Round',
+      SB: 'Super Bowl',
+    };
     const PLAYOFF_ROUND_ORDER = {
       WC: 1,
       WILDCARD: 1,
@@ -403,6 +421,7 @@
       DIV: 2,
       DIVISIONAL: 2,
       CONF: 3,
+      CON: 3,
       CONFERENCE: 3,
       CHAMP: 3,
       'CONFERENCE CHAMPIONSHIP': 3,
@@ -412,6 +431,8 @@
     };
 
     const REG_MAX_BY_SEASON = {};
+    const WEEK_TYPE_CACHE = {};
+    const MOMENTUM_CACHE = {};
 
     function computeRegMaxBySeasonFromSchedule() {
       Object.keys(REG_MAX_BY_SEASON).forEach((k) => delete REG_MAX_BY_SEASON[k]);
@@ -456,7 +477,7 @@
       if (!raw) return NaN;
 
       const seasonKey = seasonNum != null ? String(seasonNum) : null;
-      const base = seasonKey && Number.isFinite(REG_MAX_BY_SEASON[seasonKey]) ? REG_MAX_BY_SEASON[seasonKey] : 18;
+      const base = getRegSeasonMax(seasonKey);
 
       const st = String(seasonType ?? '').trim().toUpperCase();
       const asNum = Number(raw);
@@ -475,17 +496,82 @@
       return NaN;
     }
 
+    function normalizeGameType(raw) {
+      const value = String(raw ?? '').trim().toUpperCase();
+      if (!value) return null;
+      if (value === 'REG' || value === 'REGULAR') return 'REG';
+      if (value === 'POST' || value === 'POSTSEASON' || value === '2') return 'POST';
+      if (['WC', 'WILDCARD', 'WILD CARD'].includes(value)) return 'WC';
+      if (['DIV', 'DIVISIONAL'].includes(value)) return 'DIV';
+      if (['CON', 'CONF', 'CONFERENCE', 'CHAMP', 'CONFERENCE CHAMPIONSHIP'].includes(value)) return 'CON';
+      if (['SB', 'SUPER BOWL', 'SUPERBOWL'].includes(value)) return 'SB';
+      return value;
+    }
+
+    function getGameType(game) {
+      if (game?.postseason === true) return 'POST';
+      return normalizeGameType(
+        game?.game_type ?? game?.gameType ?? game?.season_type ?? game?.seasonType ?? game?.type
+      );
+    }
+
+    function getRegSeasonMax(seasonNum = null) {
+      const seasonKey = seasonNum != null ? String(seasonNum) : null;
+      if (seasonKey && Number.isFinite(REG_MAX_BY_SEASON[seasonKey])) {
+        return REG_MAX_BY_SEASON[seasonKey];
+      }
+      const seasonNumber = Number(seasonNum);
+      if (!Number.isFinite(seasonNumber)) return 18;
+      return seasonNumber >= 2021 ? 18 : 17;
+    }
+
+    function inferPostseasonRound(weekValue, seasonNum = null) {
+      const regMax = getRegSeasonMax(seasonNum);
+      const delta = Number(weekValue) - regMax;
+      if (!Number.isFinite(delta) || delta < 1 || delta > POSTSEASON_ORDER.length) return null;
+      return POSTSEASON_ORDER[delta - 1] || null;
+    }
+
+    function getWeekTypeMap(seasonKey) {
+      if (WEEK_TYPE_CACHE[seasonKey]) return WEEK_TYPE_CACHE[seasonKey];
+      const season = data?.seasons?.[seasonKey];
+      if (!season) {
+        WEEK_TYPE_CACHE[seasonKey] = {};
+        return WEEK_TYPE_CACHE[seasonKey];
+      }
+      const map = {};
+      (season.games || []).forEach((g) => {
+        const week = normalizeWeekValue(g.week, seasonKey, g?.season_type);
+        if (!Number.isFinite(week)) return;
+        const type = getGameType(g);
+        if (!type) return;
+        if (POSTSEASON_ORDER.includes(type)) {
+          map[week] = type;
+          return;
+        }
+        if (type === 'POST' && !map[week]) {
+          map[week] = 'POST';
+        }
+        if (type === 'REG' && !map[week]) {
+          map[week] = 'REG';
+        }
+      });
+      WEEK_TYPE_CACHE[seasonKey] = map;
+      return map;
+    }
+
     function formatWeekLabel(value, seasonNum = null) {
       if (!Number.isFinite(value)) return 'Week ?';
       const seasonKey = seasonNum != null ? String(seasonNum) : null;
-      const base = seasonKey && REG_MAX_BY_SEASON[seasonKey] ? REG_MAX_BY_SEASON[seasonKey] : null;
-      if (base) {
-        const delta = value - base;
-        if (delta === 1) return 'WC';
-        if (delta === 2) return 'DIV';
-        if (delta === 3) return 'CONF';
-        if (delta === 4) return 'SB';
+      const typeMap = seasonKey ? getWeekTypeMap(seasonKey) : {};
+      const mappedType = typeMap?.[value];
+      if (mappedType && POSTSEASON_LABELS[mappedType]) return POSTSEASON_LABELS[mappedType];
+      if (mappedType === 'POST') {
+        const round = inferPostseasonRound(value, seasonNum);
+        if (round && POSTSEASON_LABELS[round]) return POSTSEASON_LABELS[round];
       }
+      const inferredRound = inferPostseasonRound(value, seasonNum);
+      if (inferredRound && POSTSEASON_LABELS[inferredRound]) return POSTSEASON_LABELS[inferredRound];
       return `Week ${value}`;
     }
 
@@ -562,9 +648,12 @@
           const away = normalizeTeam(g.away);
           if (!gameId || !Number.isFinite(week) || !home || !away) return;
 
+          const seasonType = g?.season_type ?? g?.seasonType ?? null;
+          const gameType = g?.game_type ?? g?.gameType ?? null;
+          const postseason = g?.postseason ?? null;
           const entries = [
-            { game_id: gameId, week, team: home, opp: away },
-            { game_id: gameId, week, team: away, opp: home },
+            { game_id: gameId, week, team: home, opp: away, season_type: seasonType, game_type: gameType, postseason },
+            { game_id: gameId, week, team: away, opp: home, season_type: seasonType, game_type: gameType, postseason },
           ];
 
           entries.forEach((entry) => {
@@ -640,12 +729,27 @@
         const keyA = _rowKey(gameId, weekNum, teamA, seasonNum, o?.season_type);
         const keyB = _rowKey(gameId, weekNum, teamB, seasonNum, o?.season_type);
         // Add missing directions independently (important for repairing one-sided games)
+        const seasonType = o?.season_type ?? o?.seasonType ?? null;
         if (!seen.has(keyA)) {
-          season.games.push({ game_id: gameId, week: weekNum, team: teamA, opp: teamB, _placeholder: true });
+          season.games.push({
+            game_id: gameId,
+            week: weekNum,
+            team: teamA,
+            opp: teamB,
+            season_type: seasonType,
+            _placeholder: true,
+          });
           seen.add(keyA);
         }
         if (!seen.has(keyB)) {
-          season.games.push({ game_id: gameId, week: weekNum, team: teamB, opp: teamA, _placeholder: true });
+          season.games.push({
+            game_id: gameId,
+            week: weekNum,
+            team: teamB,
+            opp: teamA,
+            season_type: seasonType,
+            _placeholder: true,
+          });
           seen.add(keyB);
         }
       });
@@ -697,12 +801,33 @@
           const kHome = _rowKey(gid, week, home, seasonNum, g?.season_type);
           const kAway = _rowKey(gid, week, away, seasonNum, g?.season_type);
 
+          const seasonType = g?.season_type ?? g?.seasonType ?? null;
+          const gameType = g?.game_type ?? g?.gameType ?? null;
+          const postseason = g?.postseason ?? null;
           if (!seen.has(kHome)) {
-            season.games.push({ game_id: gid, week, team: home, opp: away, _placeholder: true });
+            season.games.push({
+              game_id: gid,
+              week,
+              team: home,
+              opp: away,
+              season_type: seasonType,
+              game_type: gameType,
+              postseason,
+              _placeholder: true,
+            });
             seen.add(kHome);
           }
           if (!seen.has(kAway)) {
-            season.games.push({ game_id: gid, week, team: away, opp: home, _placeholder: true });
+            season.games.push({
+              game_id: gid,
+              week,
+              team: away,
+              opp: home,
+              season_type: seasonType,
+              game_type: gameType,
+              postseason,
+              _placeholder: true,
+            });
             seen.add(kAway);
           }
         });
@@ -726,12 +851,27 @@
 
         const kA = _rowKey(gameId, week, teamA, seasonNum, o?.season_type);
         const kB = _rowKey(gameId, week, teamB, seasonNum, o?.season_type);
+        const seasonType = o?.season_type ?? o?.seasonType ?? null;
         if (!seen.has(kA)) {
-          season.games.push({ game_id: gameId, week, team: teamA, opp: teamB, _placeholder: true });
+          season.games.push({
+            game_id: gameId,
+            week,
+            team: teamA,
+            opp: teamB,
+            season_type: seasonType,
+            _placeholder: true,
+          });
           seen.add(kA);
         }
         if (!seen.has(kB)) {
-          season.games.push({ game_id: gameId, week, team: teamB, opp: teamA, _placeholder: true });
+          season.games.push({
+            game_id: gameId,
+            week,
+            team: teamB,
+            opp: teamA,
+            season_type: seasonType,
+            _placeholder: true,
+          });
           seen.add(kB);
         }
       });
@@ -763,6 +903,71 @@
         byId[gameId].teams.push(enriched);
       });
       return Object.values(byId);
+    }
+
+    function weightedMeanEPA(samples) {
+      if (!Array.isArray(samples) || samples.length === 0) return null;
+      const valid = samples.filter((s) => Number.isFinite(s.epa) && Number.isFinite(s.plays) && s.plays > 0);
+      if (!valid.length) return null;
+      const totalPlays = valid.reduce((acc, s) => acc + s.plays, 0);
+      if (totalPlays <= 0) return null;
+      const totalEPA = valid.reduce((acc, s) => acc + s.epa * s.plays, 0);
+      return totalEPA / totalPlays;
+    }
+
+    function buildMomentumMap(season, seasonKey) {
+      if (MOMENTUM_CACHE[seasonKey]) return MOMENTUM_CACHE[seasonKey];
+      const byTeam = {};
+      (season.games || []).forEach((g) => {
+        const team = normalizeTeam(g.team || g.home || g.away);
+        const week = normalizeWeekValue(g.week, seasonKey, g?.season_type);
+        if (!team || !Number.isFinite(week)) return;
+        if (!byTeam[team]) byTeam[team] = [];
+        byTeam[team].push({ ...g, _week: week });
+      });
+
+      const momentum = {};
+      Object.entries(byTeam).forEach(([team, games]) => {
+        games.sort((a, b) => a._week - b._week);
+        const offHistory = [];
+        const defHistory = [];
+        momentum[team] = {};
+        games.forEach((game) => {
+          const offSlice = offHistory.slice(-MOMENTUM_WINDOW);
+          const defSlice = defHistory.slice(-MOMENTUM_WINDOW);
+          momentum[team][game._week] = {
+            off: weightedMeanEPA(offSlice),
+            def: weightedMeanEPA(defSlice),
+            offN: offSlice.length,
+            defN: defSlice.length,
+          };
+          if (Number.isFinite(game.off_epa_pp) && Number.isFinite(game.off_plays)) {
+            offHistory.push({ epa: game.off_epa_pp, plays: game.off_plays });
+          }
+          if (Number.isFinite(game.def_epa_pp) && Number.isFinite(game.def_plays)) {
+            defHistory.push({ epa: game.def_epa_pp, plays: game.def_plays });
+          }
+        });
+      });
+      MOMENTUM_CACHE[seasonKey] = momentum;
+      return momentum;
+    }
+
+    function applyMomentumRatings(baseRatings, season, week, seasonKey) {
+      const momentumMap = buildMomentumMap(season, seasonKey);
+      const ratings = {};
+      Object.entries(baseRatings).forEach(([team, entry]) => {
+        const momentum = momentumMap?.[team]?.[week] || {};
+        const offEPA = Number.isFinite(momentum.off) ? momentum.off : entry.offEPA;
+        const defEPA = Number.isFinite(momentum.def) ? momentum.def : entry.defEPA;
+        ratings[team] = {
+          ...entry,
+          offEPA,
+          defEPA,
+          momentumGames: Number.isFinite(momentum.offN) ? momentum.offN : 0,
+        };
+      });
+      return ratings;
     }
 
     function computeTeamAggregates(season, week, seasonKey = null) {
@@ -911,7 +1116,7 @@
     }
 
     function epaToPoints(epa) {
-      return Number.isFinite(epa) ? epa * PLAYS_PER_GAME : null;
+      return Number.isFinite(epa) ? epa * PLAYS_PER_TEAM_GAME : null;
     }
 
     function formatSigned(val, digits = 2) {
@@ -922,6 +1127,13 @@
     }
 
     function formatPoints(val, digits = 1) {
+      if (!Number.isFinite(val)) return '—';
+      const rounded = Number(val).toFixed(digits);
+      if (Number(rounded) === 0) return '≈ 0.0 pts';
+      return `≈ ${val > 0 ? '+' : '−'}${Math.abs(Number(rounded)).toFixed(digits)} pts`;
+    }
+
+    function formatPointsShort(val, digits = 1) {
       if (!Number.isFinite(val)) return '—';
       const rounded = Number(val).toFixed(digits);
       if (Number(rounded) === 0) return '≈ 0.0 pts';
@@ -1238,7 +1450,10 @@
 
       const valueEl = document.createElement('div');
       valueEl.className = 'value';
-      valueEl.textContent = formatSigned(lane.edge);
+      const pointsValue = (!isNoData && Number.isFinite(lane.edge))
+        ? formatPointsShort(epaToPoints(lane.edge))
+        : '—';
+      valueEl.textContent = pointsValue;
 
       const metaEl = document.createElement('div');
       metaEl.className = 'badge-sub';
@@ -1248,16 +1463,11 @@
         : lane.desc.direction === 'def'
           ? `${lane.def} Def`
           : 'Even';
-      const approxPoints = (!isNoData && !isEven && Number.isFinite(lane.edge))
-        ? Math.abs(lane.edge * PLAYS_PER_GAME)
-        : null;
-      const pointsLabel = Number.isFinite(approxPoints) ? `+${approxPoints.toFixed(1)}` : null;
+      const epaText = (!isNoData && Number.isFinite(lane.edge)) ? `EPA/play ${formatSigned(lane.edge)}` : null;
       const pctText = (!isNoData && lane.percentile != null) ? `P${lane.percentile}` : null;
       const rankText = showRankMeta && (!isNoData && lane.rank && totalEdges) ? `#${lane.rank}/${totalEdges}` : null;
-      const primaryLabel = isNoData
-        ? 'NO DATA'
-        : (isEven ? 'Even' : `${advantagedUnit}${pointsLabel ? ` ${pointsLabel}` : ''}`);
-      const metaParts = [primaryLabel];
+      const primaryLabel = isNoData ? 'NO DATA' : (isEven ? 'Even' : advantagedUnit);
+      const metaParts = [primaryLabel, epaText];
       if (showRankMeta && pctText) metaParts.push(pctText);
       if (rankText) metaParts.push(rankText);
       metaEl.textContent = metaParts.filter(Boolean).join(' · ');
@@ -1266,12 +1476,12 @@
         `${lane.off} Off EPA/play: ${formatNumber(lane.offEPA)}`,
         `${lane.def} Def EPA/play: ${formatNumber(lane.defEPA)}`,
         `Edge: ${formatNumber(lane.edge)}`,
+        `EPA×65: ${formatPoints(epaToPoints(lane.edge))}`,
         isNoData
           ? 'NO DATA'
           : (lane.desc.tier === 'EVEN' ? 'EVEN' : `${lane.desc.tier} ${lane.desc.direction === 'off' ? 'OFF' : 'DEF'}`),
         pctText,
         rankText,
-        (!isNoData && !isEven && pointsLabel) ? formatPoints(approxPoints) : null,
       ].filter(Boolean);
       badge.title = tooltipParts.join(' | ');
 
@@ -1339,13 +1549,14 @@
 
       const valueEl = document.createElement('div');
       valueEl.className = 'value';
-      valueEl.textContent = formatSigned(game.netEdge);
+      const netPoints = Number.isFinite(game.netEdge) ? formatPointsShort(epaToPoints(game.netEdge)) : '—';
+      valueEl.textContent = netPoints;
       const pointsEl = document.createElement('div');
       pointsEl.className = 'badge-sub';
       const pctText = showPercentile && Number.isFinite(game.percentile) ? `P${game.percentile}` : null;
       const rankText = showRankMeta && game.rank ? (gameTotal ? `#${game.rank}/${gameTotal}` : `#${game.rank}`) : null;
-      const approxPoints = Number.isFinite(game.netEdge) ? formatPoints(epaToPoints(game.netEdge)) : null;
-      const metaParts = [approxPoints, pctText, rankText].filter(Boolean);
+      const epaText = Number.isFinite(game.netEdge) ? `EPA/play ${formatSigned(game.netEdge)}` : null;
+      const metaParts = [epaText, pctText, rankText].filter(Boolean);
       pointsEl.textContent = metaParts.join(' · ');
 
       badge.appendChild(valueEl);
@@ -1403,12 +1614,12 @@
         const summaryText = document.createElement('div');
         summaryText.className = 'summary-text';
         const netSummary = game.winnerTeam
-          ? `NET: ${game.winnerTeam} ${formatSigned(game.netEdge)} (${formatPoints(epaToPoints(game.netEdge))})`
+          ? `NET: ${game.winnerTeam} ${formatPoints(epaToPoints(game.netEdge))} (${formatSigned(game.netEdge)} EPA/play)`
           : 'NET: —';
         summaryText.innerHTML = `<div>${netSummary}</div>`;
         const drivers = document.createElement('div');
         drivers.className = 'drivers';
-        drivers.textContent = `Components: OFF ${formatSigned(game.offDriver)} (${formatPoints(epaToPoints(game.offDriver))}) · DEF ${formatSigned(game.defDriver)} (${formatPoints(epaToPoints(game.defDriver))})`;
+        drivers.textContent = `Components: OFF ${formatPoints(epaToPoints(game.offDriver))} (${formatSigned(game.offDriver)} EPA/play) · DEF ${formatPoints(epaToPoints(game.defDriver))} (${formatSigned(game.defDriver)} EPA/play)`;
         if (game.winnerTeam) summaryText.appendChild(drivers);
         summaryRow.appendChild(summaryText);
         summaryRow.appendChild(buildNetBadge(game, gameTotal, { showRankMeta: layoutMode === 'ranked', showPercentile: true }));
@@ -1470,14 +1681,19 @@
 
       const baseRatings = computeTeamAggregates(season, Math.max(1, week), seasonKey);
       const noRatings = Object.keys(baseRatings).length === 0;
-      const ratings = mode === 'sos' ? computeSOSAdjustedRatings(season, Math.max(1, week), baseRatings, seasonKey) : baseRatings;
+      const momentumRatings = momentumMode ? applyMomentumRatings(baseRatings, season, week, seasonKey) : baseRatings;
+      const ratings = mode === 'sos'
+        ? computeSOSAdjustedRatings(season, Math.max(1, week), momentumRatings, seasonKey)
+        : momentumRatings;
       if (noRatings) {
         infoMessages.push(`No prior games available to compute ratings for ${formatWeekLabel(week, seasonKey)}.`);
       }
       const ratingWeek = Math.max(0, week - 1);
       const weeksLabel = weeks.length ? `${formatWeekLabel(weeks[0], seasonKey)}–${formatWeekLabel(weeks[weeks.length - 1], seasonKey)}` : 'n/a';
       const ratingWeekText = ratingWeek > 0 ? formatWeekLabel(ratingWeek, seasonKey) : '0 (no prior games)';
-      metaEl.textContent = `Weeks: ${weeksLabel}. Ratings through ${ratingWeekText} (${mode === 'sos' ? 'opponent-adjusted' : 'raw'}). Edge: + favors OFF, − favors DEF.`;
+      const modeText = mode === 'sos' ? 'opponent-adjusted' : 'raw';
+      const momentumText = momentumMode ? `, momentum last ${MOMENTUM_WINDOW} games` : '';
+      metaEl.textContent = `Weeks: ${weeksLabel}. Ratings through ${ratingWeekText} (${modeText}${momentumText}). Edge: + favors OFF, − favors DEF.`;
 
       const scale = computeScaleFromGames(games, ratings, mode, noRatings);
       const { gameEntries, lanes, lanesByGame } = buildGameEntries(games, ratings, { noRatings, week, seasonKey });
@@ -1565,6 +1781,8 @@
       await fetchOdds();
       mergeOddsScheduleIntoData();
       repairGamesFromScheduleAndOdds();
+      Object.keys(WEEK_TYPE_CACHE).forEach((key) => delete WEEK_TYPE_CACHE[key]);
+      Object.keys(MOMENTUM_CACHE).forEach((key) => delete MOMENTUM_CACHE[key]);
 
       const seasons = Object.keys(data.seasons || {}).sort((a, b) => Number(b) - Number(a));
       seasons.forEach((season) => {
@@ -1575,6 +1793,7 @@
       });
       const defaultSeason = seasons[0];
       seasonSelect.value = defaultSeason;
+      if (momentumToggle) momentumToggle.checked = momentumMode;
       onSeasonChange();
     }
 
@@ -1598,6 +1817,19 @@
       rawBtn.classList.remove('active');
       renderMatchups();
     });
+    if (momentumToggle) {
+      momentumToggle.addEventListener('change', () => {
+        momentumMode = momentumToggle.checked;
+        const url = new URL(window.location.href);
+        if (momentumMode) {
+          url.searchParams.set('momentum', '1');
+        } else {
+          url.searchParams.delete('momentum');
+        }
+        window.history.replaceState(null, '', url);
+        renderMatchups();
+      });
+    }
 
     gamesBtn.addEventListener('click', () => {
       layoutMode = 'games';
