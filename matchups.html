@@ -1773,6 +1773,7 @@
           const away = normalizeTeam(scheduleTeams.away || parsed?.away);
           if (!home || !away) return;
           o.spread_team = home;
+          o.spread = -spreadNum;
         });
         oddsIndex = {};
         (oddsPayload.odds || []).forEach((o) => {
