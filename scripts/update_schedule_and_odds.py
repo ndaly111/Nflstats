@@ -31,11 +31,71 @@ DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 EPA_PATH = DATA_DIR / "epa.json"
 SCHEDULE_PATH = DATA_DIR / "schedule.json"
 ODDS_PATH = DATA_DIR / "odds.json"
+ODDS_HISTORY_PATH = DATA_DIR / "odds_history.json"
 SOURCE_LABEL = "nflverse-data schedules/games via nflreadpy"
 
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def _safe_read_json(path: Path) -> dict:
+    try:
+        return json.loads(path.read_text())
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def load_odds_history_rows() -> list[dict]:
+    if not ODDS_HISTORY_PATH.exists():
+        return []
+    payload = _safe_read_json(ODDS_HISTORY_PATH)
+    rows = payload.get("history")
+    if isinstance(rows, list):
+        return rows
+    # Backwards/alternate key safety
+    rows = payload.get("odds")
+    return rows if isinstance(rows, list) else []
+
+
+def update_odds_history(existing_rows: list[dict], new_odds_rows: list[dict]) -> list[dict]:
+    """
+    Append only when spread/total changed for a given game_id.
+    Sort by updated_at string for stable charting.
+    """
+
+    def ts(row: dict) -> str:
+        return str(row.get("updated_at") or "")
+
+    rows = sorted(existing_rows, key=ts)
+
+    last_by_gid: dict[str, dict] = {}
+    for r in rows:
+        gid = r.get("game_id")
+        if gid:
+            last_by_gid[str(gid)] = r
+
+    for r in new_odds_rows:
+        gid = r.get("game_id")
+        if not gid:
+            continue
+        gid = str(gid)
+
+        spread = r.get("spread")
+        total = r.get("total")
+        if spread is None and total is None:
+            continue
+
+        last = last_by_gid.get(gid)
+        if last is not None and last.get("spread") == spread and last.get("total") == total:
+            continue
+
+        row_copy = dict(r)
+        rows.append(row_copy)
+        last_by_gid[gid] = row_copy
+
+    rows.sort(key=ts)
+    return rows
 
 
 def load_seasons() -> List[int]:
@@ -355,13 +415,23 @@ def main() -> None:
         SCHEDULE_PATH.write_text(json.dumps(schedule_payload, indent=2) + "\n")
         if preserve_existing_odds and existing_odds_text is not None:
             ODDS_PATH.write_text(existing_odds_text)
+            # If we preserved odds.json due to missing new odds, do not alter history.
         else:
             ODDS_PATH.write_text(json.dumps(odds_payload, indent=2) + "\n")
+
+            existing_rows = load_odds_history_rows()
+            updated_rows = update_odds_history(existing_rows, odds_entries)
+            history_payload = {
+                "generated_at": now_iso(),
+                "source": SOURCE_LABEL,
+                "history": updated_rows,
+            }
+            ODDS_HISTORY_PATH.write_text(json.dumps(history_payload, indent=2) + "\n")
     except Exception as exc:  # noqa: BLE001
         sys.exit(f"Failed to write output files: {exc}")
 
     print(f"{latest_season} week {final_week} games: {final_week_count}")
-    print(f"Wrote {SCHEDULE_PATH} and {ODDS_PATH}")
+    print(f"Wrote {SCHEDULE_PATH}, {ODDS_PATH}, and {ODDS_HISTORY_PATH}")
 
 
 if __name__ == "__main__":

@@ -298,6 +298,12 @@
           Momentum Mode (last 3 games)
         </label>
       </div>
+      <div>
+        <label class="inline-toggle" for="neutral-toggle">
+          <input id="neutral-toggle" type="checkbox" />
+          Neutral field (no +3)
+        </label>
+      </div>
       <fieldset style="border: none; padding: 0; margin: 0;">
         <legend style="font-weight: 600; margin-bottom: 0.25rem; padding: 0;">Layout</legend>
         <div class="toggle" role="group" aria-label="Games vs ranked list">
@@ -323,10 +329,12 @@
     const gamesBtn = document.getElementById('games-btn');
     const rankedBtn = document.getElementById('ranked-btn');
     const momentumToggle = document.getElementById('momentum-toggle');
+    const neutralToggle = document.getElementById('neutral-toggle');
 
     const DATA_URL = new URL('data/epa.json', document.baseURI);
     const SCHEDULE_URL = new URL('data/schedule.json', document.baseURI);
     const ODDS_URL = new URL('data/odds.json', document.baseURI);
+    const ODDS_HISTORY_URL = new URL('data/odds_history.json', document.baseURI);
     const urlParams = new URLSearchParams(window.location.search);
 
     const PLAYS_PER_TEAM_GAME = 65;
@@ -386,12 +394,23 @@
     let data;
     let schedulePayload = null;
     let oddsPayload = null;
+    let oddsHistoryPayload = null;
     let oddsIndex = {};
+    let oddsHistoryIndex = {};
     let mode = 'raw';
     let momentumMode = urlParams.get('momentum') === '1';
     let layoutMode = localStorage.getItem('layoutMode') || 'games';
     if (!['games', 'ranked'].includes(layoutMode)) layoutMode = 'games';
     let userSelectedWeek = false;
+    let neutralField = localStorage.getItem('neutralField') === '1';
+    if (neutralToggle) {
+      neutralToggle.checked = neutralField;
+      neutralToggle.addEventListener('change', () => {
+        neutralField = neutralToggle.checked;
+        localStorage.setItem('neutralField', neutralField ? '1' : '0');
+        renderMatchups();
+      });
+    }
 
     function showStatus(message, variant = 'info') {
       statusEl.textContent = message;
@@ -616,6 +635,32 @@
       } catch (err) {
         schedulePayload = null;
         console.warn('Schedule not available', err);
+      }
+    }
+
+    async function fetchOddsHistory() {
+      try {
+        const oddsHistoryUrl = new URL(ODDS_HISTORY_URL);
+        oddsHistoryUrl.searchParams.set('v', String(Date.now()));
+        const res = await fetch(oddsHistoryUrl, { cache: 'no-store' });
+        if (!res.ok) throw new Error('Failed to load odds history');
+        oddsHistoryPayload = await res.json();
+
+        oddsHistoryIndex = {};
+        const rows = Array.isArray(oddsHistoryPayload?.history) ? oddsHistoryPayload.history : [];
+        rows.forEach((r) => {
+          const gid = r?.game_id || r?.gameId;
+          if (!gid) return;
+          (oddsHistoryIndex[gid] ||= []).push(r);
+        });
+
+        Object.values(oddsHistoryIndex).forEach((arr) => {
+          arr.sort((a, b) => String(a?.updated_at || '').localeCompare(String(b?.updated_at || '')));
+        });
+      } catch (err) {
+        oddsHistoryPayload = null;
+        oddsHistoryIndex = {};
+        console.warn('Odds history not available', err);
       }
     }
 
@@ -1140,6 +1185,22 @@
       return `≈ ${val > 0 ? '+' : '−'}${Math.abs(Number(rounded)).toFixed(digits)} pts`;
     }
 
+    function roundHalf(x) {
+      return Math.round(Number(x) * 2) / 2;
+    }
+
+    // model_margin is HOME - AWAY in points
+    function computeEdgeVsSpread(modelMargin, homeSpread) {
+      const spread = Number(homeSpread);
+      if (!Number.isFinite(modelMargin) || !Number.isFinite(spread)) return null;
+      const edge = modelMargin + spread;
+      return {
+        edge,
+        edgeRounded: roundHalf(edge),
+        pick: edge >= 0 ? 'HOME' : 'AWAY',
+      };
+    }
+
     function describeAdvantage(edge) {
       if (!Number.isFinite(edge)) return { strength: 'nodata', direction: 'nodata', tier: 'NO DATA' };
       if (edge >= 0.06) return { strength: 'strong', direction: 'off', tier: 'STRONG' };
@@ -1586,6 +1647,117 @@
       return detail;
     }
 
+    function buildSparkline(values, { width = 260, height = 44, pad = 4 } = {}) {
+      const pts = (values || []).map((v) => Number(v)).filter((v) => Number.isFinite(v));
+      if (pts.length < 2) return null;
+
+      const min = Math.min(...pts);
+      const max = Math.max(...pts);
+      const span = (max - min) || 1;
+
+      const w = width - pad * 2;
+      const h = height - pad * 2;
+
+      const xy = pts.map((v, i) => {
+        const x = pad + (w * (i / (pts.length - 1)));
+        const y = pad + (h - (h * ((v - min) / span)));
+        return [x, y];
+      });
+
+      let d = `M ${xy[0][0].toFixed(2)} ${xy[0][1].toFixed(2)}`;
+      for (let i = 1; i < xy.length; i += 1) {
+        d += ` L ${xy[i][0].toFixed(2)} ${xy[i][1].toFixed(2)}`;
+      }
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      svg.setAttribute('width', width);
+      svg.setAttribute('height', height);
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', '#0f172a');
+      path.setAttribute('stroke-width', '2');
+      path.setAttribute('stroke-linecap', 'round');
+
+      svg.appendChild(path);
+      return svg;
+    }
+
+    function buildOddsMovementBlock(gameId) {
+      const wrap = document.createElement('div');
+      wrap.className = 'details';
+
+      const hist = oddsHistoryIndex?.[gameId] || [];
+      if (hist.length < 2) {
+        wrap.textContent = 'Line movement: not enough history yet.';
+        return wrap;
+      }
+
+      const spreads = hist.map((r) => r.spread);
+      const totals = hist.map((r) => r.total);
+
+      const spreadSpark = buildSparkline(spreads);
+      const totalSpark = buildSparkline(totals);
+
+      const container = document.createElement('div');
+      container.style.display = 'grid';
+      container.style.gap = '0.35rem';
+
+      if (spreadSpark) {
+        const row = document.createElement('div');
+        row.innerHTML = `<strong>Spread movement</strong>`;
+        row.appendChild(spreadSpark);
+        container.appendChild(row);
+      }
+
+      if (totalSpark) {
+        const row = document.createElement('div');
+        row.innerHTML = `<strong>Total movement</strong>`;
+        row.appendChild(totalSpark);
+        container.appendChild(row);
+      }
+
+      wrap.appendChild(container);
+      return wrap;
+    }
+
+    function computeModelMargin(game, parsed) {
+      const [rawA, rawB] = game.teams;
+      const teamA = normalizeTeam(rawA);
+      const teamB = normalizeTeam(rawB);
+      const home = normalizeTeam(parsed?.home);
+      const away = normalizeTeam(parsed?.away);
+      if (!home || !away) return null;
+
+      const homeOffEPA = home === teamA ? game.offA : (home === teamB ? game.offB : null);
+      const homeDefEPA = home === teamA ? game.defA : (home === teamB ? game.defB : null);
+      const awayOffEPA = away === teamA ? game.offA : (away === teamB ? game.offB : null);
+      const awayDefEPA = away === teamA ? game.defA : (away === teamB ? game.defB : null);
+
+      if (![homeOffEPA, homeDefEPA, awayOffEPA, awayDefEPA].every(Number.isFinite)) return null;
+
+      const homeOffEdge = homeOffEPA - awayDefEPA;
+      const awayOffEdge = awayOffEPA - homeDefEPA;
+      const netEpaDiffHome = homeOffEdge - awayOffEdge;
+      let modelMargin = netEpaDiffHome * PLAYS_PER_TEAM_GAME;
+      if (!neutralField) modelMargin += 3;
+      return modelMargin;
+    }
+
+    function getHomeSpreadFromOdds(odds, home, away) {
+      const spread = Number(odds?.spread);
+      if (!Number.isFinite(spread)) return NaN;
+
+      const spreadTeam = normalizeTeam(odds?.spread_team);
+      const homeTeam = normalizeTeam(home);
+      const awayTeam = normalizeTeam(away);
+
+      if (spreadTeam && awayTeam && homeTeam && spreadTeam === awayTeam) return -spread;
+      return spread;
+    }
+
     function renderGameCards(gameEntries, lanesByGame, edgeCount, { seasonKey, scale, gameTotal }) {
       cardsEl.innerHTML = '';
       cardsEl.classList.toggle('ranked', layoutMode === 'ranked');
@@ -1652,6 +1824,36 @@
         const metaText = metaParts.length ? metaParts.join(' · ') : '';
         oddsRow.innerHTML = `<span>${oddsPieces[0]}</span><span>${oddsPieces[1]}</span>${metaText ? `<span class="odds-meta">${metaText}</span>` : ''}`;
         card.appendChild(oddsRow);
+
+        card.appendChild(buildOddsMovementBlock(game.game_id));
+
+        const parsed = parseGameId(game.game_id);
+        const home = normalizeTeam(parsed?.home);
+        const away = normalizeTeam(parsed?.away);
+        const modelMargin = computeModelMargin(game, parsed);
+        const homeSpread = getHomeSpreadFromOdds(odds, home, away);
+        const edgeInfo = computeEdgeVsSpread(modelMargin, homeSpread);
+
+        const betBox = document.createElement('div');
+        betBox.className = 'details';
+
+        if (!Number.isFinite(modelMargin) || !edgeInfo || !home || !away) {
+          betBox.textContent = 'Model vs spread: unavailable (missing EPA or spread).';
+        } else {
+          const fav = modelMargin >= 0 ? home : away;
+          const pts = roundHalf(Math.abs(modelMargin));
+          const pick = edgeInfo.pick === 'HOME' ? home : away;
+          const spreadNumDisplay = Number(homeSpread);
+
+          betBox.innerHTML = `
+            <strong>Model vs Spread</strong><br>
+            Model: ${fav} -${pts.toFixed(1)} ${neutralField ? '(neutral)' : '(+3 HFA)'}<br>
+            Market: ${home} ${spreadNumDisplay > 0 ? '+' : ''}${spreadNumDisplay.toFixed(1)}<br>
+            Edge: ${edgeInfo.edgeRounded > 0 ? '+' : ''}${edgeInfo.edgeRounded.toFixed(1)} → <strong>${pick}</strong>
+          `;
+        }
+
+        card.appendChild(betBox);
 
         cardsEl.appendChild(card);
       });
@@ -1808,6 +2010,7 @@
       mergeScheduleIntoData();
       hideStatus();
       await fetchOdds();
+      await fetchOddsHistory();
       mergeOddsScheduleIntoData();
       repairGamesFromScheduleAndOdds();
       Object.keys(WEEK_TYPE_CACHE).forEach((key) => delete WEEK_TYPE_CACHE[key]);
