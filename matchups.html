@@ -372,15 +372,15 @@
 
     function parseGameId(gameId) {
       const parts = String(gameId ?? '').split('_');
-      // Expected: SEASON_WEEK_TEAM_TEAM (e.g., 2025_18_BUF_MIA or 2025_WC_BUF_MIA)
+      // Expected: SEASON_WEEK_AWAY_HOME (e.g., 2025_18_BUF_MIA or 2025_WC_BUF_MIA)
       if (parts.length < 4) return null;
       const season = _parseIntLoose(parts[0]);
       const weekToken = parts[1];
       const week = normalizeWeekValue(weekToken, season, null);
-      const teamA = parts[2];
-      const teamB = parts[3];
-      if (!Number.isFinite(season) || !Number.isFinite(week) || !teamA || !teamB) return null;
-      return { season, week, teamA, teamB };
+      const away = parts[2];
+      const home = parts[3];
+      if (!Number.isFinite(season) || !Number.isFinite(week) || !away || !home) return null;
+      return { season, week, teamA: away, teamB: home, away, home };
     }
 
     let data;
@@ -1746,6 +1746,34 @@
         const res = await fetch(oddsUrl, { cache: 'no-store' });
         if (!res.ok) throw new Error('Failed to load odds');
         oddsPayload = normalizeOdds(await res.json());
+        const scheduleMap = {};
+        const schedules = Array.isArray(schedulePayload?.schedules)
+          ? schedulePayload.schedules
+          : Object.entries(schedulePayload?.seasons || {}).map(([season, sched]) => ({
+              season,
+              games: sched?.games || [],
+            }));
+        schedules.forEach((sched) => {
+          (sched?.games || []).forEach((g) => {
+            if (!g?.game_id) return;
+            scheduleMap[g.game_id] = {
+              home: normalizeTeam(g?.home),
+              away: normalizeTeam(g?.away),
+            };
+          });
+        });
+        (oddsPayload.odds || []).forEach((o) => {
+          if (o?.spread_team) return;
+          const spreadNum = Number(o?.spread);
+          if (!Number.isFinite(spreadNum)) return;
+          const gameId = o?.game_id || o?.gameId;
+          const scheduleTeams = scheduleMap[gameId] || {};
+          const parsed = parseGameId(gameId);
+          const home = normalizeTeam(scheduleTeams.home || parsed?.home);
+          const away = normalizeTeam(scheduleTeams.away || parsed?.away);
+          if (!home || !away) return;
+          o.spread_team = home;
+        });
         oddsIndex = {};
         (oddsPayload.odds || []).forEach((o) => {
           const seasonNum = Number(o.season);
