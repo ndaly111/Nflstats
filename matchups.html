@@ -245,6 +245,122 @@
     .inline-toggle { display: inline-flex; gap: 0.5rem; align-items: center; font-weight: 600; }
     .inline-toggle input { accent-color: #0f172a; }
 
+    /* --- Model vs Spread callout --- */
+    .bet-box{
+      margin-top: 0.75rem;
+      padding: 0.75rem 0.75rem 0.65rem;
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
+    }
+
+    .bet-box::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:0;
+      bottom:0;
+      width:6px;
+      background: var(--accent, #0f172a);
+      border-radius: 14px 0 0 14px;
+    }
+
+    .bet-box__header{
+      display:flex;
+      justify-content:space-between;
+      align-items:baseline;
+      gap:0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .bet-box__title{
+      font-weight: 800;
+      color:#0f172a;
+    }
+
+    .bet-box__note{
+      font-size: 0.8rem;
+      font-weight: 700;
+      color:#475569;
+      background: rgba(15,23,42,0.06);
+      padding: 0.15rem 0.45rem;
+      border-radius: 999px;
+    }
+
+    .bet-box__grid{
+      display:grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.2rem 0.75rem;
+      align-items:baseline;
+    }
+
+    .bet-box__k{
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color:#64748b;
+    }
+
+    .bet-box__v{
+      font-size: 0.95rem;
+      font-weight: 700;
+      color:#0f172a;
+    }
+
+    .bet-box__result{
+      margin-top: 0.55rem;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 0.75rem;
+      padding: 0.55rem 0.6rem;
+      border-radius: 12px;
+      background:#fff;
+      border:1px solid #e2e8f0;
+    }
+
+    .bet-box__edge-k,
+    .bet-box__pick-k{
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color:#64748b;
+    }
+
+    .bet-box__edge-v{
+      font-size: 1.35rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .bet-box--pos .bet-box__edge-v{ color:#166534; }
+    .bet-box--neg .bet-box__edge-v{ color:#9f1239; }
+    .bet-box--pos { background: #f0fdf4; border-color: #bbf7d0; }
+    .bet-box--neg { background: #fff1f2; border-color: #fecdd3; }
+    .bet-box--pos .bet-box__result { border-color: #bbf7d0; }
+    .bet-box--neg .bet-box__result { border-color: #fecdd3; }
+
+    .bet-box__pick-v{
+      font-weight: 900;
+      padding: 0.25rem 0.55rem;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.06);
+      border: 1px solid var(--accent, rgba(15,23,42,0.12));
+      color:#0f172a;
+    }
+
+    @media (max-width:520px){
+      .bet-box__result{
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
     @media (max-width: 640px) {
       body { padding: 1.5rem 1rem 2.5rem; }
       .controls { grid-template-columns: 1fr; }
@@ -1194,10 +1310,14 @@
       const spread = Number(homeSpread);
       if (!Number.isFinite(modelMargin) || !Number.isFinite(spread)) return null;
       const edge = modelMargin + spread;
+      const edgeRounded = roundHalf(edge);
+      let pick = 'AWAY';
+      if (edgeRounded > 0) pick = 'HOME';
+      if (edgeRounded === 0) pick = 'PUSH';
       return {
         edge,
-        edgeRounded: roundHalf(edge),
-        pick: edge >= 0 ? 'HOME' : 'AWAY',
+        edgeRounded,
+        pick,
       };
     }
 
@@ -1686,13 +1806,13 @@
     }
 
     function buildOddsMovementBlock(gameId) {
-      const wrap = document.createElement('div');
-      wrap.className = 'details';
+      const container = document.createElement('div');
+      container.className = 'details';
 
       const hist = oddsHistoryIndex?.[gameId] || [];
       if (hist.length < 2) {
-        wrap.textContent = 'Line movement: not enough history yet.';
-        return wrap;
+        container.textContent = 'Line movement: not enough history yet.';
+        return container;
       }
 
       const spreads = hist.map((r) => r.spread);
@@ -1701,26 +1821,26 @@
       const spreadSpark = buildSparkline(spreads);
       const totalSpark = buildSparkline(totals);
 
-      const container = document.createElement('div');
-      container.style.display = 'grid';
-      container.style.gap = '0.35rem';
+      const grid = document.createElement('div');
+      grid.style.display = 'grid';
+      grid.style.gap = '0.35rem';
 
       if (spreadSpark) {
         const row = document.createElement('div');
         row.innerHTML = `<strong>Spread movement</strong>`;
         row.appendChild(spreadSpark);
-        container.appendChild(row);
+        grid.appendChild(row);
       }
 
       if (totalSpark) {
         const row = document.createElement('div');
         row.innerHTML = `<strong>Total movement</strong>`;
         row.appendChild(totalSpark);
-        container.appendChild(row);
+        grid.appendChild(row);
       }
 
-      wrap.appendChild(container);
-      return wrap;
+      container.appendChild(grid);
+      return container;
     }
 
     function computeModelMargin(game, parsed) {
@@ -1835,21 +1955,52 @@
         const edgeInfo = computeEdgeVsSpread(modelMargin, homeSpread);
 
         const betBox = document.createElement('div');
-        betBox.className = 'details';
 
         if (!Number.isFinite(modelMargin) || !edgeInfo || !home || !away) {
-          betBox.textContent = 'Model vs spread: unavailable (missing EPA or spread).';
+          betBox.className = 'bet-box';
+          betBox.innerHTML = `
+            <div class="bet-box__header">
+              <div class="bet-box__title">Model vs Spread</div>
+            </div>
+            <div class="bet-box__v">Unavailable (missing EPA or spread).</div>
+          `;
         } else {
           const fav = modelMargin >= 0 ? home : away;
           const pts = roundHalf(Math.abs(modelMargin));
-          const pick = edgeInfo.pick === 'HOME' ? home : away;
+          const pick = edgeInfo.pick === 'HOME' ? home : edgeInfo.pick === 'AWAY' ? away : 'PUSH';
           const spreadNumDisplay = Number(homeSpread);
 
+          const edgeClass = edgeInfo.edgeRounded > 0 ? 'bet-box--pos' : edgeInfo.edgeRounded < 0 ? 'bet-box--neg' : '';
+          betBox.className = `bet-box ${edgeClass}`;
+
+          const accent = pick === 'PUSH' ? '#0f172a' : (TEAM_COLORS[normalizeTeam(pick)] || '#0f172a');
+          betBox.style.setProperty('--accent', accent);
+
           betBox.innerHTML = `
-            <strong>Model vs Spread</strong><br>
-            Model: ${fav} -${pts.toFixed(1)} ${neutralField ? '(neutral)' : '(+3 HFA)'}<br>
-            Market: ${home} ${spreadNumDisplay > 0 ? '+' : ''}${spreadNumDisplay.toFixed(1)}<br>
-            Edge: ${edgeInfo.edgeRounded > 0 ? '+' : ''}${edgeInfo.edgeRounded.toFixed(1)} → <strong>${pick}</strong>
+            <div class="bet-box__header">
+              <div class="bet-box__title">Model vs Spread</div>
+              <div class="bet-box__note">${neutralField ? 'Neutral' : '+3 HFA'}</div>
+            </div>
+
+            <div class="bet-box__grid">
+              <div class="bet-box__k">Model</div>
+              <div class="bet-box__v">${fav} -${pts.toFixed(1)}</div>
+
+              <div class="bet-box__k">Market</div>
+              <div class="bet-box__v">${home} ${spreadNumDisplay > 0 ? '+' : ''}${spreadNumDisplay.toFixed(1)}</div>
+            </div>
+
+            <div class="bet-box__result">
+              <div>
+                <div class="bet-box__edge-k">Edge</div>
+                <div class="bet-box__edge-v">${edgeInfo.edgeRounded > 0 ? '+' : ''}${edgeInfo.edgeRounded.toFixed(1)}</div>
+              </div>
+
+              <div>
+                <div class="bet-box__pick-k">Right side</div>
+                <div class="bet-box__pick-v">${pick}</div>
+              </div>
+            </div>
           `;
         }
 
