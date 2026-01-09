@@ -6,7 +6,7 @@ once the data is bundled, and the browser never queries SQLite.
 
 ## Update the data using GitHub Actions (no local runs needed)
 
-Use the **"Update EPA data"** workflow. It runs automatically once per week and
+Use the **"Update EPA data"** workflow. It runs automatically once per day and
 can also be triggered manually with three modes:
 
 - `update_current` (default): refreshes the in-progress NFL season (January–August
