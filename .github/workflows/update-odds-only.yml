@@ -1,0 +1,60 @@
+name: Update odds history
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: odds-only
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Sync to latest branch HEAD
+        run: |
+          set -euo pipefail
+          branch="${GITHUB_REF_NAME}"
+          git fetch origin "$branch"
+          git checkout -B "$branch" "origin/$branch"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update schedule + odds
+        run: |
+          python scripts/update_schedule_and_odds.py
+
+      - name: Commit and push updates
+        run: |
+          git add data/schedule.json data/odds.json data/odds_history.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "chore: update odds history"
+          branch="${GITHUB_REF_NAME}"
+          git push origin HEAD:"$branch"
