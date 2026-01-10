@@ -214,6 +214,23 @@
     .edge-badge .badge-sub, .net-badge .badge-sub { font-size: 0.9rem; color: var(--muted); font-weight: 600; }
 
     .legend { color: var(--muted); margin: 0 0 1rem; font-size: 0.95rem; }
+    .page-help {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      padding: 0.5rem 0.75rem;
+      margin: 0 0 1rem;
+    }
+    .page-help summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .page-help .legend {
+      margin: 0.5rem 0 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
 
     .details { font-size: 0.9rem; color: var(--muted); }
     .details summary { cursor: pointer; font-weight: 600; }
@@ -221,8 +238,62 @@
 
     .odds { color: var(--muted); font-size: 0.95rem; display: flex; justify-content: space-between; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
     .odds .odds-meta { flex-basis: 100%; font-size: 0.9rem; color: var(--muted); }
+    .odds-info {
+      font-size: 0.85rem;
+      opacity: 0.55;
+      cursor: help;
+      user-select: none;
+    }
+
+    .betting-strip {
+      margin-top: 0.75rem;
+      display: grid;
+      gap: 0.6rem;
+    }
+
+    .odds-movement {
+      display: grid;
+      gap: 0.55rem;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .spark-row {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .spark-meta {
+      line-height: 1.05;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .spark-meta .k {
+      display: block;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      opacity: 0.85;
+    }
+
+    .spark-meta .v {
+      display: block;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
 
     .empty { text-align: center; color: var(--muted); border: 1px dashed var(--border); border-radius: 12px; padding: 1rem; }
+
+    @media (max-width: 520px) {
+      .drivers { display: none; }
+    }
 
     /* Dumbbell */
     .db { width: 100%; }
@@ -429,7 +500,10 @@
       </fieldset>
     </section>
 
-    <p class="legend">Filled dot = offense EPA/play (team color). Ring dot = opponent defense strength (team color). Edge: <strong>+</strong> favors offense, <strong>−</strong> favors defense. <strong>Pxx</strong> = percentile of strength this week (NET for game badge; lane |Edge| in Ranked view). EPA×65 (≈65 offensive plays per team) is shown as the primary number; raw EPA/play is secondary. Rank (#/N) is shown in Ranked view.</p>
+    <details class="page-help">
+      <summary>Legend</summary>
+      <p class="legend">Filled dot = offense EPA/play (team color). Ring dot = opponent defense strength (team color). Edge: <strong>+</strong> favors offense, <strong>−</strong> favors defense. <strong>Pxx</strong> = percentile of strength this week (NET for game badge; lane |Edge| in Ranked view). EPA×65 (≈65 offensive plays per team) is shown as the primary number; raw EPA/play is secondary. Rank (#/N) is shown in Ranked view.</p>
+    </details>
 
     <div id="cards" class="cards" aria-live="polite"></div>
   </main>
@@ -1759,10 +1833,20 @@
       return detail;
     }
 
-    function buildSparkline(values, { width = 260, height = 44, pad = 4 } = {}) {
-      const pts = (values || []).map((v) => Number(v)).filter((v) => Number.isFinite(v));
-      if (pts.length < 2) return null;
+    function buildSparkline(values, {
+      width = 260,
+      height = 44,
+      pad = 4,
+      labels = null,
+      zeroLine = false,
+      tooltipFmt = (v) => String(v),
+    } = {}) {
+      const series = (values || [])
+        .map((v, i) => ({ value: Number(v), label: labels && labels[i] != null ? String(labels[i]) : '' }))
+        .filter((row) => Number.isFinite(row.value));
+      if (series.length < 2) return null;
 
+      const pts = series.map((row) => row.value);
       const min = Math.min(...pts);
       const max = Math.max(...pts);
       const span = (max - min) || 1;
@@ -1793,46 +1877,83 @@
       path.setAttribute('stroke-width', '2');
       path.setAttribute('stroke-linecap', 'round');
 
+      if (zeroLine && min <= 0 && max >= 0) {
+        const zeroY = pad + (h - (h * ((0 - min) / span)));
+        const zero = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        zero.setAttribute('x1', pad);
+        zero.setAttribute('x2', width - pad);
+        zero.setAttribute('y1', zeroY.toFixed(2));
+        zero.setAttribute('y2', zeroY.toFixed(2));
+        zero.setAttribute('stroke', '#94a3b8');
+        zero.setAttribute('stroke-width', '1');
+        zero.setAttribute('stroke-dasharray', '3 3');
+        svg.appendChild(zero);
+      }
+
       svg.appendChild(path);
+
+      xy.forEach(([x, y], i) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        const isLast = i === xy.length - 1;
+        circle.setAttribute('cx', x.toFixed(2));
+        circle.setAttribute('cy', y.toFixed(2));
+        circle.setAttribute('r', isLast ? '3' : '2');
+        circle.setAttribute('fill', '#0f172a');
+        circle.setAttribute('stroke', '#ffffff');
+        circle.setAttribute('stroke-width', '1');
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        const label = series[i]?.label || '';
+        title.textContent = `${label}${label ? ': ' : ''}${tooltipFmt(series[i].value)}`;
+        circle.appendChild(title);
+        svg.appendChild(circle);
+      });
       return svg;
     }
 
-    function buildOddsMovementBlock(gameId) {
-      const container = document.createElement('div');
-      container.className = 'details';
-
+    function buildOddsMovementBlock(gameId, { home, away, modelHomeMargin } = {}) {
       const hist = oddsHistoryIndex?.[gameId] || [];
-      if (hist.length < 2) {
-        container.textContent = 'Line movement: not enough history yet.';
-        return container;
-      }
+      if (hist.length < 2) return null;
 
-      const spreads = hist.map((r) => r.spread);
-      const totals = hist.map((r) => r.total);
+      const labels = hist.map((r) => String(r.updated_at || ''));
+      const spreads = hist.map((r) => getHomeSpreadFromOdds(r, home, away));
+      const totals = hist.map((r) => Number(r.total));
+      const edges = Number.isFinite(modelHomeMargin)
+        ? spreads.map((s) => (Number.isFinite(s) ? modelHomeMargin + s : NaN))
+        : null;
 
-      const spreadSpark = buildSparkline(spreads);
-      const totalSpark = buildSparkline(totals);
+      const wrap = document.createElement('div');
+      wrap.className = 'odds-movement';
 
-      const grid = document.createElement('div');
-      grid.style.display = 'grid';
-      grid.style.gap = '0.35rem';
+      function addSparkRow(label, series, fmt, { zeroLine = false } = {}) {
+        if (!Array.isArray(series) || series.filter((v) => Number.isFinite(Number(v))).length < 2) return;
 
-      if (spreadSpark) {
+        const first = Number(series[0]);
+        const last = Number(series[series.length - 1]);
+
         const row = document.createElement('div');
-        row.innerHTML = `<strong>Spread movement</strong>`;
-        row.appendChild(spreadSpark);
-        grid.appendChild(row);
+        row.className = 'spark-row';
+
+        if (Number.isFinite(first) && Number.isFinite(last)) {
+          row.title = `Open ${fmt(first)} → Now ${fmt(last)}`;
+        }
+
+        const meta = document.createElement('div');
+        meta.className = 'spark-meta';
+        meta.innerHTML = `<span class="k">${label}</span><span class="v">${fmt(last)}</span>`;
+        row.appendChild(meta);
+
+        const spark = buildSparkline(series, { labels, zeroLine, tooltipFmt: fmt });
+        if (spark) row.appendChild(spark);
+
+        wrap.appendChild(row);
       }
 
-      if (totalSpark) {
-        const row = document.createElement('div');
-        row.innerHTML = `<strong>Total movement</strong>`;
-        row.appendChild(totalSpark);
-        grid.appendChild(row);
-      }
+      addSparkRow('Spread', spreads, (v) => fmtSigned(roundHalf(v)));
+      addSparkRow('Total', totals, (v) => Number(v).toFixed(1));
+      if (edges) addSparkRow('Edge', edges, (v) => fmtSigned(roundHalf(v)), { zeroLine: true });
 
-      container.appendChild(grid);
-      return container;
+      if (!wrap.children.length) return null;
+      return wrap;
     }
 
     function getHomeSpreadFromOdds(odds, home, away) {
@@ -1893,9 +2014,6 @@
         });
         scoreboard.appendChild(laneGrid);
 
-        scoreboard.appendChild(buildGameDetails(game, gameTotal));
-        card.appendChild(scoreboard);
-
         const odds = getOdds(game.game_id, seasonKey, game.week);
         const oddsRow = document.createElement('div');
         oddsRow.className = 'odds';
@@ -1911,10 +2029,16 @@
         if (odds?.source) metaParts.push(`Lines: ${odds.source}`);
         if (odds?.updated_at) metaParts.push(`updated ${odds.updated_at}`);
         const metaText = metaParts.length ? metaParts.join(' · ') : '';
-        oddsRow.innerHTML = `<span>${oddsPieces[0]}</span><span>${oddsPieces[1]}</span>${metaText ? `<span class="odds-meta">${metaText}</span>` : ''}`;
-        card.appendChild(oddsRow);
-
-        card.appendChild(buildOddsMovementBlock(game.game_id));
+        oddsRow.innerHTML = `<span>${oddsPieces[0]}</span><span>${oddsPieces[1]}</span>`;
+        if (metaText) {
+          oddsRow.title = metaText;
+          const info = document.createElement('span');
+          info.className = 'odds-info';
+          info.textContent = 'ⓘ';
+          info.title = metaText;
+          info.setAttribute('aria-label', metaText);
+          oddsRow.appendChild(info);
+        }
 
         const parsed = parseGameId(game.game_id);
         const home = normalizeTeam(parsed?.home);
@@ -1925,6 +2049,7 @@
         const marketSpread = getHomeSpreadFromOdds(odds, home, away);
 
         const betBox = document.createElement('div');
+        let modelHomeMargin = NaN;
 
         if (!netLeaderTeam || !Number.isFinite(netPtsAbs) || !Number.isFinite(marketSpread) || !home || !away) {
           betBox.className = 'bet-box';
@@ -1936,7 +2061,7 @@
           `;
         } else {
           const baseHomeMargin = netLeaderTeam === home ? netPtsAbs : -netPtsAbs;
-          const modelHomeMargin = baseHomeMargin + (neutralField ? 0 : HFA_POINTS);
+          modelHomeMargin = baseHomeMargin + (neutralField ? 0 : HFA_POINTS);
           const modelHomeSpread = -modelHomeMargin;
           const modelHomeSpreadRounded = roundHalf(modelHomeSpread);
           const edge = modelHomeMargin + marketSpread;
@@ -1982,7 +2107,17 @@
           `;
         }
 
-        card.appendChild(betBox);
+        const bettingStrip = document.createElement('div');
+        bettingStrip.className = 'betting-strip';
+        bettingStrip.appendChild(oddsRow);
+        const movement = buildOddsMovementBlock(game.game_id, { home, away, modelHomeMargin });
+        if (movement) bettingStrip.appendChild(movement);
+        bettingStrip.appendChild(betBox);
+        scoreboard.appendChild(bettingStrip);
+
+        const detailsEl = buildGameDetails(game, gameTotal);
+        scoreboard.appendChild(detailsEl);
+        card.appendChild(scoreboard);
 
         cardsEl.appendChild(card);
       });
