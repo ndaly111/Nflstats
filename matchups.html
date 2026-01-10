@@ -454,6 +454,7 @@
     const urlParams = new URLSearchParams(window.location.search);
 
     const PLAYS_PER_TEAM_GAME = 65;
+    const HFA_POINTS = 3;
     const MOMENTUM_WINDOW = 3;
 
     const TEAM_COLORS = {
@@ -1305,20 +1306,11 @@
       return Math.round(Number(x) * 2) / 2;
     }
 
-    // model_margin is HOME - AWAY in points
-    function computeEdgeVsSpread(modelMargin, homeSpread) {
-      const spread = Number(homeSpread);
-      if (!Number.isFinite(modelMargin) || !Number.isFinite(spread)) return null;
-      const edge = modelMargin + spread;
-      const edgeRounded = roundHalf(edge);
-      let pick = 'AWAY';
-      if (edgeRounded > 0) pick = 'HOME';
-      if (edgeRounded === 0) pick = 'PUSH';
-      return {
-        edge,
-        edgeRounded,
-        pick,
-      };
+    function fmtSigned(x) {
+      const n = Number(x);
+      if (!Number.isFinite(n)) return '—';
+      const s = n > 0 ? '+' : '';
+      return `${s}${n.toFixed(1)}`;
     }
 
     function describeAdvantage(edge) {
@@ -1843,29 +1835,6 @@
       return container;
     }
 
-    function computeModelMargin(game, parsed) {
-      const [rawA, rawB] = game.teams;
-      const teamA = normalizeTeam(rawA);
-      const teamB = normalizeTeam(rawB);
-      const home = normalizeTeam(parsed?.home);
-      const away = normalizeTeam(parsed?.away);
-      if (!home || !away) return null;
-
-      const homeOffEPA = home === teamA ? game.offA : (home === teamB ? game.offB : null);
-      const homeDefEPA = home === teamA ? game.defA : (home === teamB ? game.defB : null);
-      const awayOffEPA = away === teamA ? game.offA : (away === teamB ? game.offB : null);
-      const awayDefEPA = away === teamA ? game.defA : (away === teamB ? game.defB : null);
-
-      if (![homeOffEPA, homeDefEPA, awayOffEPA, awayDefEPA].every(Number.isFinite)) return null;
-
-      const homeOffEdge = homeOffEPA - awayDefEPA;
-      const awayOffEdge = awayOffEPA - homeDefEPA;
-      const netEpaDiffHome = homeOffEdge - awayOffEdge;
-      let modelMargin = netEpaDiffHome * PLAYS_PER_TEAM_GAME;
-      if (!neutralField) modelMargin += 3;
-      return modelMargin;
-    }
-
     function getHomeSpreadFromOdds(odds, home, away) {
       const spread = Number(odds?.spread);
       if (!Number.isFinite(spread)) return NaN;
@@ -1950,13 +1919,14 @@
         const parsed = parseGameId(game.game_id);
         const home = normalizeTeam(parsed?.home);
         const away = normalizeTeam(parsed?.away);
-        const modelMargin = computeModelMargin(game, parsed);
-        const homeSpread = getHomeSpreadFromOdds(odds, home, away);
-        const edgeInfo = computeEdgeVsSpread(modelMargin, homeSpread);
+        const netLeaderTeam = normalizeTeam(game.netTeam || game.netLeader || game.winnerTeam);
+        const netPts = epaToPoints(game.netEdge);
+        const netPtsAbs = Number.isFinite(netPts) ? Math.abs(netPts) : NaN;
+        const marketSpread = getHomeSpreadFromOdds(odds, home, away);
 
         const betBox = document.createElement('div');
 
-        if (!Number.isFinite(modelMargin) || !edgeInfo || !home || !away) {
+        if (!netLeaderTeam || !Number.isFinite(netPtsAbs) || !Number.isFinite(marketSpread) || !home || !away) {
           betBox.className = 'bet-box';
           betBox.innerHTML = `
             <div class="bet-box__header">
@@ -1965,16 +1935,24 @@
             <div class="bet-box__v">Unavailable (missing EPA or spread).</div>
           `;
         } else {
-          const fav = modelMargin >= 0 ? home : away;
-          const pts = roundHalf(Math.abs(modelMargin));
-          const pick = edgeInfo.pick === 'HOME' ? home : edgeInfo.pick === 'AWAY' ? away : 'PUSH';
-          const spreadNumDisplay = Number(homeSpread);
+          const baseHomeMargin = netLeaderTeam === home ? netPtsAbs : -netPtsAbs;
+          const modelHomeMargin = baseHomeMargin + (neutralField ? 0 : HFA_POINTS);
+          const modelHomeSpread = -modelHomeMargin;
+          const modelHomeSpreadRounded = roundHalf(modelHomeSpread);
+          const edge = modelHomeMargin + marketSpread;
+          const edgeRounded = roundHalf(edge);
+          let rightSide = 'PUSH';
+          if (edge > 0) rightSide = home;
+          if (edge < 0) rightSide = away;
 
-          const edgeClass = edgeInfo.edgeRounded > 0 ? 'bet-box--pos' : edgeInfo.edgeRounded < 0 ? 'bet-box--neg' : '';
+          const edgeClass = edgeRounded > 0 ? 'bet-box--pos' : edgeRounded < 0 ? 'bet-box--neg' : '';
           betBox.className = `bet-box ${edgeClass}`;
 
-          const accent = pick === 'PUSH' ? '#0f172a' : (TEAM_COLORS[normalizeTeam(pick)] || '#0f172a');
+          const accent = rightSide === 'PUSH' ? '#0f172a' : (TEAM_COLORS[normalizeTeam(rightSide)] || '#0f172a');
           betBox.style.setProperty('--accent', accent);
+
+          const modelLine = `${home} ${fmtSigned(modelHomeSpreadRounded)}`;
+          const marketLine = `${home} ${fmtSigned(roundHalf(marketSpread))}`;
 
           betBox.innerHTML = `
             <div class="bet-box__header">
@@ -1984,21 +1962,21 @@
 
             <div class="bet-box__grid">
               <div class="bet-box__k">Model</div>
-              <div class="bet-box__v">${fav} -${pts.toFixed(1)}</div>
+              <div class="bet-box__v">${modelLine}</div>
 
               <div class="bet-box__k">Market</div>
-              <div class="bet-box__v">${home} ${spreadNumDisplay > 0 ? '+' : ''}${spreadNumDisplay.toFixed(1)}</div>
+              <div class="bet-box__v">${marketLine}</div>
             </div>
 
             <div class="bet-box__result">
               <div>
                 <div class="bet-box__edge-k">Edge</div>
-                <div class="bet-box__edge-v">${edgeInfo.edgeRounded > 0 ? '+' : ''}${edgeInfo.edgeRounded.toFixed(1)}</div>
+                <div class="bet-box__edge-v">${fmtSigned(edgeRounded)}</div>
               </div>
 
               <div>
                 <div class="bet-box__pick-k">Right side</div>
-                <div class="bet-box__pick-v">${pick}</div>
+                <div class="bet-box__pick-v">${rightSide}</div>
               </div>
             </div>
           `;
