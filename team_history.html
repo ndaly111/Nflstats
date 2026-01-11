@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NFL Team History</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #475569;
+      --panel: #f8fafc;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      margin: 0;
+      padding: 2rem 1.5rem 3rem;
+      background: #ffffff;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      margin: 0 0 0.35rem;
+      font-size: 1.9rem;
+    }
+
+    p.lead {
+      margin: 0 0 0.65rem;
+      color: var(--muted);
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin: 0 0 1rem;
+    }
+
+    .nav-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .hof-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: white;
+      font-weight: 700;
+      color: #0f172a;
+      text-decoration: none;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+      transition: transform 120ms ease, box-shadow 120ms ease;
+      white-space: nowrap;
+    }
+
+    .hof-link:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+    }
+
+    .controls {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1rem 0 1.5rem;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    select, button {
+      width: 100%;
+      padding: 0.6rem 0.7rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
+      background: white;
+    }
+
+    .toggle {
+      display: inline-flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .toggle button {
+      flex: 1;
+      cursor: pointer;
+      font-weight: 700;
+      color: #0f172a;
+      background: white;
+      box-shadow: none;
+      border: 1px solid var(--border);
+    }
+
+    .toggle button.active {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.2);
+      border: none;
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: clamp(320px, 55vh, 560px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.75rem;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .chart-wrap canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .table-wrapper {
+      margin-top: 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      background: var(--panel);
+    }
+
+    .table-wrapper h2 {
+      margin: 0 0 0.35rem;
+    }
+
+    .table-note {
+      margin: 0 0 0.75rem;
+      color: var(--muted);
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 0.55rem 0.65rem;
+      border: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #f8fafc;
+    }
+
+    th.game-cell,
+    td.game-cell {
+      white-space: normal;
+      min-width: 260px;
+    }
+
+    tbody tr:nth-child(odd) { background: #f8fafc; }
+    tbody tr:nth-child(even) { background: #ffffff; }
+
+    .game-summary {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    details {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    details summary {
+      cursor: pointer;
+      font-weight: 600;
+      color: #2563eb;
+    }
+
+    .detail-grid {
+      display: grid;
+      gap: 0.25rem;
+      margin-top: 0.35rem;
+    }
+
+    .detail-grid span {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="top-bar">
+      <div>
+        <h1>Team EPA History</h1>
+        <p class="lead">Season-by-season efficiency summaries with best/worst games and a quick trend line.</p>
+      </div>
+      <div class="nav-actions">
+        <a class="hof-link" href="index.html" aria-label="View team EPA summary">🏈 Team Summary</a>
+        <a class="hof-link" href="matchups.html" aria-label="View Weekly Matchups">📅 Weekly Matchups</a>
+        <a class="hof-link" href="hof.html" aria-label="View EPA Hall of Fame">🏆 HOF</a>
+      </div>
+    </div>
+    <div id="data-meta" class="meta"></div>
+    <section class="controls">
+      <div>
+        <label for="team-select">Team</label>
+        <select id="team-select"></select>
+      </div>
+      <div>
+        <label>Season filter</label>
+        <div class="toggle" role="group" aria-label="Regular season vs playoffs">
+          <button id="regular-btn" type="button">Regular only</button>
+          <button id="playoffs-btn" type="button">Include playoffs</button>
+        </div>
+      </div>
+      <div>
+        <label>Season order</label>
+        <div class="toggle" role="group" aria-label="Season sort order">
+          <button id="sort-desc" type="button">Newest first</button>
+          <button id="sort-asc" type="button">Oldest first</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="chart-wrap">
+      <canvas id="season-chart" aria-label="Season EPA trend chart" role="img"></canvas>
+    </div>
+
+    <section class="table-wrapper">
+      <h2>Season summary</h2>
+      <p class="table-note">Best/Worst are ranked by net EPA/play for the selected filter.</p>
+      <div class="table-scroll">
+        <table id="season-table">
+          <thead>
+            <tr>
+              <th>Season</th>
+              <th>Record</th>
+              <th>Off EPA/play</th>
+              <th>Def EPA/play</th>
+              <th>Net</th>
+              <th>Best Game</th>
+              <th>Worst Game</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const TEAM_ALIASES = { WSH: 'WAS', JAC: 'JAX', OAK: 'LV', SD: 'LAC', STL: 'LAR', LA: 'LAR' };
+
+    function normalizeTeam(code) {
+      const value = String(code || '').trim().toUpperCase();
+      return TEAM_ALIASES[value] || value;
+    }
+
+    function parseGameId(gameId) {
+      const parts = String(gameId ?? '').split('_');
+      if (parts.length < 4) return null;
+      const season = Number(parts[0]);
+      const weekToken = parts[1];
+      const weekNumber = Number(weekToken);
+      const away = parts[2];
+      const home = parts[3];
+      if (!away || !home) return null;
+      return {
+        season: Number.isFinite(season) ? season : null,
+        weekToken,
+        weekNumber: Number.isFinite(weekNumber) ? weekNumber : null,
+        away,
+        home
+      };
+    }
+
+    const teamSelect = document.getElementById('team-select');
+    const regularBtn = document.getElementById('regular-btn');
+    const playoffsBtn = document.getElementById('playoffs-btn');
+    const sortDescBtn = document.getElementById('sort-desc');
+    const sortAscBtn = document.getElementById('sort-asc');
+    const tableBody = document.querySelector('#season-table tbody');
+    const metaEl = document.getElementById('data-meta');
+
+    let dataPayload = null;
+    let includePlayoffs = localStorage.getItem('teamHistoryIncludePlayoffs') === '1';
+    let sortOrder = localStorage.getItem('teamHistorySeasonSort') || 'desc';
+    if (!['asc', 'desc'].includes(sortOrder)) sortOrder = 'desc';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlTeam = normalizeTeam(urlParams.get('team'));
+    let selectedTeam = urlTeam || normalizeTeam(localStorage.getItem('teamHistoryTeam')) || '';
+
+    let seasonChart = null;
+
+    function setToggleState(button, active) {
+      button.classList.toggle('active', active);
+    }
+
+    function formatNumber(value, digits = 3) {
+      if (!Number.isFinite(value)) return '—';
+      return value.toFixed(digits);
+    }
+
+    function formatSigned(value, digits = 2) {
+      if (!Number.isFinite(value)) return '—';
+      const sign = value > 0 ? '+' : value < 0 ? '−' : '';
+      return `${sign}${Math.abs(value).toFixed(digits)}`;
+    }
+
+    function getWeekNumber(row) {
+      const numeric = Number(row.week);
+      if (Number.isFinite(numeric)) return numeric;
+      const parsed = parseGameId(row.game_id);
+      return parsed && Number.isFinite(parsed.weekNumber) ? parsed.weekNumber : null;
+    }
+
+    function getWeekLabel(row) {
+      const numeric = getWeekNumber(row);
+      if (Number.isFinite(numeric)) return `WK ${numeric}`;
+      const parsed = parseGameId(row.game_id);
+      const token = parsed?.weekToken || row.week;
+      return token ? String(token).toUpperCase() : 'WK ?';
+    }
+
+    function isRegularSeason(row, season) {
+      const regMax = season >= 2021 ? 18 : 17;
+      const weekNum = getWeekNumber(row);
+      if (!Number.isFinite(weekNum)) return false;
+      return weekNum <= regMax;
+    }
+
+    function buildGameSummary(row) {
+      if (!row) return { summary: '—', details: null };
+      const parsed = parseGameId(row.game_id);
+      const away = normalizeTeam(parsed?.away || row.away);
+      const home = normalizeTeam(parsed?.home || row.home);
+      const opponent = normalizeTeam(row.opp || (away && home ? (normalizeTeam(row.team) === away ? home : away) : ''));
+      const location = away && home && normalizeTeam(row.team) === away ? `@ ${home}` : `vs ${away || opponent}`;
+      const weekLabel = getWeekLabel(row);
+      const pointsFor = Number(row.points_for);
+      const pointsAgainst = Number(row.points_against);
+      const hasScore = Number.isFinite(pointsFor) && Number.isFinite(pointsAgainst);
+      const result = hasScore
+        ? pointsFor > pointsAgainst ? 'W' : pointsFor < pointsAgainst ? 'L' : 'T'
+        : '';
+      const scoreText = hasScore ? `${result} ${pointsFor}–${pointsAgainst}` : 'Score N/A';
+      const net = Number(row.net_epa_pp);
+      const summary = `${weekLabel} ${location} (${scoreText}) · Net ${formatSigned(net, 2)}`;
+
+      const off = Number(row.off_epa_pp);
+      const def = Number(row.def_epa_pp);
+      const netPoints = Number.isFinite(net) ? net * 65 : null;
+      const margin = hasScore ? pointsFor - pointsAgainst : null;
+
+      const details = {
+        opponent: opponent || 'Unknown',
+        location,
+        scoreText,
+        margin,
+        off,
+        def,
+        net,
+        netPoints
+      };
+
+      return { summary, details };
+    }
+
+    function buildGameCell(row) {
+      const cell = document.createElement('td');
+      cell.className = 'game-cell';
+      if (!row) {
+        cell.textContent = '—';
+        return cell;
+      }
+      const { summary, details } = buildGameSummary(row);
+      const summarySpan = document.createElement('span');
+      summarySpan.className = 'game-summary';
+      summarySpan.textContent = summary;
+      cell.appendChild(summarySpan);
+
+      if (details) {
+        const detailEl = document.createElement('details');
+        const summaryEl = document.createElement('summary');
+        summaryEl.textContent = 'Details';
+        detailEl.appendChild(summaryEl);
+
+        const detailGrid = document.createElement('div');
+        detailGrid.className = 'detail-grid';
+        detailGrid.innerHTML = `
+          <span><strong>Opponent:</strong> ${details.opponent}</span>
+          <span><strong>Location:</strong> ${details.location}</span>
+          <span><strong>Score:</strong> ${details.scoreText}</span>
+          <span><strong>Margin:</strong> ${Number.isFinite(details.margin) ? details.margin : '—'}</span>
+          <span><strong>Off EPA/play:</strong> ${formatNumber(details.off, 3)}</span>
+          <span><strong>Def EPA/play:</strong> ${formatNumber(details.def, 3)}</span>
+          <span><strong>Net EPA/play:</strong> ${formatNumber(details.net, 3)}</span>
+          <span><strong>EPA×65:</strong> ${Number.isFinite(details.netPoints) ? details.netPoints.toFixed(1) : '—'}</span>
+        `;
+        detailEl.appendChild(detailGrid);
+        cell.appendChild(detailEl);
+      }
+
+      return cell;
+    }
+
+    function computeSeasonSummary(seasonKey, rows) {
+      const season = Number(seasonKey);
+      let offSum = 0;
+      let offPlays = 0;
+      let defSum = 0;
+      let defPlays = 0;
+      let wins = 0;
+      let losses = 0;
+      let ties = 0;
+      let bestRow = null;
+      let worstRow = null;
+      let bestNet = -Infinity;
+      let worstNet = Infinity;
+
+      rows.forEach((row) => {
+        const off = Number(row.off_epa_pp);
+        const def = Number(row.def_epa_pp);
+        const net = Number(row.net_epa_pp);
+        const offPlaysRow = Number(row.off_plays);
+        const defPlaysRow = Number(row.def_plays);
+        if (Number.isFinite(off) && Number.isFinite(offPlaysRow) && offPlaysRow > 0) {
+          offSum += off * offPlaysRow;
+          offPlays += offPlaysRow;
+        }
+        if (Number.isFinite(def) && Number.isFinite(defPlaysRow) && defPlaysRow > 0) {
+          defSum += def * defPlaysRow;
+          defPlays += defPlaysRow;
+        }
+
+        const pointsFor = Number(row.points_for);
+        const pointsAgainst = Number(row.points_against);
+        const hasScore = Number.isFinite(pointsFor) && Number.isFinite(pointsAgainst) && pointsFor >= 0 && pointsAgainst >= 0;
+        if (hasScore) {
+          if (pointsFor > pointsAgainst) wins += 1;
+          else if (pointsFor < pointsAgainst) losses += 1;
+          else ties += 1;
+        }
+
+        if (hasScore && Number.isFinite(net)) {
+          if (net > bestNet) {
+            bestNet = net;
+            bestRow = row;
+          }
+          if (net < worstNet) {
+            worstNet = net;
+            worstRow = row;
+          }
+        }
+      });
+
+      const offAvg = offPlays > 0 ? offSum / offPlays : null;
+      const defAvg = defPlays > 0 ? defSum / defPlays : null;
+      const netAvg = Number.isFinite(offAvg) && Number.isFinite(defAvg) ? offAvg + defAvg : null;
+      const record = `${wins}-${losses}${ties ? `-${ties}` : ''}`;
+
+      return {
+        season,
+        record,
+        offAvg,
+        defAvg,
+        netAvg,
+        bestRow,
+        worstRow
+      };
+    }
+
+    function getSeasonRows(seasonKey, team) {
+      const games = dataPayload?.seasons?.[seasonKey]?.games || [];
+      const normalizedTeam = normalizeTeam(team);
+      const filtered = games.filter((row) => normalizeTeam(row.team) === normalizedTeam);
+      const seasonNumber = Number(seasonKey);
+
+      return filtered.filter((row) => {
+        if (includePlayoffs) return true;
+        return isRegularSeason(row, seasonNumber);
+      });
+    }
+
+    function updateChart(seasonSummaries) {
+      const labels = seasonSummaries.map((s) => s.season);
+      const offData = seasonSummaries.map((s) => s.offAvg);
+      const defData = seasonSummaries.map((s) => s.defAvg);
+      const netData = seasonSummaries.map((s) => s.netAvg);
+
+      if (seasonChart) {
+        seasonChart.destroy();
+      }
+
+      const ctx = document.getElementById('season-chart');
+      seasonChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Off EPA/play',
+              data: offData,
+              borderColor: '#2563eb',
+              backgroundColor: 'rgba(37, 99, 235, 0.15)',
+              tension: 0.25
+            },
+            {
+              label: 'Def EPA/play',
+              data: defData,
+              borderColor: '#f97316',
+              backgroundColor: 'rgba(249, 115, 22, 0.15)',
+              tension: 0.25
+            },
+            {
+              label: 'Net EPA/play',
+              data: netData,
+              borderColor: '#16a34a',
+              backgroundColor: 'rgba(22, 163, 74, 0.15)',
+              tension: 0.25
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top'
+            },
+            tooltip: {
+              callbacks: {
+                label: (context) => `${context.dataset.label}: ${formatNumber(context.parsed.y, 3)}`
+              }
+            }
+          },
+          scales: {
+            y: {
+              title: {
+                display: true,
+                text: 'EPA/play'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderTable(seasonSummaries) {
+      tableBody.textContent = '';
+      seasonSummaries.forEach((summary) => {
+        const row = document.createElement('tr');
+        const seasonCell = document.createElement('td');
+        seasonCell.textContent = summary.season;
+        row.appendChild(seasonCell);
+
+        const recordCell = document.createElement('td');
+        recordCell.textContent = summary.record;
+        row.appendChild(recordCell);
+
+        const offCell = document.createElement('td');
+        offCell.textContent = formatNumber(summary.offAvg, 3);
+        row.appendChild(offCell);
+
+        const defCell = document.createElement('td');
+        defCell.textContent = formatNumber(summary.defAvg, 3);
+        row.appendChild(defCell);
+
+        const netCell = document.createElement('td');
+        netCell.textContent = formatNumber(summary.netAvg, 3);
+        row.appendChild(netCell);
+
+        row.appendChild(buildGameCell(summary.bestRow));
+        row.appendChild(buildGameCell(summary.worstRow));
+
+        tableBody.appendChild(row);
+      });
+    }
+
+    function render() {
+      if (!dataPayload) return;
+      setToggleState(regularBtn, !includePlayoffs);
+      setToggleState(playoffsBtn, includePlayoffs);
+      setToggleState(sortDescBtn, sortOrder === 'desc');
+      setToggleState(sortAscBtn, sortOrder === 'asc');
+
+      const seasons = Object.keys(dataPayload.seasons || {});
+      const summaries = seasons
+        .map((seasonKey) => {
+          const rows = getSeasonRows(seasonKey, selectedTeam);
+          if (!rows.length) return null;
+          return computeSeasonSummary(seasonKey, rows);
+        })
+        .filter(Boolean);
+
+      const summariesForChart = [...summaries].sort((a, b) => a.season - b.season);
+      const summariesForTable = [...summaries].sort((a, b) =>
+        sortOrder === 'asc' ? a.season - b.season : b.season - a.season
+      );
+      updateChart(summariesForChart);
+      renderTable(summariesForTable);
+    }
+
+    function updateQueryParam(team) {
+      const url = new URL(window.location.href);
+      if (team) {
+        url.searchParams.set('team', team);
+      } else {
+        url.searchParams.delete('team');
+      }
+      window.history.replaceState({}, '', url);
+    }
+
+    function setSelectedTeam(team) {
+      selectedTeam = normalizeTeam(team);
+      teamSelect.value = selectedTeam;
+      localStorage.setItem('teamHistoryTeam', selectedTeam);
+      updateQueryParam(selectedTeam);
+      render();
+    }
+
+    function initTeams() {
+      const teamSet = new Set();
+      Object.values(dataPayload.seasons || {}).forEach((season) => {
+        season.games?.forEach((row) => {
+          const team = normalizeTeam(row.team);
+          if (team) teamSet.add(team);
+        });
+      });
+
+      const teams = Array.from(teamSet).sort();
+      teamSelect.textContent = '';
+      teams.forEach((team) => {
+        const option = document.createElement('option');
+        option.value = team;
+        option.textContent = team;
+        teamSelect.appendChild(option);
+      });
+
+      if (!selectedTeam || !teamSet.has(selectedTeam)) {
+        selectedTeam = teams[0] || '';
+      }
+      teamSelect.value = selectedTeam;
+    }
+
+    async function init() {
+      try {
+        const response = await fetch('data/epa.json');
+        dataPayload = await response.json();
+        const seasonKeys = Object.keys(dataPayload.seasons || {});
+        const stamp = dataPayload.generated_at ? `Updated ${dataPayload.generated_at}` : '';
+        const sha = dataPayload.git_sha ? ` · ${dataPayload.git_sha.slice(0, 7)}` : '';
+        metaEl.textContent = seasonKeys.length
+          ? `Loaded ${seasonKeys.length} seasons of EPA data. ${stamp}${sha}`.trim()
+          : 'No season data found.';
+        initTeams();
+        setSelectedTeam(selectedTeam);
+      } catch (error) {
+        metaEl.textContent = 'Failed to load EPA data.';
+        console.error(error);
+      }
+    }
+
+    teamSelect.addEventListener('change', (event) => {
+      setSelectedTeam(event.target.value);
+    });
+
+    regularBtn.addEventListener('click', () => {
+      includePlayoffs = false;
+      localStorage.setItem('teamHistoryIncludePlayoffs', '0');
+      render();
+    });
+
+    playoffsBtn.addEventListener('click', () => {
+      includePlayoffs = true;
+      localStorage.setItem('teamHistoryIncludePlayoffs', '1');
+      render();
+    });
+
+    sortDescBtn.addEventListener('click', () => {
+      sortOrder = 'desc';
+      localStorage.setItem('teamHistorySeasonSort', sortOrder);
+      render();
+    });
+
+    sortAscBtn.addEventListener('click', () => {
+      sortOrder = 'asc';
+      localStorage.setItem('teamHistorySeasonSort', sortOrder);
+      render();
+    });
+
+    init();
+  </script>
+</body>
+</html>
