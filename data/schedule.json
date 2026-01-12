@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-12T05:32:54Z",
+  "generated_at": "2026-01-12T06:41:48Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "seasons": {
     "2025": {
@@ -2227,6 +2227,30 @@
           "away": "LA",
           "season_type": null,
           "game_type": "WC"
+        },
+        {
+          "game_id": "2025_20_BUF_DEN",
+          "week": 20,
+          "home": "DEN",
+          "away": "BUF",
+          "season_type": null,
+          "game_type": "DIV"
+        },
+        {
+          "game_id": "2025_20_SF_SEA",
+          "week": 20,
+          "home": "SEA",
+          "away": "SF",
+          "season_type": null,
+          "game_type": "DIV"
+        },
+        {
+          "game_id": "2025_20_LA_CHI",
+          "week": 20,
+          "home": "CHI",
+          "away": "LA",
+          "season_type": null,
+          "game_type": "DIV"
         }
       ]
     }
