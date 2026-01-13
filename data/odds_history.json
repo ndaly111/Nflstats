@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-13T11:24:11Z",
+  "generated_at": "2026-01-13T12:54:41Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -2620,6 +2620,15 @@
       "total": 50.5,
       "source": "nflverse",
       "updated_at": "2026-01-13T06:39:16Z"
+    },
+    {
+      "season": 2025,
+      "week": 20,
+      "game_id": "2025_20_HOU_NE",
+      "spread": 3.0,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-01-13T12:54:41Z"
     }
   ]
 }
