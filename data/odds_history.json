@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-15T09:31:52Z",
+  "generated_at": "2026-01-15T10:29:03Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -2746,6 +2746,15 @@
       "total": 40.5,
       "source": "nflverse",
       "updated_at": "2026-01-15T05:29:12Z"
+    },
+    {
+      "season": 2025,
+      "week": 20,
+      "game_id": "2025_20_SF_SEA",
+      "spread": 7.0,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-01-15T10:29:03Z"
     }
   ]
 }
