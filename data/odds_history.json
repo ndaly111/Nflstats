@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-16T17:27:18Z",
+  "generated_at": "2026-01-16T18:37:38Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -2809,6 +2809,24 @@
       "total": 44.5,
       "source": "nflverse",
       "updated_at": "2026-01-15T22:25:30Z"
+    },
+    {
+      "season": 2025,
+      "week": 20,
+      "game_id": "2025_20_SF_SEA",
+      "spread": 7.0,
+      "total": 45.5,
+      "source": "nflverse",
+      "updated_at": "2026-01-16T18:37:38Z"
+    },
+    {
+      "season": 2025,
+      "week": 20,
+      "game_id": "2025_20_LA_CHI",
+      "spread": -4.5,
+      "total": 48.5,
+      "source": "nflverse",
+      "updated_at": "2026-01-16T18:37:38Z"
     }
   ]
 }
