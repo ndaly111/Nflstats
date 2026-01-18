@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-18T22:23:20Z",
+  "generated_at": "2026-01-18T23:22:45Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "seasons": {
     "2025": {
@@ -2259,6 +2259,14 @@
           "away": "HOU",
           "season_type": null,
           "game_type": "DIV"
+        },
+        {
+          "game_id": "2025_21_NE_DEN",
+          "week": 21,
+          "home": "DEN",
+          "away": "NE",
+          "season_type": null,
+          "game_type": "CON"
         }
       ]
     }
