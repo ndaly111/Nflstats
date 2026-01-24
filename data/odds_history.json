@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-24T16:28:58Z",
+  "generated_at": "2026-01-24T17:21:05Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -2971,6 +2971,15 @@
       "total": 43.5,
       "source": "nflverse",
       "updated_at": "2026-01-24T16:28:58Z"
+    },
+    {
+      "season": 2025,
+      "week": 21,
+      "game_id": "2025_21_LA_SEA",
+      "spread": 2.5,
+      "total": 45.5,
+      "source": "nflverse",
+      "updated_at": "2026-01-24T17:21:05Z"
     }
   ]
 }
