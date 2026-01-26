@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-26T02:08:40Z",
+  "generated_at": "2026-01-26T04:15:04Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "seasons": {
     "2025": {
@@ -2275,6 +2275,14 @@
           "away": "LA",
           "season_type": null,
           "game_type": "CON"
+        },
+        {
+          "game_id": "2025_22_SEA_NE",
+          "week": 22,
+          "home": "NE",
+          "away": "SEA",
+          "season_type": null,
+          "game_type": "SB"
         }
       ]
     }
