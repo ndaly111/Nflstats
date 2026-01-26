@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-26T11:24:03Z",
+  "generated_at": "2026-01-26T12:56:01Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -3016,6 +3016,15 @@
       "total": 46.5,
       "source": "nflverse",
       "updated_at": "2026-01-26T04:15:04Z"
+    },
+    {
+      "season": 2025,
+      "week": 22,
+      "game_id": "2025_22_SEA_NE",
+      "spread": -4.5,
+      "total": 45.5,
+      "source": "nflverse",
+      "updated_at": "2026-01-26T12:56:01Z"
     }
   ]
 }
