@@ -273941,7 +273941,8 @@
         18,
         19,
         20,
-        21
+        21,
+        22
       ],
       "teams": [
         {
@@ -276403,6 +276404,12 @@
               "off_plays": 80,
               "def": 0.30746861661807057,
               "def_plays": 72
+            },
+            "22": {
+              "off": -0.17029303495234657,
+              "off_plays": 90,
+              "def": -0.05074011262656185,
+              "def_plays": 90
             }
           }
         },
@@ -277069,6 +277076,12 @@
               "off_plays": 86,
               "def": -0.2708582754462472,
               "def_plays": 75
+            },
+            "22": {
+              "off": 0.05074011262656185,
+              "off_plays": 90,
+              "def": 0.17029303495234657,
+              "def_plays": 90
             }
           }
         },
@@ -285465,10 +285478,38 @@
           "points_against": 7,
           "net_epa_pp": 0.09239366141371372,
           "plays": 152
+        },
+        {
+          "game_id": "2025_22_SEA_NE",
+          "week": 22,
+          "team": "NE",
+          "opp": "SEA",
+          "off_epa_pp": -0.17029303495234657,
+          "def_epa_pp": -0.05074011262656185,
+          "off_plays": 90,
+          "def_plays": 90,
+          "points_for": 13,
+          "points_against": 29,
+          "net_epa_pp": -0.2210331475789084,
+          "plays": 180
+        },
+        {
+          "game_id": "2025_22_SEA_NE",
+          "week": 22,
+          "team": "SEA",
+          "opp": "NE",
+          "off_epa_pp": 0.05074011262656185,
+          "def_epa_pp": 0.17029303495234657,
+          "off_plays": 90,
+          "def_plays": 90,
+          "points_for": 29,
+          "points_against": 13,
+          "net_epa_pp": 0.2210331475789084,
+          "plays": 180
         }
       ]
     }
   },
-  "generated_at": "2026-02-09T04:57:52Z",
-  "git_sha": "b7a6869ada823c65436f380b8d18797e60ea05c3"
+  "generated_at": "2026-02-10T05:02:04Z",
+  "git_sha": "e78bf5d8f77f59f4aed83b02c21789c20c5c2160"
 }
