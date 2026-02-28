@@ -58,8 +58,8 @@ CREATE TABLE IF NOT EXISTS team_epa_games (
     def_epa_sum REAL NOT NULL,
     def_plays INTEGER NOT NULL,
     def_epa_pp REAL NOT NULL,
-    points_for INTEGER NOT NULL DEFAULT -1,
-    points_against INTEGER NOT NULL DEFAULT -1,
+    points_for INTEGER NOT NULL DEFAULT -1,   -- sentinel: -1 = score unavailable (not a real score)
+    points_against INTEGER NOT NULL DEFAULT -1, -- sentinel: -1 = score unavailable (not a real score)
     net_epa_sum REAL NOT NULL,
     plays INTEGER NOT NULL,
     net_epa_pp REAL NOT NULL,
@@ -115,6 +115,7 @@ def _migrate_weekly_schema(conn: sqlite3.Connection) -> None:
                 f"ALTER TABLE team_epa_weekly ADD COLUMN {name} {col_type} "
                 f"NOT NULL DEFAULT {default};"
             )
+            print(f"[db_storage] migration: added column team_epa_weekly.{name}")
 
 
 def _migrate_team_game_schema(conn: sqlite3.Connection) -> None:
@@ -143,6 +144,7 @@ def _migrate_team_game_schema(conn: sqlite3.Connection) -> None:
                 f"ALTER TABLE team_epa_games ADD COLUMN {name} {col_type} "
                 f"NOT NULL DEFAULT {default};"
             )
+            print(f"[db_storage] migration: added column team_epa_games.{name}")
 
     # If an older build wrote missing scores as 0-0, convert them to the new
     # sentinel so records do not treat them as ties.

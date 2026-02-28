@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from typing import Optional
 
@@ -33,17 +34,28 @@ def _validate_prob(prob: Optional[float], name: str) -> None:
       raise ValueError(f"{name} must be between 0 and 1. Got {prob}")
 
 
-def load_pbp_pandas(season: int) -> pd.DataFrame:
+def load_pbp_pandas(season: int, max_retries: int = 3, retry_delay: float = 5.0) -> pd.DataFrame:
   """
   Download play-by-play data for a given season using nflreadpy and return a pandas DataFrame.
+
+  Retries up to ``max_retries`` times on transient network errors before raising.
   """
-  try:
-      pbp_polars = nfl.load_pbp(seasons=season)
-      pbp = pbp_polars.to_pandas()
-  except Exception as exc:  # pragma: no cover - network/cache issues
+  last_exc: Exception | None = None
+  for attempt in range(1, max_retries + 1):
+      try:
+          pbp_polars = nfl.load_pbp(seasons=season)
+          pbp = pbp_polars.to_pandas()
+          break
+      except Exception as exc:  # pragma: no cover - network/cache issues
+          last_exc = exc
+          if attempt < max_retries:
+              print(f"[fetch] nflreadpy download attempt {attempt} failed: {exc}. Retrying in {retry_delay}s ...")
+              time.sleep(retry_delay)
+  else:  # pragma: no cover
       raise RuntimeError(
-          f"Failed to download/read PBP data for {season} using nflreadpy. Original error: {exc}"
-      ) from exc
+          f"Failed to download/read PBP data for {season} after {max_retries} attempts. "
+          f"Last error: {last_exc}"
+      ) from last_exc
 
   if not isinstance(pbp, pd.DataFrame):
       raise RuntimeError(f"Unexpected return type from load_pbp: {type(pbp)}")

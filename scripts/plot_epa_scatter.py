@@ -97,6 +97,13 @@ def parse_args() -> argparse.Namespace:
         default="epa_scatter.png",
         help="File path to save the resulting PNG chart",
     )
+    parser.add_argument(
+        "--ridge-penalty",
+        type=float,
+        default=20.0,
+        dest="ridge_penalty",
+        help="Ridge regularisation penalty (lambda) for SOS adjustment. Default: 20.0",
+    )
     return parser.parse_args()
 
 
@@ -175,6 +182,7 @@ def load_team_epa(
     week_end: Optional[int] = None,
     include_sos: bool = False,
     sos_basis: str = "season_to_date",
+    ridge_penalty: float = 20.0,
 ) -> pd.DataFrame:
     """
     Load per‑team EPA data from the SQLite cache and normalise for plotting.
@@ -213,7 +221,9 @@ def load_team_epa(
 
     allowed_bases = {"season_to_date", "window_only", "full_season"}
     if sos_basis not in allowed_bases:
-        sos_basis = "season_to_date"
+        raise ValueError(
+            f"Invalid sos_basis {sos_basis!r}. Must be one of: {sorted(allowed_bases)}"
+        )
 
     if include_sos and load_team_game_epa_from_db is not None:
         if sos_basis == "window_only":
@@ -229,7 +239,7 @@ def load_team_epa(
 
         ratings_df = None
         if ratings_games is not None and not ratings_games.empty:
-            ratings_df = compute_sos_adjusted_off_def(ratings_games)
+            ratings_df = compute_sos_adjusted_off_def(ratings_games, lam=ridge_penalty)
 
         if (
             ratings_df is not None
@@ -397,7 +407,7 @@ def main() -> None:
         output_path = REPO_ROOT / output_path
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    df = load_team_epa(season, week_start=args.week_start, week_end=args.week_end)
+    df = load_team_epa(season, week_start=args.week_start, week_end=args.week_end, ridge_penalty=args.ridge_penalty)
     start = df.attrs.get("week_start")
     end = df.attrs.get("week_end")
     if week_label is None and start is not None and end is not None:

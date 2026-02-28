@@ -54,6 +54,17 @@ def test_split_sos_uses_opponent_axes():
     assert math.isclose(float(sos_def.loc["A"]), float(ratings.loc["B", "off_rating"]), rel_tol=1e-3)
 
 
+def test_ridge_penalty_affects_ratings():
+    """Higher lambda should shrink ratings closer to zero."""
+    games = pd.DataFrame([
+        {"team": "A", "opp": "B", "off_epa_pp": 0.5, "off_plays": 60, "def_epa_pp": 0.3, "def_plays": 60},
+        {"team": "B", "opp": "A", "off_epa_pp": -0.5, "off_plays": 60, "def_epa_pp": -0.3, "def_plays": 60},
+    ])
+    low_reg = compute_sos_adjusted_off_def(games, lam=0.1)
+    high_reg = compute_sos_adjusted_off_def(games, lam=1000.0)
+    assert low_reg["off_rating"].abs().max() > high_reg["off_rating"].abs().max()
+
+
 def test_empty_equations_returns_empty_frame():
     games = pd.DataFrame(
         [
