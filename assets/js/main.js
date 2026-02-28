@@ -62,7 +62,7 @@
     let teamOffChart;
     let teamDefChart;
     let seasonData = {};
-    const sortState = { column: null, direction: 'asc' };
+    const sortState = { column: null, direction: 'desc' };
 
     const quadrantPlugin = {
       id: 'quadrantBackground',
@@ -1280,7 +1280,7 @@
       };
       renderScatterChart(points, season, start, end, effectiveMetricMode, sosBasis);
       renderTable(rows, ranksByMetric, effectiveMetricMode);
-      sortTable(sortState.column ?? 1, false);
+      sortTable(sortState.column ?? 4, false);
     }
 
     function updateSosControlsVisibility(metricMode) {
