@@ -40,6 +40,14 @@ CREATE TABLE IF NOT EXISTS team_epa_weekly (
     def_plays INTEGER NOT NULL,
     EPA_off_per_play REAL NOT NULL,
     EPA_def_per_play REAL NOT NULL,
+    off_pass_epa_sum REAL NOT NULL DEFAULT 0,
+    off_pass_plays INTEGER NOT NULL DEFAULT 0,
+    off_rush_epa_sum REAL NOT NULL DEFAULT 0,
+    off_rush_plays INTEGER NOT NULL DEFAULT 0,
+    def_pass_epa_sum REAL NOT NULL DEFAULT 0,
+    def_pass_plays INTEGER NOT NULL DEFAULT 0,
+    def_rush_epa_sum REAL NOT NULL DEFAULT 0,
+    def_rush_plays INTEGER NOT NULL DEFAULT 0,
     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
     PRIMARY KEY (season, week, team)
 );
@@ -106,6 +114,14 @@ def _migrate_weekly_schema(conn: sqlite3.Connection) -> None:
         ("def_plays", "INTEGER", "0"),
         ("EPA_off_per_play", "REAL", "0"),
         ("EPA_def_per_play", "REAL", "0"),
+        ("off_pass_epa_sum", "REAL", "0"),
+        ("off_pass_plays", "INTEGER", "0"),
+        ("off_rush_epa_sum", "REAL", "0"),
+        ("off_rush_plays", "INTEGER", "0"),
+        ("def_pass_epa_sum", "REAL", "0"),
+        ("def_pass_plays", "INTEGER", "0"),
+        ("def_rush_epa_sum", "REAL", "0"),
+        ("def_rush_plays", "INTEGER", "0"),
         ("updated_at", "TEXT", "''"),
     ]
 
@@ -256,11 +272,20 @@ def save_team_epa_snapshot(
             f"Team EPA dataframe missing columns required for DB storage: {sorted(missing)}"
         )
 
+    _SPLIT_COLS = [
+        "off_pass_epa_sum", "off_pass_plays",
+        "off_rush_epa_sum", "off_rush_plays",
+        "def_pass_epa_sum", "def_pass_plays",
+        "def_rush_epa_sum", "def_rush_plays",
+    ]
+
     df_to_write = df[list(required)].copy()
     df_to_write["EPA_off_per_play"] = df_to_write["off_epa_sum"] / df_to_write["off_plays"]
     df_to_write["EPA_def_per_play"] = df_to_write["def_epa_sum"] / df_to_write["def_plays"]
     df_to_write["season"] = season
     df_to_write["week"] = week
+    for col in _SPLIT_COLS:
+        df_to_write[col] = df[col].values if col in df.columns else 0
 
     conn = init_db(db_path)
     with conn:
@@ -269,8 +294,12 @@ def save_team_epa_snapshot(
             INSERT INTO team_epa_weekly (
                 season, week, team,
                 off_epa_sum, off_plays, def_epa_sum, def_plays,
-                EPA_off_per_play, EPA_def_per_play
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                EPA_off_per_play, EPA_def_per_play,
+                off_pass_epa_sum, off_pass_plays,
+                off_rush_epa_sum, off_rush_plays,
+                def_pass_epa_sum, def_pass_plays,
+                def_rush_epa_sum, def_rush_plays
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(season, week, team) DO UPDATE SET
                 off_epa_sum=excluded.off_epa_sum,
                 off_plays=excluded.off_plays,
@@ -278,6 +307,14 @@ def save_team_epa_snapshot(
                 def_plays=excluded.def_plays,
                 EPA_off_per_play=excluded.EPA_off_per_play,
                 EPA_def_per_play=excluded.EPA_def_per_play,
+                off_pass_epa_sum=excluded.off_pass_epa_sum,
+                off_pass_plays=excluded.off_pass_plays,
+                off_rush_epa_sum=excluded.off_rush_epa_sum,
+                off_rush_plays=excluded.off_rush_plays,
+                def_pass_epa_sum=excluded.def_pass_epa_sum,
+                def_pass_plays=excluded.def_pass_plays,
+                def_rush_epa_sum=excluded.def_rush_epa_sum,
+                def_rush_plays=excluded.def_rush_plays,
                 updated_at=strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
             """,
             [
@@ -291,6 +328,14 @@ def save_team_epa_snapshot(
                     int(row.def_plays),
                     float(row.off_epa_sum) / float(row.off_plays),
                     float(row.def_epa_sum) / float(row.def_plays),
+                    float(row.off_pass_epa_sum),
+                    int(row.off_pass_plays),
+                    float(row.off_rush_epa_sum),
+                    int(row.off_rush_plays),
+                    float(row.def_pass_epa_sum),
+                    int(row.def_pass_plays),
+                    float(row.def_rush_epa_sum),
+                    int(row.def_rush_plays),
                 )
                 for row in df_to_write.itertuples(index=False)
             ],

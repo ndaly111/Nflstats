@@ -28,7 +28,12 @@ def collect_seasons(conn: sqlite3.Connection, seasons: Iterable[int] | None) -> 
 def fetch_season_payload(conn: sqlite3.Connection, season: int) -> dict | None:
     rows = conn.execute(
         """
-        SELECT team, week, off_epa_sum, off_plays, def_epa_sum, def_plays
+        SELECT team, week,
+               off_epa_sum, off_plays, def_epa_sum, def_plays,
+               off_pass_epa_sum, off_pass_plays,
+               off_rush_epa_sum, off_rush_plays,
+               def_pass_epa_sum, def_pass_plays,
+               def_rush_epa_sum, def_rush_plays
         FROM team_epa_weekly
         WHERE season = ?
         ORDER BY week, team
@@ -41,7 +46,14 @@ def fetch_season_payload(conn: sqlite3.Connection, season: int) -> dict | None:
     weeks: list[int] = []
     teams: dict[str, dict[int, dict[str, float | int]]] = {}
 
-    for team, week, off_sum, off_plays, def_sum, def_plays in rows:
+    for (
+        team, week,
+        off_sum, off_plays, def_sum, def_plays,
+        off_pass_sum, off_pass_plays,
+        off_rush_sum, off_rush_plays,
+        def_pass_sum, def_pass_plays,
+        def_rush_sum, def_rush_plays,
+    ) in rows:
         if week not in weeks:
             weeks.append(int(week))
         off_play_count = int(off_plays)
@@ -55,6 +67,23 @@ def fetch_season_payload(conn: sqlite3.Connection, season: int) -> dict | None:
         if def_value is not None:
             week_payload["def"] = def_value
             week_payload["def_plays"] = def_play_count
+        # Pass / rush split (only written when data exists)
+        off_pass_count = int(off_pass_plays or 0)
+        off_rush_count = int(off_rush_plays or 0)
+        def_pass_count = int(def_pass_plays or 0)
+        def_rush_count = int(def_rush_plays or 0)
+        if off_pass_count > 0:
+            week_payload["off_pass"] = float(off_pass_sum) / off_pass_count
+            week_payload["off_pass_plays"] = off_pass_count
+        if off_rush_count > 0:
+            week_payload["off_rush"] = float(off_rush_sum) / off_rush_count
+            week_payload["off_rush_plays"] = off_rush_count
+        if def_pass_count > 0:
+            week_payload["def_pass"] = float(def_pass_sum) / def_pass_count
+            week_payload["def_pass_plays"] = def_pass_count
+        if def_rush_count > 0:
+            week_payload["def_rush"] = float(def_rush_sum) / def_rush_count
+            week_payload["def_rush_plays"] = def_rush_count
         teams.setdefault(team, {})[int(week)] = week_payload
 
     game_rows = conn.execute(

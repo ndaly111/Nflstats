@@ -113,8 +113,10 @@ def compute_team_epa(pbp: pd.DataFrame) -> pd.DataFrame:
     """
     Compute per-team EPA aggregates for each side of the ball.
 
-    Returns columns: team, off_epa_sum, off_plays, def_epa_sum, def_plays
-    with defense sign-flipped so higher = better defense.
+    Returns columns: team, off_epa_sum, off_plays, def_epa_sum, def_plays,
+    plus pass/rush split columns (off_pass_epa_sum, off_pass_plays, off_rush_epa_sum,
+    off_rush_plays, def_pass_epa_sum, def_pass_plays, def_rush_epa_sum, def_rush_plays).
+    Defense values are sign-flipped so higher = better defense.
     """
     df = pbp.copy()
     df["epa"] = pd.to_numeric(df["epa"], errors="coerce")
@@ -151,9 +153,50 @@ def compute_team_epa(pbp: pd.DataFrame) -> pd.DataFrame:
     # Flip sign so higher = better defense
     merged["def_epa_sum"] = -merged["def_epa_sum"]
 
-    return merged[["team", "off_epa_sum", "off_plays", "def_epa_sum", "def_plays"]].sort_values("team").reset_index(
-        drop=True
-    )
+    # Pass / rush split
+    _SPLIT_COLS = [
+        "off_pass_epa_sum", "off_pass_plays",
+        "off_rush_epa_sum", "off_rush_plays",
+        "def_pass_epa_sum", "def_pass_plays",
+        "def_rush_epa_sum", "def_rush_plays",
+    ]
+    if "play_type" in df.columns:
+        pt = df["play_type"].astype(str).str.lower()
+        df_pass = df[pt == "pass"]
+        df_rush = df[pt == "run"]
+
+        def _split_agg(sub: pd.DataFrame, group_col: str, prefix: str, sign: int) -> pd.DataFrame:
+            if sub.empty:
+                return pd.DataFrame(columns=["team", f"{prefix}_epa_sum", f"{prefix}_plays"])
+            result = (
+                sub.dropna(subset=[group_col])
+                .groupby(group_col)["epa"]
+                .agg(**{f"{prefix}_epa_sum": "sum", f"{prefix}_plays": "count"})
+                .reset_index()
+                .rename(columns={group_col: "team"})
+            )
+            if sign == -1:
+                result[f"{prefix}_epa_sum"] = -result[f"{prefix}_epa_sum"]
+            return result
+
+        for prefix, sub, col, sign in [
+            ("off_pass", df_pass, "posteam", 1),
+            ("off_rush", df_rush, "posteam", 1),
+            ("def_pass", df_pass, "defteam", -1),
+            ("def_rush", df_rush, "defteam", -1),
+        ]:
+            split = _split_agg(sub, col, prefix, sign)
+            merged = merged.merge(split, on="team", how="left")
+    else:
+        for col in _SPLIT_COLS:
+            merged[col] = 0
+
+    for col in _SPLIT_COLS:
+        merged[col] = pd.to_numeric(merged.get(col, 0), errors="coerce").fillna(0)
+
+    return merged[
+        ["team", "off_epa_sum", "off_plays", "def_epa_sum", "def_plays"] + _SPLIT_COLS
+    ].sort_values("team").reset_index(drop=True)
 
 
 def compute_team_game_epa(pbp: pd.DataFrame, week: int) -> pd.DataFrame:

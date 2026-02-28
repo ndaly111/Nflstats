@@ -287,6 +287,36 @@
       height: calc(100% - 1.6rem) !important;
     }
 
+    .view-toggle {
+      display: flex;
+      gap: 0.5rem;
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    .view-btn {
+      width: auto;
+      padding: 0.45rem 1.1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--border);
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    .view-btn.active {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+    }
+
+    .view-btn:hover:not(.active) {
+      background: var(--panel);
+    }
+
   </style>
 </head>
 <body>
@@ -338,26 +368,53 @@
       </div>
     </section>
 
-      <div class="chart-wrap">
-        <canvas id="epa-chart" aria-label="EPA scatter chart" role="img"></canvas>
+      <div class="view-toggle">
+        <button id="view-summary-btn" class="view-btn active">EPA Summary</button>
+        <button id="view-split-btn" class="view-btn">Pass / Run Breakdown</button>
       </div>
 
-      <section id="table-section" class="table-wrapper">
-        <h2>EPA/play table</h2>
-        <p class="table-note">Click any column header to sort. Combined EPA follows the selected view; SOS columns show play-weighted opponent ratings faced for each side of the ball (SOS rank #1 = hardest schedule).</p>
+      <div id="summary-view">
+        <div class="chart-wrap">
+          <canvas id="epa-chart" aria-label="EPA scatter chart" role="img"></canvas>
+        </div>
+
+        <section id="table-section" class="table-wrapper">
+          <h2>EPA/play table</h2>
+          <p class="table-note">Click any column header to sort. Combined EPA follows the selected view; SOS columns show play-weighted opponent ratings faced for each side of the ball (SOS rank #1 = hardest schedule).</p>
+          <div class="table-scroll">
+            <table id="epa-table">
+              <thead>
+                <tr>
+                  <th data-type="number">Rank</th>
+                  <th data-type="string">Team</th>
+                  <th data-type="number">Record</th>
+                  <th data-type="number">Win%</th>
+                  <th data-type="number">Combined EPA/play</th>
+                  <th class="sos-only" data-type="number">SOS faced (opp DEF)</th>
+                  <th class="sos-only" data-type="number">SOS faced (opp OFF)</th>
+                  <th data-type="number">Offense EPA/play</th>
+                  <th data-type="number">Defense EPA/play</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <section id="split-section" class="table-wrapper" style="display:none;">
+        <h2>Pass / Run EPA Breakdown</h2>
+        <p class="table-note">Click any column header to sort. Higher is better for all four metrics — defensive values are sign-flipped (higher = better defense). Requires re-fetching data after this update.</p>
         <div class="table-scroll">
-          <table id="epa-table">
+          <table id="split-table">
             <thead>
               <tr>
                 <th data-type="number">Rank</th>
                 <th data-type="string">Team</th>
-                <th data-type="number">Record</th>
-                <th data-type="number">Win%</th>
-                <th data-type="number">Combined EPA/play</th>
-                <th class="sos-only" data-type="number">SOS faced (opp DEF)</th>
-                <th class="sos-only" data-type="number">SOS faced (opp OFF)</th>
-                <th data-type="number">Offense EPA/play</th>
-                <th data-type="number">Defense EPA/play</th>
+                <th data-type="number">Off Pass EPA/play</th>
+                <th data-type="number">Off Rush EPA/play</th>
+                <th data-type="number">Def Pass EPA/play</th>
+                <th data-type="number">Def Rush EPA/play</th>
               </tr>
             </thead>
             <tbody></tbody>

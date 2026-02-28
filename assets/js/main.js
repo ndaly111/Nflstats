@@ -47,6 +47,13 @@
     const teamCombinedCtx = document.getElementById('team-combined-chart').getContext('2d');
     const teamOffCtx = document.getElementById('team-off-chart').getContext('2d');
     const teamDefCtx = document.getElementById('team-def-chart').getContext('2d');
+    const viewSummaryBtn = document.getElementById('view-summary-btn');
+    const viewSplitBtn = document.getElementById('view-split-btn');
+    const summaryView = document.getElementById('summary-view');
+    const splitSection = document.getElementById('split-section');
+    const splitTable = document.getElementById('split-table');
+    const splitTableBody = splitTable.querySelector('tbody');
+    const splitTableHeaders = splitTable.querySelectorAll('th');
     const DATA_URL = new URL('data/epa.json', document.baseURI);
     DATA_URL.searchParams.set('v', Date.now().toString());
 
@@ -1064,6 +1071,176 @@
 
     tableHeaders.forEach((header, index) => {
       header.addEventListener('click', () => sortTable(index));
+    });
+
+    const splitSortState = { column: null, direction: 'asc' };
+
+    function averageWeeksSplit(teamWeeks, start, end) {
+      let offPassSum = 0, offPassPlays = 0;
+      let offRushSum = 0, offRushPlays = 0;
+      let defPassSum = 0, defPassPlays = 0;
+      let defRushSum = 0, defRushPlays = 0;
+      let count = 0;
+
+      for (let w = start; w <= end; w += 1) {
+        const payload = teamWeeks[w];
+        if (!payload || typeof payload.off !== 'number' || typeof payload.def !== 'number') continue;
+        count += 1;
+        offPassSum += Number(payload.off_pass ?? 0) * Number(payload.off_pass_plays ?? 0);
+        offPassPlays += Number(payload.off_pass_plays ?? 0);
+        offRushSum += Number(payload.off_rush ?? 0) * Number(payload.off_rush_plays ?? 0);
+        offRushPlays += Number(payload.off_rush_plays ?? 0);
+        defPassSum += Number(payload.def_pass ?? 0) * Number(payload.def_pass_plays ?? 0);
+        defPassPlays += Number(payload.def_pass_plays ?? 0);
+        defRushSum += Number(payload.def_rush ?? 0) * Number(payload.def_rush_plays ?? 0);
+        defRushPlays += Number(payload.def_rush_plays ?? 0);
+      }
+
+      if (count === 0) return null;
+      return {
+        offPass: offPassPlays > 0 ? offPassSum / offPassPlays : null,
+        offPassPlays,
+        offRush: offRushPlays > 0 ? offRushSum / offRushPlays : null,
+        offRushPlays,
+        defPass: defPassPlays > 0 ? defPassSum / defPassPlays : null,
+        defPassPlays,
+        defRush: defRushPlays > 0 ? defRushSum / defRushPlays : null,
+        defRushPlays,
+      };
+    }
+
+    function buildSplitRows(selectedSeason, startWeek, endWeek) {
+      const season = seasonData[selectedSeason];
+      if (!season) return [];
+      return season.teams
+        .map((teamEntry) => {
+          const weeks = {};
+          Object.entries(teamEntry.weeks).forEach(([week, values]) => {
+            weeks[Number(week)] = values;
+          });
+          const split = averageWeeksSplit(weeks, startWeek, endWeek);
+          if (!split) return null;
+          return {
+            team: teamEntry.team,
+            displayName: TEAM_DISPLAY_NAMES[teamEntry.team] || teamEntry.team,
+            offPass: split.offPass,
+            offRush: split.offRush,
+            defPass: split.defPass,
+            defRush: split.defRush,
+            offPassPlays: split.offPassPlays,
+            offRushPlays: split.offRushPlays,
+            defPassPlays: split.defPassPlays,
+            defRushPlays: split.defRushPlays,
+          };
+        })
+        .filter(Boolean);
+    }
+
+    function renderSplitTable(rows) {
+      splitTableBody.innerHTML = '';
+      const hasData = rows.some((r) => r.offPass !== null || r.offRush !== null || r.defPass !== null || r.defRush !== null);
+      if (!rows.length || !hasData) {
+        splitTableBody.innerHTML = '<tr><td colspan="6">Pass/run breakdown not available — re-run data fetch to populate split columns.</td></tr>';
+        return;
+      }
+
+      const totalTeams = rows.length;
+      const ranksByMetric = {
+        offPass: computeRanks(rows.filter((r) => r.offPass !== null), 'offPass'),
+        offRush: computeRanks(rows.filter((r) => r.offRush !== null), 'offRush'),
+        defPass: computeRanks(rows.filter((r) => r.defPass !== null), 'defPass'),
+        defRush: computeRanks(rows.filter((r) => r.defRush !== null), 'defRush'),
+      };
+
+      rows.forEach((_row, index) => {
+        const row = _row;
+        const tr = document.createElement('tr');
+        const offPassRank = ranksByMetric.offPass[row.team];
+        const offRushRank = ranksByMetric.offRush[row.team];
+        const defPassRank = ranksByMetric.defPass[row.team];
+        const defRushRank = ranksByMetric.defRush[row.team];
+
+        function metricCell(value, rank, plays) {
+          const playsHint = plays > 0 ? ` title="${plays} plays"` : '';
+          if (value === null) return `<td data-value="-9999">N/A</td>`;
+          return `<td class="metric-cell" data-value="${value.toFixed(6)}"${playsHint}>
+            <span class="metric-value">${formatNumber(value)}</span>
+            <span class="rank-label" style="color: ${getRankColor(rank, totalTeams)}">(#${rank})</span>
+          </td>`;
+        }
+
+        tr.innerHTML = `
+          <td class="rank-cell" data-value="${index + 1}">${index + 1}</td>
+          <td data-value="${row.team}">${row.displayName} (${row.team})</td>
+          ${metricCell(row.offPass, offPassRank, row.offPassPlays)}
+          ${metricCell(row.offRush, offRushRank, row.offRushPlays)}
+          ${metricCell(row.defPass, defPassRank, row.defPassPlays)}
+          ${metricCell(row.defRush, defRushRank, row.defRushPlays)}
+        `;
+        splitTableBody.appendChild(tr);
+      });
+      updateSplitRankNumbers();
+    }
+
+    function updateSplitRankNumbers() {
+      Array.from(splitTableBody.querySelectorAll('tr')).forEach((row, index) => {
+        const rankCell = row.querySelector('.rank-cell');
+        if (rankCell) {
+          rankCell.textContent = index + 1;
+          rankCell.dataset.value = index + 1;
+        }
+      });
+    }
+
+    function sortSplitTable(columnIndex, toggle = true) {
+      const header = splitTableHeaders[columnIndex];
+      if (!header) return;
+      const type = header.dataset.type || 'string';
+      const isSameColumn = splitSortState.column === columnIndex;
+      const direction = toggle
+        ? (isSameColumn && splitSortState.direction === 'asc' ? 'desc' : 'asc')
+        : (splitSortState.direction || 'asc');
+      const rows = Array.from(splitTableBody.querySelectorAll('tr'));
+      rows.sort((a, b) => {
+        const aVal = getCellValue(a.children[columnIndex], type);
+        const bVal = getCellValue(b.children[columnIndex], type);
+        if (aVal === bVal) return 0;
+        return direction === 'asc' ? (aVal > bVal ? 1 : -1) : (aVal < bVal ? 1 : -1);
+      });
+      splitTableBody.innerHTML = '';
+      rows.forEach((row) => splitTableBody.appendChild(row));
+      updateSplitRankNumbers();
+      splitTableHeaders.forEach((th) => th.classList.remove('sorted-asc', 'sorted-desc'));
+      header.classList.add(direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+      splitSortState.column = columnIndex;
+      splitSortState.direction = direction;
+    }
+
+    splitTableHeaders.forEach((header, index) => {
+      header.addEventListener('click', () => sortSplitTable(index));
+    });
+
+    function refreshSplitTable() {
+      const season = seasonSelect.value;
+      const { start, end } = syncWeekRange();
+      const rows = buildSplitRows(season, start, end);
+      renderSplitTable(rows);
+      sortSplitTable(splitSortState.column ?? 2, false);
+    }
+
+    viewSummaryBtn.addEventListener('click', () => {
+      viewSummaryBtn.classList.add('active');
+      viewSplitBtn.classList.remove('active');
+      summaryView.style.display = '';
+      splitSection.style.display = 'none';
+    });
+
+    viewSplitBtn.addEventListener('click', () => {
+      viewSplitBtn.classList.add('active');
+      viewSummaryBtn.classList.remove('active');
+      summaryView.style.display = 'none';
+      splitSection.style.display = '';
+      refreshSplitTable();
     });
 
     function refreshChart() {
