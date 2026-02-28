@@ -1220,6 +1220,10 @@
       header.addEventListener('click', () => sortSplitTable(index));
     });
 
+    function isSplitViewActive() {
+      return splitSection.style.display !== 'none';
+    }
+
     function refreshSplitTable() {
       const season = seasonSelect.value;
       const { start, end } = syncWeekRange();
@@ -1342,6 +1346,7 @@
       fillWeekSelect(weekEndSelect, selected.weeks, seasonSelect.value);
       weekEndSelect.value = selected.weeks[selected.weeks.length - 1];
       refreshChart();
+      if (isSplitViewActive()) refreshSplitTable();
       if (teamSeasonSelect) {
         teamSeasonSelect.value = seasonSelect.value;
         populateTeamOptions(teamSeasonSelect.value);
@@ -1349,14 +1354,23 @@
       }
     });
 
-    weekStartSelect.addEventListener('change', () => syncWeekRange());
-    weekEndSelect.addEventListener('change', () => syncWeekRange());
+    weekStartSelect.addEventListener('change', () => {
+      syncWeekRange();
+      if (isSplitViewActive()) refreshSplitTable();
+    });
+    weekEndSelect.addEventListener('change', () => {
+      syncWeekRange();
+      if (isSplitViewActive()) refreshSplitTable();
+    });
     metricModeSelect.addEventListener('change', () => {
       updateSosControlsVisibility(metricModeSelect.value);
       refreshChart();
     });
     sosBasisSelect.addEventListener('change', refreshChart);
-    updateButton.addEventListener('click', refreshChart);
+    updateButton.addEventListener('click', () => {
+      refreshChart();
+      if (isSplitViewActive()) refreshSplitTable();
+    });
     if (teamSeasonSelect) {
       teamSeasonSelect.addEventListener('change', () => {
         populateTeamOptions(teamSeasonSelect.value);
