@@ -1122,10 +1122,13 @@
           const split = averageWeeksSplit(weeks, startWeek, endWeek);
           if (!averaged || !split) return null;
           const combined = averaged.off + averaged.def;
+          const record = computeRecord(season, teamEntry.team, startWeek, endWeek);
           return {
             team: teamEntry.team,
             displayName: TEAM_DISPLAY_NAMES[teamEntry.team] || teamEntry.team,
             combined,
+            record: record?.recordStr ?? null,
+            winPct: record?.winPct ?? null,
             offPass: split.offPass,
             offRush: split.offRush,
             defPass: split.defPass,
@@ -1143,7 +1146,7 @@
       splitTableBody.innerHTML = '';
       const hasData = rows.some((r) => r.offPass !== null || r.offRush !== null || r.defPass !== null || r.defRush !== null);
       if (!rows.length || !hasData) {
-        splitTableBody.innerHTML = '<tr><td colspan="7">Pass/run breakdown not available — re-run data fetch to populate split columns.</td></tr>';
+        splitTableBody.innerHTML = '<tr><td colspan="8">Pass/run breakdown not available — re-run data fetch to populate split columns.</td></tr>';
         return;
       }
 
@@ -1185,6 +1188,7 @@
           ${metricCell(row.offRush, offRushRank, row.offRushPlays)}
           ${metricCell(row.defPass, defPassRank, row.defPassPlays)}
           ${metricCell(row.defRush, defRushRank, row.defRushPlays)}
+          <td data-type="number" data-value="${Number.isFinite(row.winPct) ? row.winPct : ''}">${row.record ?? 'N/A'}</td>
         `;
         splitTableBody.appendChild(tr);
       });
