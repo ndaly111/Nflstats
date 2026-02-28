@@ -1073,7 +1073,7 @@
       header.addEventListener('click', () => sortTable(index));
     });
 
-    const splitSortState = { column: null, direction: 'asc' };
+    const splitSortState = { column: null, direction: 'desc' };
 
     function averageWeeksSplit(teamWeeks, start, end) {
       let offPassSum = 0, offPassPlays = 0;
@@ -1118,11 +1118,14 @@
           Object.entries(teamEntry.weeks).forEach(([week, values]) => {
             weeks[Number(week)] = values;
           });
+          const averaged = averageWeeks(weeks, startWeek, endWeek);
           const split = averageWeeksSplit(weeks, startWeek, endWeek);
-          if (!split) return null;
+          if (!averaged || !split) return null;
+          const combined = averaged.off + averaged.def;
           return {
             team: teamEntry.team,
             displayName: TEAM_DISPLAY_NAMES[teamEntry.team] || teamEntry.team,
+            combined,
             offPass: split.offPass,
             offRush: split.offRush,
             defPass: split.defPass,
@@ -1140,12 +1143,13 @@
       splitTableBody.innerHTML = '';
       const hasData = rows.some((r) => r.offPass !== null || r.offRush !== null || r.defPass !== null || r.defRush !== null);
       if (!rows.length || !hasData) {
-        splitTableBody.innerHTML = '<tr><td colspan="6">Pass/run breakdown not available — re-run data fetch to populate split columns.</td></tr>';
+        splitTableBody.innerHTML = '<tr><td colspan="7">Pass/run breakdown not available — re-run data fetch to populate split columns.</td></tr>';
         return;
       }
 
       const totalTeams = rows.length;
       const ranksByMetric = {
+        combined: computeRanks(rows, 'combined'),
         offPass: computeRanks(rows.filter((r) => r.offPass !== null), 'offPass'),
         offRush: computeRanks(rows.filter((r) => r.offRush !== null), 'offRush'),
         defPass: computeRanks(rows.filter((r) => r.defPass !== null), 'defPass'),
@@ -1155,6 +1159,7 @@
       rows.forEach((_row, index) => {
         const row = _row;
         const tr = document.createElement('tr');
+        const combinedRank = ranksByMetric.combined[row.team];
         const offPassRank = ranksByMetric.offPass[row.team];
         const offRushRank = ranksByMetric.offRush[row.team];
         const defPassRank = ranksByMetric.defPass[row.team];
@@ -1172,6 +1177,10 @@
         tr.innerHTML = `
           <td class="rank-cell" data-value="${index + 1}">${index + 1}</td>
           <td data-value="${row.team}">${row.displayName} (${row.team})</td>
+          <td class="metric-cell" data-value="${row.combined.toFixed(6)}">
+            <span class="metric-value">${formatNumber(row.combined)}</span>
+            <span class="rank-label" style="color: ${getRankColor(combinedRank, totalTeams)}">(#${combinedRank})</span>
+          </td>
           ${metricCell(row.offPass, offPassRank, row.offPassPlays)}
           ${metricCell(row.offRush, offRushRank, row.offRushPlays)}
           ${metricCell(row.defPass, defPassRank, row.defPassPlays)}
@@ -1229,7 +1238,7 @@
       const { start, end } = syncWeekRange();
       const rows = buildSplitRows(season, start, end);
       renderSplitTable(rows);
-      sortSplitTable(splitSortState.column ?? 2, false);
+      sortSplitTable(splitSortState.column ?? 2, false); // column 2 = Combined EPA
     }
 
     viewSummaryBtn.addEventListener('click', () => {
