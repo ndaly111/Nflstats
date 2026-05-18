@@ -2,7 +2,10 @@ name: Update odds history
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    # Every 6 hours. Sports odds don't move every hour (especially overnight);
+    # 4 runs/day is plenty for a weekly-cadence NFL site and saves ~720 CI
+    # minutes/month vs the previous hourly schedule.
+    - cron: '0 */6 * * *'
   workflow_dispatch:
 
 concurrency:

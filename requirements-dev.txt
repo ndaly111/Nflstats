@@ -1,3 +1,4 @@
 -r requirements.txt
 polars
 nflreadpy
+pytest>=7

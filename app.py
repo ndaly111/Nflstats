@@ -317,7 +317,7 @@ def index() -> str:
         week_end=week_end,
         metric_mode=metric_mode,
         sos_basis=sos_basis,
-        cachebuster=datetime.datetime.utcnow().timestamp(),
+        cachebuster=datetime.datetime.now(datetime.timezone.utc).timestamp(),
     )
 
     return render_template_string(

@@ -66,7 +66,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
+          python -m pip install -r requirements-dev.txt
+
+      - name: Run tests
+        # Pytest gate before any data fetch — bot pushes don't trigger ci.yml,
+        # so this is the safety net that catches pipeline regressions before
+        # we commit refreshed data back to main.
+        run: python -m pytest -q
 
       - name: Determine next season to backfill (scheduled)
         if: ${{ github.event_name == 'schedule' }}
@@ -76,13 +82,13 @@ jobs:
           python - <<'PY'
           import os
           import sqlite3
-          from datetime import datetime
+          from datetime import datetime, timezone
           from pathlib import Path
 
           db_path = Path("data/epa.sqlite")
           db_path.parent.mkdir(parents=True, exist_ok=True)
 
-          now = datetime.utcnow()
+          now = datetime.now(timezone.utc)
           current_season = now.year if now.month >= 9 else now.year - 1
           start_season = int(os.environ.get("SEASON_START", "2000"))
           batch_size = max(int(os.environ.get("AUTO_BACKFILL_BATCH", "5")), 1)

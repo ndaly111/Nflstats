@@ -64,7 +64,7 @@ def build_page(
     if chart_dest.resolve() != chart_path:
         chart_dest.write_bytes(chart_path.read_bytes())
 
-    generated_at = dt.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+    generated_at = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     html = f"""<!doctype html>
 <html lang=\"en\">
 <head>
