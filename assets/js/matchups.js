@@ -1748,9 +1748,7 @@
     async function init() {
       showStatus('Loading data...');
       try {
-        const dataUrl = new URL(DATA_URL);
-        dataUrl.searchParams.set('v', String(Date.now()));
-        const res = await fetch(dataUrl, { cache: 'no-store' });
+        const res = await fetch(DATA_URL);
         if (!res.ok) throw new Error('Failed to load data file');
         data = await res.json();
       } catch (err) {

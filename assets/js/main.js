@@ -55,7 +55,6 @@
     const splitTableBody = splitTable.querySelector('tbody');
     const splitTableHeaders = splitTable.querySelectorAll('th');
     const DATA_URL = new URL('data/epa.json', document.baseURI);
-    DATA_URL.searchParams.set('v', Date.now().toString());
 
     let scatterChart;
     let teamCombinedChart;
@@ -1332,7 +1331,7 @@
 
     async function bootstrap() {
       try {
-        const res = await fetch(DATA_URL, { cache: 'no-store' });
+        const res = await fetch(DATA_URL);
         if (!res.ok) throw new Error(`Failed to load data (${res.status})`);
         const json = await res.json();
         if (!json || typeof json !== 'object' || !json.seasons) {
