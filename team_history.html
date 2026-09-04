@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/site.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root {
@@ -32,14 +33,6 @@
       margin: 0 auto;
     }
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 1rem;
-      margin-bottom: 0.5rem;
-    }
-
     h1 {
       margin: 0 0 0.35rem;
       font-size: 1.9rem;
@@ -54,34 +47,6 @@
       color: var(--muted);
       font-size: 0.95rem;
       margin: 0 0 1rem;
-    }
-
-    .nav-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      align-items: flex-end;
-    }
-
-    .hof-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.5rem 0.9rem;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: white;
-      font-weight: 700;
-      color: #0f172a;
-      text-decoration: none;
-      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
-      transition: transform 120ms ease, box-shadow 120ms ease;
-      white-space: nowrap;
-    }
-
-    .hof-link:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
     }
 
     .controls {
@@ -231,15 +196,17 @@
 </head>
 <body>
   <main>
+    <nav class="site-nav" aria-label="Site sections">
+      <a href="index.html"><span class="nav-icon" aria-hidden="true">🏈</span>EPA Summary</a>
+      <a href="matchups.html"><span class="nav-icon" aria-hidden="true">📅</span>Weekly Matchups</a>
+      <span class="nav-divider" aria-hidden="true"></span>
+      <span class="nav-current" aria-current="page"><span class="nav-icon" aria-hidden="true">📈</span>Team History</span>
+      <a href="hof.html"><span class="nav-icon" aria-hidden="true">🏆</span>Hall of Fame</a>
+    </nav>
     <div class="top-bar">
       <div>
         <h1>Team EPA History</h1>
         <p class="lead">Season-by-season efficiency summaries with best/worst games and a quick trend line.</p>
-      </div>
-      <div class="nav-actions">
-        <a class="hof-link" href="index.html" aria-label="View team EPA summary">🏈 Team Summary</a>
-        <a class="hof-link" href="matchups.html" aria-label="View Weekly Matchups">📅 Weekly Matchups</a>
-        <a class="hof-link" href="hof.html" aria-label="View EPA Hall of Fame">🏆 HOF</a>
       </div>
     </div>
     <div id="data-meta" class="meta"></div>
