@@ -282,6 +282,77 @@
       background: var(--panel);
     }
 
+    /* Player drill-down under the offensive pass/rush cells. */
+    .drill-toggle {
+      width: auto;
+      margin-left: 0.4rem;
+      padding: 0 0.15rem;
+      border: none;
+      background: none;
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: none;
+    }
+
+    .drill-toggle::before {
+      content: "\25B8";
+      display: inline-block;
+      transition: transform 120ms ease;
+    }
+
+    .drill-toggle[aria-expanded="true"]::before {
+      transform: rotate(90deg);
+    }
+
+    .drill-toggle:hover { color: var(--text); }
+
+    .drill-toggle:focus-visible {
+      outline: 2px solid #1d4ed8;
+      outline-offset: 2px;
+    }
+
+    .player-detail > td {
+      background: var(--panel);
+      padding: 0.9rem 1rem;
+      white-space: normal;
+    }
+
+    .player-group + .player-group { margin-top: 1rem; }
+
+    .player-group h4 {
+      margin: 0 0 0.4rem;
+      font-size: 0.95rem;
+    }
+
+    .player-table {
+      width: auto;
+      min-width: min(30rem, 100%);
+      font-size: 0.9rem;
+    }
+
+    .player-table th,
+    .player-table td { padding: 0.3rem 0.6rem; }
+    .player-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .player-table th { cursor: default; }
+
+    .low-volume {
+      color: var(--muted);
+      font-size: 0.8em;
+      font-style: italic;
+    }
+
+    .player-empty,
+    .player-note {
+      margin: 0.5rem 0 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .drill-toggle::before { transition: none; }
+    }
   </style>
 </head>
 <body>

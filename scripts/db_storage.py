@@ -53,6 +53,28 @@ CREATE TABLE IF NOT EXISTS team_epa_weekly (
 );
 """
 
+PLAYER_EPA_WEEKLY_SCHEMA = """
+CREATE TABLE IF NOT EXISTS player_epa_weekly (
+    season INTEGER NOT NULL,
+    week INTEGER NOT NULL,
+    team TEXT NOT NULL,
+    player_id TEXT NOT NULL,
+    player_name TEXT NOT NULL,
+    role TEXT NOT NULL,
+    epa_sum REAL NOT NULL,
+    plays INTEGER NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
+    -- A player can appear under more than one role in a week, and can be traded
+    -- mid-season, so the team is part of the key rather than a property of him.
+    PRIMARY KEY (season, week, team, player_id, role)
+);
+"""
+
+PLAYER_EPA_WEEK_INDEX = (
+    "CREATE INDEX IF NOT EXISTS idx_player_epa_season_week "
+    "ON player_epa_weekly (season, week);"
+)
+
 TEAM_GAME_EPA_SCHEMA = """
 CREATE TABLE IF NOT EXISTS team_epa_games (
     season INTEGER NOT NULL,
@@ -91,6 +113,8 @@ def init_db(db_path: Path | str = DB_PATH) -> sqlite3.Connection:
     conn.execute(TEAM_EPA_WEEKLY_SCHEMA)
     conn.execute(TEAM_GAME_EPA_SCHEMA)
     conn.execute(TEAM_GAME_EPA_WEEK_INDEX)
+    conn.execute(PLAYER_EPA_WEEKLY_SCHEMA)
+    conn.execute(PLAYER_EPA_WEEK_INDEX)
     _migrate_weekly_schema(conn)
     _migrate_team_game_schema(conn)
     return conn
@@ -338,6 +362,55 @@ def save_team_epa_snapshot(
                     int(row.def_rush_plays),
                 )
                 for row in df_to_write.itertuples(index=False)
+            ],
+        )
+    conn.close()
+
+
+def save_player_epa_snapshot(
+    df: pd.DataFrame, season: int, week: int, db_path: Path | str = DB_PATH
+) -> None:
+    """Persist per-player EPA for one week.
+
+    Expects the output of scripts.player_epa.compute_player_epa: one row per
+    team, player and role.
+    """
+
+    required = {"team", "player_id", "player_name", "role", "epa_sum", "plays"}
+    missing = required - set(df.columns)
+    if missing:
+        raise ValueError(
+            f"Player EPA dataframe missing columns required for DB storage: {sorted(missing)}"
+        )
+
+    if df.empty:
+        return
+
+    conn = init_db(db_path)
+    with conn:
+        conn.executemany(
+            """
+            INSERT INTO player_epa_weekly (
+                season, week, team, player_id, player_name, role, epa_sum, plays
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(season, week, team, player_id, role) DO UPDATE SET
+                player_name = excluded.player_name,
+                epa_sum = excluded.epa_sum,
+                plays = excluded.plays,
+                updated_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now')
+            """,
+            [
+                (
+                    season,
+                    week,
+                    str(row.team),
+                    str(row.player_id),
+                    str(row.player_name),
+                    str(row.role),
+                    float(row.epa_sum),
+                    int(row.plays),
+                )
+                for row in df.itertuples(index=False)
             ],
         )
     conn.close()

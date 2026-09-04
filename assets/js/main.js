@@ -1141,6 +1141,139 @@
         .filter(Boolean);
     }
 
+
+    // --- Player drill-down -------------------------------------------------
+    // The offensive pass/rush cells expand to show who produced the number.
+    // Player data is split one file per season so this costs a ~0.5 MB fetch
+    // for the season you are looking at, not every season ever played.
+
+    const playerSeasonCache = new Map();
+
+    const ROLE_GROUPS = {
+      offPass: [
+        { role: 'passing', title: 'Passing', unit: 'Dropbacks' },
+        { role: 'receiving', title: 'Receiving', unit: 'Targets' },
+      ],
+      offRush: [{ role: 'rushing', title: 'Rushing', unit: 'Rushes' }],
+    };
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (ch) => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+      ));
+    }
+
+    function loadPlayerSeason(season) {
+      if (!playerSeasonCache.has(season)) {
+        const url = new URL(`data/players/${season}.json`, document.baseURI);
+        playerSeasonCache.set(
+          season,
+          fetch(url).then((res) => (res.ok ? res.json() : null)).catch(() => null)
+        );
+      }
+      return playerSeasonCache.get(season);
+    }
+
+    function playersForTeam(payload, team, weekStart, weekEnd, role) {
+      const totals = new Map();
+      for (let week = weekStart; week <= weekEnd; week += 1) {
+        const teams = payload.weeks[String(week)];
+        const entries = teams && teams[team];
+        if (!entries) continue;
+        entries.forEach((entry) => {
+          if (entry.r !== role) return;
+          const acc = totals.get(entry.i) || { name: entry.n, epa: 0, plays: 0 };
+          acc.epa += entry.e;
+          acc.plays += entry.p;
+          acc.name = entry.n;
+          totals.set(entry.i, acc);
+        });
+      }
+      return Array.from(totals.values()).sort((a, b) => b.epa - a.epa);
+    }
+
+    function renderPlayerGroup(group, players) {
+      if (!players.length) return '';
+      // Flag by share of the team's own workload rather than a fixed play count,
+      // so the threshold scales with however many weeks are selected.
+      const teamPlays = players.reduce((sum, p) => sum + p.plays, 0);
+      const body = players.map((player) => {
+        const thin = teamPlays > 0 && player.plays / teamPlays < 0.1;
+        const flag = thin
+          ? ` <span class="low-volume" title="Under 10% of the team's ${group.unit.toLowerCase()} in this range">low volume</span>`
+          : '';
+        return `<tr>
+              <td>${escapeHtml(player.name)}${flag}</td>
+              <td class="num">${player.epa.toFixed(1)}</td>
+              <td class="num">${formatNumber(player.epa / player.plays)}</td>
+              <td class="num">${player.plays}</td>
+            </tr>`;
+      }).join('');
+      return `<div class="player-group">
+            <h4>${group.title}</h4>
+            <table class="player-table">
+              <thead><tr><th>Player</th><th class="num">EPA</th><th class="num">EPA/play</th><th class="num">${group.unit}</th></tr></thead>
+              <tbody>${body}</tbody>
+            </table>
+          </div>`;
+    }
+
+    async function fillPlayerDetail(cell, team, drillKey) {
+      const season = seasonSelect.value;
+      const weekStart = Number(weekStartSelect.value);
+      const weekEnd = Number(weekEndSelect.value);
+      const payload = await loadPlayerSeason(season);
+
+      if (!payload) {
+        cell.innerHTML = `<p class="player-empty">No player data for ${escapeHtml(season)} yet. Run the season backfill to populate it.</p>`;
+        return;
+      }
+
+      const groups = ROLE_GROUPS[drillKey] || [];
+      const html = groups
+        .map((group) => renderPlayerGroup(group, playersForTeam(payload, team, weekStart, weekEnd, group.role)))
+        .join('');
+
+      cell.innerHTML = html || '<p class="player-empty">No plays for this team in the selected weeks.</p>';
+      if (drillKey === 'offPass' && html) {
+        cell.insertAdjacentHTML(
+          'beforeend',
+          '<p class="player-note">Receiving is per target. Throwaways and batted balls have no intended receiver, so they count against the passer only.</p>'
+        );
+      }
+    }
+
+    function collapseAllPlayerDetails() {
+      splitTableBody.querySelectorAll('tr.player-detail').forEach((row) => row.remove());
+      splitTableBody.querySelectorAll('.drill-toggle[aria-expanded="true"]').forEach((btn) => {
+        btn.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    function togglePlayerDetail(button) {
+      const teamRow = button.closest('tr');
+      const team = button.dataset.team;
+      const drillKey = button.dataset.drill;
+      const isOpen = button.getAttribute('aria-expanded') === 'true';
+      collapseAllPlayerDetails();
+      if (isOpen) return;
+
+      button.setAttribute('aria-expanded', 'true');
+      const detail = document.createElement('tr');
+      detail.className = 'player-detail';
+      const cell = document.createElement('td');
+      cell.colSpan = teamRow.children.length;
+      cell.innerHTML = '<p class="player-empty">Loading players…</p>';
+      detail.appendChild(cell);
+      teamRow.insertAdjacentElement('afterend', detail);
+      fillPlayerDetail(cell, team, drillKey);
+    }
+
+    splitTableBody.addEventListener('click', (event) => {
+      const button = event.target.closest('.drill-toggle');
+      if (button) togglePlayerDetail(button);
+    });
+
     function renderSplitTable(rows) {
       splitTableBody.innerHTML = '';
       const hasData = rows.some((r) => r.offPass !== null || r.offRush !== null || r.defPass !== null || r.defRush !== null);
@@ -1167,12 +1300,18 @@
         const defPassRank = ranksByMetric.defPass[row.team];
         const defRushRank = ranksByMetric.defRush[row.team];
 
-        function metricCell(value, rank, plays) {
+        function metricCell(value, rank, plays, drillKey) {
           const playsHint = plays > 0 ? ` title="${plays} plays"` : '';
           if (value === null) return `<td data-value="-9999">N/A</td>`;
+          // Only offence drills down: play-by-play credits defensive EPA to the
+          // team, with no defender named on the play.
+          const drill = drillKey
+            ? `<button type="button" class="drill-toggle" aria-expanded="false" data-team="${row.team}" data-drill="${drillKey}" aria-label="Show the players behind this number"></button>`
+            : '';
           return `<td class="metric-cell" data-value="${value.toFixed(6)}"${playsHint}>
             <span class="metric-value">${formatNumber(value)}</span>
             <span class="rank-label" style="color: ${getRankColor(rank, totalTeams)}">(#${rank})</span>
+            ${drill}
           </td>`;
         }
 
@@ -1183,8 +1322,8 @@
             <span class="metric-value">${formatNumber(row.combined)}</span>
             <span class="rank-label" style="color: ${getRankColor(combinedRank, totalTeams)}">(#${combinedRank})</span>
           </td>
-          ${metricCell(row.offPass, offPassRank, row.offPassPlays)}
-          ${metricCell(row.offRush, offRushRank, row.offRushPlays)}
+          ${metricCell(row.offPass, offPassRank, row.offPassPlays, 'offPass')}
+          ${metricCell(row.offRush, offRushRank, row.offRushPlays, 'offRush')}
           ${metricCell(row.defPass, defPassRank, row.defPassPlays)}
           ${metricCell(row.defRush, defRushRank, row.defRushPlays)}
           <td data-type="number" data-value="${Number.isFinite(row.winPct) ? row.winPct : ''}">${row.record ?? 'N/A'}</td>
@@ -1195,7 +1334,7 @@
     }
 
     function updateSplitRankNumbers() {
-      Array.from(splitTableBody.querySelectorAll('tr')).forEach((row, index) => {
+      Array.from(splitTableBody.querySelectorAll('tr:not(.player-detail)')).forEach((row, index) => {
         const rankCell = row.querySelector('.rank-cell');
         if (rankCell) {
           rankCell.textContent = index + 1;
@@ -1212,6 +1351,8 @@
       const direction = toggle
         ? (isSameColumn && splitSortState.direction === 'asc' ? 'desc' : 'asc')
         : (splitSortState.direction || 'asc');
+      // Re-ordering rows would strand any open detail row under the wrong team.
+      collapseAllPlayerDetails();
       const rows = Array.from(splitTableBody.querySelectorAll('tr'));
       rows.sort((a, b) => {
         const aVal = getCellValue(a.children[columnIndex], type);

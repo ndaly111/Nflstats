@@ -239,6 +239,7 @@ jobs:
       - name: Export static JSON
         run: |
           python -m scripts.export_epa_json --db data/epa.sqlite --output data/epa.json
+          python -m scripts.export_player_json --db data/epa.sqlite --outdir data/players
 
       - name: Validate exported payload
         env:
@@ -307,7 +308,7 @@ jobs:
 
       - name: Commit and push updates
         run: |
-          git add data/epa.sqlite data/epa.json data/schedule.json data/odds.json data/odds_history.json
+          git add data/epa.sqlite data/epa.json data/players data/schedule.json data/odds.json data/odds_history.json
           if git diff --cached --quiet; then
             echo "No changes to commit."
             exit 0

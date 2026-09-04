@@ -9,6 +9,7 @@ import pandas as pd
 from .db_storage import (
     DB_PATH,
     get_cached_weeks,
+    save_player_epa_snapshot,
     save_team_epa_snapshot,
     save_team_game_epa,
 )
@@ -20,6 +21,7 @@ from .epa_od_fetcher import (
     compute_team_game_epa,
     load_pbp_pandas,
 )
+from .player_epa import compute_player_epa
 
 
 def parse_args() -> argparse.Namespace:
@@ -122,7 +124,14 @@ def main() -> None:
         team_games = compute_team_game_epa(filtered_week, week=week_num)
         if not team_games.empty:
             save_team_game_epa(team_games, season, week_num, db_path=args.db)
-        print(f"Stored team EPA for week {week_num} in SQLite database: {args.db}")
+
+        players = compute_player_epa(filtered_week, week=week_num)
+        if not players.empty:
+            save_player_epa_snapshot(players, season, week_num, db_path=args.db)
+        print(
+            f"Stored team EPA and {len(players)} player rows for week {week_num} "
+            f"in SQLite database: {args.db}"
+        )
 
     print("All requested weeks stored in SQLite cache ✅")
 
