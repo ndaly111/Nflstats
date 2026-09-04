@@ -1,9 +1,9 @@
 import os
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
 from scripts.plot_epa_scatter import REPO_ROOT, load_team_epa, plot_scatter
+from scripts.season import current_nfl_season
 
 
 def _env_int(name: str) -> Optional[int]:
@@ -17,15 +17,8 @@ def _week_label(start: int, end: int) -> str:
     return f"Weeks {start}–{end}"
 
 
-def _current_nfl_season() -> int:
-    # NFL season N runs from September of year N into January–February of year N+1,
-    # so the "current" season is the calendar year from Sep onward, else the prior year.
-    now = datetime.now(timezone.utc)
-    return now.year if now.month >= 9 else now.year - 1
-
-
 def main() -> None:
-    season_str = os.getenv("NFL_SEASON", str(_current_nfl_season())).strip()
+    season_str = os.getenv("NFL_SEASON", str(current_nfl_season())).strip()
     try:
         season = int(season_str)
     except ValueError:

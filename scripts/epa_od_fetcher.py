@@ -8,11 +8,37 @@ import nflreadpy as nfl
 import numpy as np
 import pandas as pd
 
+from .season import current_nfl_season, season_opener
+
 
 REQUIRED_WEEK_COLUMN = "week"
 WIN_PROB_COLUMN = "wp"
 SEASON_TYPE_COLUMN = "season_type"
 REQUIRED_COLS = {"epa", "posteam", "defteam"}
+
+# Substrings that mean "nflverse has no file for this season", as opposed to a
+# transient network failure that is worth retrying.
+_UNPUBLISHED_MARKERS = (
+    "404",
+    "not found",
+    "no such file",
+    "does not exist",
+    "must be between",  # nflreadpy's own "Season must be between 1999 and N"
+)
+
+
+class SeasonNotPublishedError(RuntimeError):
+  """Raised when nflverse has not published play-by-play data for a season yet.
+
+  Normal in the gap between a season's opener and nflverse publishing its first
+  play-by-play file, so callers refreshing the current season can treat it as a
+  skip rather than a failure. See scripts/season.py for the rollover rule.
+  """
+
+
+def _looks_unpublished(exc: Exception) -> bool:
+  text = str(exc).lower()
+  return any(marker in text for marker in _UNPUBLISHED_MARKERS)
 
 
 @dataclass(frozen=True)
@@ -40,6 +66,13 @@ def load_pbp_pandas(season: int, max_retries: int = 3, retry_delay: float = 5.0)
 
   Retries up to ``max_retries`` times on transient network errors before raising.
   """
+  latest = current_nfl_season()
+  if season > latest:
+      raise SeasonNotPublishedError(
+          f"nflverse serves seasons through {latest}; {season} has not kicked off yet "
+          f"(opener {season_opener(season)})."
+      )
+
   last_exc: Exception | None = None
   for attempt in range(1, max_retries + 1):
       try:
@@ -48,6 +81,12 @@ def load_pbp_pandas(season: int, max_retries: int = 3, retry_delay: float = 5.0)
           break
       except Exception as exc:  # pragma: no cover - network/cache issues
           last_exc = exc
+          # A missing file for a season that could plausibly not exist yet is a
+          # calendar fact, not a flaky download -- don't burn retries on it.
+          if season >= current_nfl_season() and _looks_unpublished(exc):
+              raise SeasonNotPublishedError(
+                  f"nflverse has no play-by-play file for {season} yet: {exc}"
+              ) from exc
           if attempt < max_retries:
               print(f"[fetch] nflreadpy download attempt {attempt} failed: {exc}. Retrying in {retry_delay}s ...")
               time.sleep(retry_delay)
@@ -67,6 +106,10 @@ def load_pbp_pandas(season: int, max_retries: int = 3, retry_delay: float = 5.0)
       )
 
   if pbp.empty:
+      if season >= current_nfl_season():
+          raise SeasonNotPublishedError(
+              f"PBP dataframe is empty for {season}; the season's data isn't published yet."
+          )
       raise RuntimeError(
           f"PBP dataframe is empty for {season}. Either the season data isn't published yet, or the download failed."
       )

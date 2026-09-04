@@ -6,9 +6,15 @@ from typing import Optional
 
 import pandas as pd
 
-from .db_storage import DB_PATH, save_team_epa_snapshot, save_team_game_epa
+from .db_storage import (
+    DB_PATH,
+    get_cached_weeks,
+    save_team_epa_snapshot,
+    save_team_game_epa,
+)
 from .epa_od_fetcher import (
     PbpFilters,
+    SeasonNotPublishedError,
     apply_filters,
     compute_team_epa,
     compute_team_game_epa,
@@ -30,6 +36,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--min-wp", type=float, default=None, dest="min_wp")
     parser.add_argument("--max-wp", type=float, default=None, dest="max_wp")
     parser.add_argument("--include-playoffs", action="store_true", default=False, dest="include_playoffs")
+    parser.add_argument(
+        "--skip-if-unpublished",
+        action="store_true",
+        default=False,
+        dest="skip_if_unpublished",
+        help=(
+            "Exit cleanly instead of failing when nflverse has not published this "
+            "season yet. Only honoured while the season has no weeks cached; once "
+            "any week is stored, missing data is treated as a real failure."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -67,7 +84,23 @@ def main() -> None:
     )
 
     print(f"Fetching play-by-play data for {season} ...")
-    pbp = load_pbp_pandas(season)
+    try:
+        pbp = load_pbp_pandas(season)
+    except SeasonNotPublishedError as exc:
+        if not args.skip_if_unpublished:
+            raise
+        cached = get_cached_weeks(season, db_path=args.db)
+        if cached:
+            # Data used to be there and now isn't -- that is a regression in the
+            # upstream feed or in this pipeline, not a preseason gap.
+            raise SystemExit(
+                f"Season {season} already has weeks {cached[0]}-{cached[-1]} cached in "
+                f"{args.db}, so absent play-by-play is a regression, not a preseason "
+                f"gap: {exc}"
+            )
+        print(f"[skip] {exc}")
+        print(f"[skip] No weeks cached for {season} yet; leaving the SQLite cache untouched.")
+        return
 
     weeks_to_build = _resolve_weeks(pbp, args.week_start, args.week_end)
     print(f"Building team EPA snapshots for weeks {weeks_to_build[0]}–{weeks_to_build[-1]} ...")

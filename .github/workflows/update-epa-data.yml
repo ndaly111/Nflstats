@@ -82,14 +82,14 @@ jobs:
           python - <<'PY'
           import os
           import sqlite3
-          from datetime import datetime, timezone
           from pathlib import Path
+
+          from scripts.season import current_nfl_season
 
           db_path = Path("data/epa.sqlite")
           db_path.parent.mkdir(parents=True, exist_ok=True)
 
-          now = datetime.now(timezone.utc)
-          current_season = now.year if now.month >= 9 else now.year - 1
+          current_season = current_nfl_season()
           start_season = int(os.environ.get("SEASON_START", "2000"))
           batch_size = max(int(os.environ.get("AUTO_BACKFILL_BATCH", "5")), 1)
 
@@ -129,13 +129,9 @@ jobs:
           set -euo pipefail
           SEASON_START="${{ env.SEASON_START }}"
 
-          current_year="$(date -u '+%Y')"
-          current_month="$(date -u '+%m')"
-          if [ "$current_month" -ge 9 ]; then
-            current_season="$current_year"
-          else
-            current_season=$((current_year - 1))
-          fi
+          # Same rule nflverse uses (Thursday after Labor Day), so we never
+          # target a season upstream refuses to serve. See scripts/season.py.
+          current_season="$(python -c 'from scripts.season import current_nfl_season; print(current_nfl_season())')"
 
           mode="${{ github.event.inputs.mode || 'update_current' }}"
           season_input="${{ github.event.inputs.season || '' }}"
@@ -187,12 +183,24 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Refresh SQLite cache
+        id: refresh
         if: ${{ steps.season.outputs.mode != 'backfill_range' }}
         run: |
           set -euo pipefail
           season=${{ steps.season.outputs.season }}
+          mode=${{ steps.season.outputs.mode }}
+          # Only update_current is allowed to skip. An explicit backfill of a
+          # named season must still fail loudly if that season has no data.
+          skip_flag=""
+          if [ "$mode" = "update_current" ]; then
+            skip_flag="--skip-if-unpublished"
+          fi
           echo "Fetching season $season"
-          python -m scripts.fetch_epa --season "$season" --db data/epa.sqlite --include-playoffs
+          python -m scripts.fetch_epa --season "$season" --db data/epa.sqlite --include-playoffs $skip_flag | tee /tmp/fetch-current.log
+          if grep -q '^\[skip\]' /tmp/fetch-current.log; then
+            echo "season_skipped=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Season $season is not published by nflverse yet; kept existing data."
+          fi
           python -c "import sqlite3; c=sqlite3.connect('data/epa.sqlite'); c.execute('PRAGMA wal_checkpoint(TRUNCATE);'); c.close()"
           rm -f data/epa.sqlite-wal data/epa.sqlite-shm
 
@@ -210,16 +218,23 @@ jobs:
           done
 
       - name: Fetch next missing seasons (scheduled)
+        id: autofetch
         if: ${{ github.event_name == 'schedule' && steps.auto.outputs.did_find_season == 'true' }}
         run: |
           set -euo pipefail
+          skipped=""
           IFS=',' read -ra seasons <<< "${{ steps.auto.outputs.seasons_to_fetch }}"
           for season in "${seasons[@]}"; do
             echo "Auto-backfilling missing season: $season"
-            python -m scripts.fetch_epa --season "$season" --db data/epa.sqlite --include-playoffs
+            python -m scripts.fetch_epa --season "$season" --db data/epa.sqlite --include-playoffs --skip-if-unpublished | tee "/tmp/fetch-$season.log"
+            if grep -q '^\[skip\]' "/tmp/fetch-$season.log"; then
+              skipped="${skipped:+$skipped,}$season"
+              echo "::notice::Season $season is not published by nflverse yet; skipped."
+            fi
             python -c "import sqlite3; c=sqlite3.connect('data/epa.sqlite'); c.execute('PRAGMA wal_checkpoint(TRUNCATE);'); c.close()"
             rm -f data/epa.sqlite-wal data/epa.sqlite-shm
           done
+          echo "skipped_seasons=$skipped" >> "$GITHUB_OUTPUT"
 
       - name: Export static JSON
         run: |
@@ -233,6 +248,8 @@ jobs:
           RANGE_END: ${{ steps.season.outputs.season_end }}
           SEASONS_TO_FETCH: ${{ steps.auto.outputs.seasons_to_fetch }}
           EVENT_NAME: ${{ github.event_name }}
+          SEASON_SKIPPED: ${{ steps.refresh.outputs.season_skipped }}
+          SKIPPED_SEASONS: ${{ steps.autofetch.outputs.skipped_seasons }}
         run: |
           python - <<'PY'
           import json
@@ -250,6 +267,8 @@ jobs:
           end = os.environ.get("RANGE_END", "")
           event = os.environ.get("EVENT_NAME", "")
           seasons_to_fetch = [s.strip() for s in os.environ.get("SEASONS_TO_FETCH", "").split(",") if s.strip()]
+          skipped_current = os.environ.get("SEASON_SKIPPED", "") == "true"
+          skipped_seasons = {s.strip() for s in os.environ.get("SKIPPED_SEASONS", "").split(",") if s.strip()}
 
           if mode == "backfill_range":
               if not start or not end:
@@ -260,10 +279,16 @@ jobs:
                   raise SystemExit(f"Missing seasons in export: {', '.join(missing)}")
           else:
               if target and str(target) not in seasons:
-                  raise SystemExit(f"Target season {target} missing from export")
+                  if skipped_current:
+                      print(f"Season {target} is not published yet; export intentionally omits it.")
+                  else:
+                      raise SystemExit(f"Target season {target} missing from export")
 
           if event == "schedule" and seasons_to_fetch:
-              missing_scheduled = [s for s in seasons_to_fetch if s not in seasons]
+              missing_scheduled = [
+                  s for s in seasons_to_fetch
+                  if s not in seasons and s not in skipped_seasons
+              ]
               if missing_scheduled:
                   raise SystemExit("Scheduled backfill expected seasons in export: " + ", ".join(missing_scheduled))
 
