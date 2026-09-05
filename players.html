@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NFL Player EPA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/site.css" />
+  <style>
+    :root {
+      color-scheme: light;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #475569;
+      --panel: #f8fafc;
+      --above: #1d4ed8;
+      --below: #b91c1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      margin: 0;
+      padding: 1.25rem 1rem 3rem;
+      background: #ffffff;
+    }
+
+    main { max-width: 760px; margin: 0 auto; }
+
+    h1 { margin: 0 0 0.35rem; font-size: 1.6rem; }
+    p.lead { margin: 0 0 1rem; color: var(--muted); }
+
+    .controls {
+      display: grid;
+      gap: 0.75rem;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .week-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
+    }
+
+    select {
+      width: 100%;
+      padding: 0.55rem 0.5rem;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: white;
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+
+    /* Segmented controls: full-width taps, no hover required. */
+    .segmented {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 1fr;
+      gap: 0.35rem;
+      background: #eef2f7;
+      border-radius: 10px;
+      padding: 0.25rem;
+    }
+
+    .segmented button {
+      appearance: none;
+      border: none;
+      background: none;
+      border-radius: 8px;
+      padding: 0.6rem 0.35rem;
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      min-height: 44px;
+    }
+
+    .segmented button.active {
+      background: #ffffff;
+      color: var(--text);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.14);
+    }
+
+    .segmented button:focus-visible {
+      outline: 2px solid var(--above);
+      outline-offset: -2px;
+    }
+
+    .notice {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+      margin-bottom: 0.9rem;
+      color: #9a3412;
+      font-size: 0.9rem;
+    }
+
+    .notice.error { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+
+    #league-summary {
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin: 0 0 0.9rem;
+    }
+
+    .player-list { list-style: none; margin: 0; padding: 0; }
+
+    .player {
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .player:last-child { border-bottom: none; }
+    .player.thin .name { color: var(--muted); font-weight: 600; }
+
+    .player-head {
+      display: flex;
+      align-items: baseline;
+      gap: 0.45rem;
+    }
+
+    .rank {
+      min-width: 1.6rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .name { font-weight: 700; }
+
+    .team-tag {
+      color: var(--muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+    }
+
+    .value {
+      margin-left: auto;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* The one loud element: distance from the league average, centred so the
+       eye reads good and bad without decoding a number. */
+    .bar {
+      position: relative;
+      height: 8px;
+      margin: 0.4rem 0 0.3rem;
+      background: #f1f5f9;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-axis {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: #cbd5e1;
+    }
+
+    .bar-fill { position: absolute; top: 0; bottom: 0; }
+    .bar-fill.above { background: var(--above); border-radius: 0 999px 999px 0; }
+    .bar-fill.below { background: var(--below); border-radius: 999px 0 0 999px; }
+
+    .meta {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    details.team {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      margin-bottom: 0.5rem;
+      background: #fff;
+    }
+
+    details.team summary {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      padding: 0.8rem 0.85rem;
+      cursor: pointer;
+      min-height: 44px;
+      list-style: none;
+    }
+
+    details.team summary::-webkit-details-marker { display: none; }
+    details.team[open] summary { border-bottom: 1px solid var(--border); }
+
+    details.team summary .delta {
+      font-size: 0.8rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .delta.above { color: var(--above); }
+    .delta.below { color: var(--below); }
+
+    details.team .player-list { padding: 0 0.85rem 0.4rem; }
+
+    .empty { color: var(--muted); }
+
+    footer {
+      margin-top: 1.75rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+
+    @media (min-width: 620px) {
+      body { padding: 2rem 1.5rem 3rem; }
+      h1 { font-size: 1.9rem; }
+      .controls { grid-template-columns: 1fr 1fr; align-items: end; }
+      .week-row { grid-column: 1 / -1; }
+      .segmented { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <nav class="site-nav" aria-label="Site sections">
+      <a href="index.html"><span class="nav-icon" aria-hidden="true">🏈</span>EPA Summary</a>
+      <span class="nav-current" aria-current="page"><span class="nav-icon" aria-hidden="true">👤</span>Players</span>
+      <a href="matchups.html"><span class="nav-icon" aria-hidden="true">📅</span>Weekly Matchups</a>
+      <span class="nav-divider" aria-hidden="true"></span>
+      <a href="team_history.html"><span class="nav-icon" aria-hidden="true">📈</span>Team History</a>
+      <a href="hof.html"><span class="nav-icon" aria-hidden="true">🏆</span>Hall of Fame</a>
+    </nav>
+
+    <h1>Player EPA</h1>
+    <p class="lead">Who produced each team's passing, rushing and receiving — measured against the rest of the league.</p>
+
+    <section class="controls">
+      <div class="week-row">
+        <div>
+          <label for="season-select">Season</label>
+          <select id="season-select"></select>
+        </div>
+        <div>
+          <label for="week-start">From</label>
+          <select id="week-start"></select>
+        </div>
+        <div>
+          <label for="week-end">To</label>
+          <select id="week-end"></select>
+        </div>
+      </div>
+
+      <div class="segmented" id="role-group" role="group" aria-label="Role">
+        <button type="button" data-value="passing" class="active" aria-pressed="true">Passing</button>
+        <button type="button" data-value="rushing" aria-pressed="false">Rushing</button>
+        <button type="button" data-value="receiving" aria-pressed="false">Receiving</button>
+      </div>
+
+      <div class="segmented" id="view-group" role="group" aria-label="Grouping">
+        <button type="button" data-value="league" class="active" aria-pressed="true">Whole league</button>
+        <button type="button" data-value="team" aria-pressed="false">By team</button>
+      </div>
+
+      <div class="segmented" id="sort-group" role="group" aria-label="Sort by">
+        <button type="button" data-value="total" class="active" aria-pressed="true">Total EPA</button>
+        <button type="button" data-value="perPlay" aria-pressed="false">Per play</button>
+      </div>
+    </section>
+
+    <div id="status" class="notice" hidden></div>
+    <p id="league-summary"></p>
+    <div id="results"></div>
+
+    <footer>
+      <p>Passing counts dropbacks, so sacks and scrambles are included. Receiving counts targets, not catches — throwaways and batted balls have no intended receiver and charge the passer alone, which makes receiving read slightly generous. Roles describe what a player did, not his position.</p>
+    </footer>
+  </main>
+  <script src="assets/js/players.js"></script>
+</body>
+</html>

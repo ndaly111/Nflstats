@@ -76,8 +76,13 @@
 
   .site-nav a,
   .site-nav .nav-current {
-    padding: 0.45rem 0.5rem;
-    font-size: 0.9rem;
+    padding: 0.4rem 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  /* With five sections the icons cost a whole extra row of screen. */
+  .site-nav .nav-icon {
+    display: none;
   }
 
   /* Wrapped rows make a vertical rule between them meaningless. */

@@ -282,90 +282,13 @@
       background: var(--panel);
     }
 
-    /* Player drill-down under the offensive pass/rush cells. */
-    .drillable { cursor: pointer; }
-
-    .drillable:hover {
-      background: #eff6ff;
-      box-shadow: inset 2px 0 0 #1d4ed8;
-    }
-
-    .drill-toggle {
-      width: auto;
-      margin-left: 0.35rem;
-      padding: 0 0.15rem;
-      border: none;
-      background: none;
-      color: #1d4ed8;
-      font-size: 0.95rem;
-      line-height: 1;
-      cursor: pointer;
-      box-shadow: none;
-    }
-
-    .drill-toggle::before {
-      content: "\25B8";
-      display: inline-block;
-      transition: transform 120ms ease;
-    }
-
-    .drill-toggle[aria-expanded="true"]::before {
-      transform: rotate(90deg);
-    }
-
-    .drillable:hover .drill-toggle { color: #1d4ed8; }
-
-    .drill-toggle:focus-visible {
-      outline: 2px solid #1d4ed8;
-      outline-offset: 2px;
-    }
-
-    .player-detail > td {
-      background: var(--panel);
-      padding: 0.9rem 1rem;
-      white-space: normal;
-    }
-
-    .player-group + .player-group { margin-top: 1rem; }
-
-    .player-group h4 {
-      margin: 0 0 0.4rem;
-      font-size: 0.95rem;
-    }
-
-    .player-table {
-      width: auto;
-      min-width: min(30rem, 100%);
-      font-size: 0.9rem;
-    }
-
-    .player-table th,
-    .player-table td { padding: 0.3rem 0.6rem; }
-    .player-table .num { text-align: right; font-variant-numeric: tabular-nums; }
-    .player-table th { cursor: default; }
-
-    .low-volume {
-      color: var(--muted);
-      font-size: 0.8em;
-      font-style: italic;
-    }
-
-    .player-empty,
-    .player-note {
-      margin: 0.5rem 0 0;
-      color: var(--muted);
-      font-size: 0.85rem;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .drill-toggle::before { transition: none; }
-    }
   </style>
 </head>
 <body>
   <main>
     <nav class="site-nav" aria-label="Site sections">
       <span class="nav-current" aria-current="page"><span class="nav-icon" aria-hidden="true">🏈</span>EPA Summary</span>
+      <a href="players.html"><span class="nav-icon" aria-hidden="true">👤</span>Players</a>
       <a href="matchups.html"><span class="nav-icon" aria-hidden="true">📅</span>Weekly Matchups</a>
       <span class="nav-divider" aria-hidden="true"></span>
       <a href="team_history.html"><span class="nav-icon" aria-hidden="true">📈</span>Team History</a>
@@ -449,7 +372,7 @@
 
       <section id="split-section" class="table-wrapper" style="display:none;">
         <h2>Pass / Run EPA Breakdown</h2>
-        <p class="table-note">Higher is better for all four metrics — defensive values are sign-flipped (higher = better defense). Click any column header to sort, or click an <strong>Off Pass</strong> or <strong>Off Rush</strong> cell to see the quarterbacks, backs and receivers behind it.</p>
+        <p class="table-note">Click any column header to sort. Higher is better for all four metrics — defensive values are sign-flipped (higher = better defense). For the players behind these numbers, see <a href="players.html">Players</a>.</p>
         <div class="table-scroll">
           <table id="split-table">
             <thead>
