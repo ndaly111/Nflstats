@@ -283,14 +283,21 @@
     }
 
     /* Player drill-down under the offensive pass/rush cells. */
+    .drillable { cursor: pointer; }
+
+    .drillable:hover {
+      background: #eff6ff;
+      box-shadow: inset 2px 0 0 #1d4ed8;
+    }
+
     .drill-toggle {
       width: auto;
-      margin-left: 0.4rem;
+      margin-left: 0.35rem;
       padding: 0 0.15rem;
       border: none;
       background: none;
-      color: var(--muted);
-      font-size: 0.8rem;
+      color: #1d4ed8;
+      font-size: 0.95rem;
       line-height: 1;
       cursor: pointer;
       box-shadow: none;
@@ -306,7 +313,7 @@
       transform: rotate(90deg);
     }
 
-    .drill-toggle:hover { color: var(--text); }
+    .drillable:hover .drill-toggle { color: #1d4ed8; }
 
     .drill-toggle:focus-visible {
       outline: 2px solid #1d4ed8;
@@ -442,7 +449,7 @@
 
       <section id="split-section" class="table-wrapper" style="display:none;">
         <h2>Pass / Run EPA Breakdown</h2>
-        <p class="table-note">Click any column header to sort. Higher is better for all four metrics — defensive values are sign-flipped (higher = better defense).</p>
+        <p class="table-note">Higher is better for all four metrics — defensive values are sign-flipped (higher = better defense). Click any column header to sort, or click an <strong>Off Pass</strong> or <strong>Off Rush</strong> cell to see the quarterbacks, backs and receivers behind it.</p>
         <div class="table-scroll">
           <table id="split-table">
             <thead>

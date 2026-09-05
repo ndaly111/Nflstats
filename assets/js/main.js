@@ -1270,7 +1270,8 @@
     }
 
     splitTableBody.addEventListener('click', (event) => {
-      const button = event.target.closest('.drill-toggle');
+      const cell = event.target.closest('td.drillable');
+      const button = event.target.closest('.drill-toggle') || (cell && cell.querySelector('.drill-toggle'));
       if (button) togglePlayerDetail(button);
     });
 
@@ -1308,7 +1309,8 @@
           const drill = drillKey
             ? `<button type="button" class="drill-toggle" aria-expanded="false" data-team="${row.team}" data-drill="${drillKey}" aria-label="Show the players behind this number"></button>`
             : '';
-          return `<td class="metric-cell" data-value="${value.toFixed(6)}"${playsHint}>
+          const drillable = drillKey ? ' drillable' : '';
+          return `<td class="metric-cell${drillable}" data-value="${value.toFixed(6)}"${playsHint}>
             <span class="metric-value">${formatNumber(value)}</span>
             <span class="rank-label" style="color: ${getRankColor(rank, totalTeams)}">(#${rank})</span>
             ${drill}
