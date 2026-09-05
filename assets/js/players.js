@@ -18,10 +18,23 @@
   // Minimum plays to be ranked, per week of the selected range, with a floor so
   // a one-week view still asks for a real workload. Scaling by weeks keeps the
   // bar honest whether you are looking at week 3 or a whole season.
+  //
+  // The notes exist because these numbers are attribution, not skill: they say
+  // who produced the team's results, and how repeatable that tends to be
+  // differs sharply by role (rushing efficiency barely correlates year to year).
   const ROLES = {
-    passing: { label: 'Passing', unit: 'dropbacks', perWeek: 8, floor: 10 },
-    rushing: { label: 'Rushing', unit: 'rushes', perWeek: 4, floor: 5 },
-    receiving: { label: 'Receiving', unit: 'targets', perWeek: 2, floor: 3 },
+    passing: {
+      label: 'Passing', unit: 'dropbacks', one: 'dropback', perWeek: 8, floor: 10,
+      note: 'Passing numbers are part quarterback, part protection and receivers — they describe the results of his dropbacks, not the quarterback alone.',
+    },
+    rushing: {
+      label: 'Rushing', unit: 'rushes', one: 'rush', perWeek: 4, floor: 5,
+      note: 'Rushing efficiency mostly reflects blocking, scheme and game situation. It says what happened with each runner carrying, not who the better runner is — the same back barely correlates season to season.',
+    },
+    receiving: {
+      label: 'Receiving', unit: 'targets', one: 'target', perWeek: 2, floor: 3,
+      note: 'EPA per target depends heavily on role — deep threats and checkdown targets are not on the same scale, so compare players with similar jobs.',
+    },
   };
 
   const seasonSelect = document.getElementById('season-select');
@@ -150,7 +163,7 @@
     const byTotal = state.sort === 'total';
     const headline = byTotal ? player.epa.toFixed(1) : player.perPlay.toFixed(3);
     const meta = [
-      byTotal ? `${player.perPlay.toFixed(3)} per ${cfg.unit.replace(/s$/, '')}` : `${player.epa.toFixed(1)} EPA`,
+      byTotal ? `${player.perPlay.toFixed(3)} per ${cfg.one}` : `${player.epa.toFixed(1)} EPA`,
       `${player.plays} ${cfg.unit}`,
       thin ? 'below the ranking cut' : `${ordinal(pct)} pct`,
     ].join(' · ');
@@ -231,9 +244,10 @@
     }
 
     const ctx = leagueContext(players, role, span);
-    summaryEl.innerHTML = `League average <strong>${ctx.average.toFixed(3)}</strong> EPA per ${cfg.unit.replace(/s$/, '')}
+    summaryEl.innerHTML = `League average <strong>${ctx.average.toFixed(3)}</strong> EPA per ${cfg.one}
       · ${ctx.qualified} players with ${ctx.minPlays}+ ${cfg.unit}
-      · bars show distance from that average`;
+      · bars show distance from that average
+      <span class="role-note">${cfg.note}</span>`;
 
     resultsEl.innerHTML = state.view === 'league'
       ? renderLeague(players, ctx, role)

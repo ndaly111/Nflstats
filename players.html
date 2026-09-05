@@ -123,6 +123,14 @@
       margin: 0 0 0.9rem;
     }
 
+    /* What this role's numbers do and don't say. Changes with the role tabs. */
+    .role-note {
+      display: block;
+      margin-top: 0.45rem;
+      padding-top: 0.45rem;
+      border-top: 1px solid var(--border);
+    }
+
     .player-list { list-style: none; margin: 0; padding: 0; }
 
     .player {
@@ -251,7 +259,7 @@
     </nav>
 
     <h1>Player EPA</h1>
-    <p class="lead">Who produced each team's passing, rushing and receiving — measured against the rest of the league.</p>
+    <p class="lead">Who produced each team's passing, rushing and receiving results — an accounting of what happened, with the league as the yardstick.</p>
 
     <section class="controls">
       <div class="week-row">
@@ -291,7 +299,8 @@
     <div id="results"></div>
 
     <footer>
-      <p>Passing counts dropbacks, so sacks and scrambles are included. Receiving counts targets, not catches — throwaways and batted balls have no intended receiver and charge the passer alone, which makes receiving read slightly generous. Roles describe what a player did, not his position.</p>
+      <p>These numbers attribute team results to the players involved — each role's players sum to the team's figure on the EPA Summary page. They describe what happened, not how good anyone is: EPA credits the whole play to one player, so line play, scheme and opponent are all baked in.</p>
+      <p>Passing counts dropbacks, so sacks and scrambles are included. Receiving counts targets, not catches — throwaways and batted balls have no intended receiver and charge the passer alone, which makes receiving read slightly generous. A completed pass credits its full EPA to both the passer and the receiver, so never add the two roles together. Roles describe what a player did, not his position.</p>
     </footer>
   </main>
   <script src="assets/js/players.js"></script>
