@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T10:34:10Z",
+  "generated_at": "2026-09-10T15:48:04Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -3961,6 +3961,42 @@
       "total": 49.5,
       "source": "nflverse",
       "updated_at": "2026-09-10T10:34:10Z"
+    },
+    {
+      "season": 2026,
+      "week": 1,
+      "game_id": "2026_01_NO_DET",
+      "spread": 7.0,
+      "total": 50.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-10T15:48:04Z"
+    },
+    {
+      "season": 2026,
+      "week": 1,
+      "game_id": "2026_01_DEN_KC",
+      "spread": 2.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-10T15:48:04Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_IND_JAX",
+      "spread": 4.5,
+      "total": 49.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-10T15:48:04Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_CLE_PIT",
+      "spread": 6.0,
+      "total": 39.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-10T15:48:04Z"
     }
   ]
 }
