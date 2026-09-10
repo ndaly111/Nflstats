@@ -397748,8 +397748,83 @@
           "plays": 180
         }
       ]
+    },
+    "2026": {
+      "weeks": [
+        1
+      ],
+      "teams": [
+        {
+          "team": "NE",
+          "weeks": {
+            "1": {
+              "off": -0.030997693969567388,
+              "off_plays": 85,
+              "def": -0.00682986036918794,
+              "def_plays": 68,
+              "off_pass": -0.1283709487496106,
+              "off_pass_plays": 36,
+              "off_rush": -0.08786257971716564,
+              "off_rush_plays": 31,
+              "def_pass": -0.16801726550264592,
+              "def_pass_plays": 26,
+              "def_rush": 0.06119518151085469,
+              "def_rush_plays": 21
+            }
+          }
+        },
+        {
+          "team": "SEA",
+          "weeks": {
+            "1": {
+              "off": 0.00682986036918794,
+              "off_plays": 68,
+              "def": 0.030997693969567388,
+              "def_plays": 85,
+              "off_pass": 0.16801726550264592,
+              "off_pass_plays": 26,
+              "off_rush": -0.06119518151085469,
+              "off_rush_plays": 21,
+              "def_pass": 0.1283709487496106,
+              "def_pass_plays": 36,
+              "def_rush": 0.08786257971716564,
+              "def_rush_plays": 31
+            }
+          }
+        }
+      ],
+      "games": [
+        {
+          "game_id": "2026_01_NE_SEA",
+          "week": 1,
+          "team": "NE",
+          "opp": "SEA",
+          "off_epa_pp": -0.030997693969567388,
+          "def_epa_pp": -0.00682986036918794,
+          "off_plays": 85,
+          "def_plays": 68,
+          "points_for": 10,
+          "points_against": 13,
+          "net_epa_pp": -0.03782755433875533,
+          "plays": 153
+        },
+        {
+          "game_id": "2026_01_NE_SEA",
+          "week": 1,
+          "team": "SEA",
+          "opp": "NE",
+          "off_epa_pp": 0.00682986036918794,
+          "def_epa_pp": 0.030997693969567388,
+          "off_plays": 68,
+          "def_plays": 85,
+          "points_for": 13,
+          "points_against": 10,
+          "net_epa_pp": 0.03782755433875533,
+          "plays": 153
+        }
+      ]
     }
   },
-  "generated_at": "2026-09-09T07:51:33Z",
-  "git_sha": "c10b2e5bde6cdaad82d2965eadf37e4d72a382d4"
+  "generated_at": "2026-09-10T07:50:57Z",
+  "git_sha": "9422ba2188ea46768c9acbd422df19f1bd50ff49"
 }
