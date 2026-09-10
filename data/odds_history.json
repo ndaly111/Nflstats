@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T07:51:01Z",
+  "generated_at": "2026-09-10T10:34:10Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -3952,6 +3952,15 @@
       "total": 46.5,
       "source": "nflverse",
       "updated_at": "2026-09-10T07:51:01Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_TEN_CIN",
+      "spread": 6.5,
+      "total": 49.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-10T10:34:10Z"
     }
   ]
 }
