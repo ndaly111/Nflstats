@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-11T07:46:19Z",
+  "generated_at": "2026-09-11T10:34:52Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -4150,6 +4150,15 @@
       "total": 44.5,
       "source": "nflverse",
       "updated_at": "2026-09-11T07:46:19Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_CLE_NO",
+      "spread": 3.5,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-11T10:34:52Z"
     }
   ]
 }
