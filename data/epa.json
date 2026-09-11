@@ -397755,6 +397755,25 @@
       ],
       "teams": [
         {
+          "team": "LA",
+          "weeks": {
+            "1": {
+              "off": -0.1930101404599383,
+              "off_plays": 73,
+              "def": -0.15382609760632437,
+              "def_plays": 76,
+              "off_pass": -0.3938521855889121,
+              "off_pass_plays": 28,
+              "off_rush": -0.1354256611250873,
+              "off_rush_plays": 28,
+              "def_pass": -0.1419302216435567,
+              "def_pass_plays": 34,
+              "def_rush": -0.2205165465323565,
+              "def_rush_plays": 30
+            }
+          }
+        },
+        {
           "team": "NE",
           "weeks": {
             "1": {
@@ -397791,6 +397810,25 @@
               "def_rush_plays": 31
             }
           }
+        },
+        {
+          "team": "SF",
+          "weeks": {
+            "1": {
+              "off": 0.15382609760632437,
+              "off_plays": 76,
+              "def": 0.1930101404599383,
+              "def_plays": 73,
+              "off_pass": 0.1419302216435567,
+              "off_pass_plays": 34,
+              "off_rush": 0.2205165465323565,
+              "off_rush_plays": 30,
+              "def_pass": 0.3938521855889121,
+              "def_pass_plays": 28,
+              "def_rush": 0.1354256611250873,
+              "def_rush_plays": 28
+            }
+          }
         }
       ],
       "games": [
@@ -397821,10 +397859,38 @@
           "points_against": 10,
           "net_epa_pp": 0.03782755433875533,
           "plays": 153
+        },
+        {
+          "game_id": "2026_01_SF_LA",
+          "week": 1,
+          "team": "LA",
+          "opp": "SF",
+          "off_epa_pp": -0.1930101404599383,
+          "def_epa_pp": -0.15382609760632437,
+          "off_plays": 73,
+          "def_plays": 76,
+          "points_for": 7,
+          "points_against": 27,
+          "net_epa_pp": -0.3468362380662627,
+          "plays": 149
+        },
+        {
+          "game_id": "2026_01_SF_LA",
+          "week": 1,
+          "team": "SF",
+          "opp": "LA",
+          "off_epa_pp": 0.15382609760632437,
+          "def_epa_pp": 0.1930101404599383,
+          "off_plays": 76,
+          "def_plays": 73,
+          "points_for": 27,
+          "points_against": 7,
+          "net_epa_pp": 0.3468362380662627,
+          "plays": 149
         }
       ]
     }
   },
-  "generated_at": "2026-09-10T07:50:57Z",
-  "git_sha": "9422ba2188ea46768c9acbd422df19f1bd50ff49"
+  "generated_at": "2026-09-11T07:46:16Z",
+  "git_sha": "537560981f14c0139c35a941a588ed746a7d08af"
 }
