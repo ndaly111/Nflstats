@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-12T03:02:22Z",
+  "generated_at": "2026-09-12T07:40:07Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "odds": [
     {
@@ -9,7 +9,7 @@
       "spread": 3.0,
       "total": 44.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -18,7 +18,7 @@
       "spread": 3.5,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -27,7 +27,7 @@
       "spread": -3.0,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -36,7 +36,7 @@
       "spread": 3.5,
       "total": 50.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -45,7 +45,7 @@
       "spread": 7.0,
       "total": 49.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -54,7 +54,7 @@
       "spread": -1.5,
       "total": 44.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -63,7 +63,7 @@
       "spread": -3.5,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -72,7 +72,7 @@
       "spread": 8.5,
       "total": 39.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -81,7 +81,7 @@
       "spread": 6.0,
       "total": 41.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -90,7 +90,7 @@
       "spread": 1.5,
       "total": 38.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -99,7 +99,7 @@
       "spread": 9.5,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -108,7 +108,7 @@
       "spread": 3.0,
       "total": 40.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -117,7 +117,7 @@
       "spread": 1.5,
       "total": 46.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -126,7 +126,7 @@
       "spread": 6.0,
       "total": 44.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -135,7 +135,7 @@
       "spread": -3.0,
       "total": 48.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -144,7 +144,7 @@
       "spread": 2.5,
       "total": 43.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -153,7 +153,7 @@
       "spread": 3.0,
       "total": 51.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -162,7 +162,7 @@
       "spread": 1.5,
       "total": 42.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -171,7 +171,7 @@
       "spread": 7.5,
       "total": 46.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -180,7 +180,7 @@
       "spread": 3.0,
       "total": 45.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -189,7 +189,7 @@
       "spread": 2.5,
       "total": 45.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -198,7 +198,7 @@
       "spread": 4.5,
       "total": 43.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -207,7 +207,7 @@
       "spread": -5.5,
       "total": 42.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -216,7 +216,7 @@
       "spread": 6.5,
       "total": 42.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -225,7 +225,7 @@
       "spread": -5.5,
       "total": 42.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -234,7 +234,7 @@
       "spread": 3.0,
       "total": 43.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -243,7 +243,7 @@
       "spread": 9.5,
       "total": 42.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -252,7 +252,7 @@
       "spread": 4.5,
       "total": 51.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -261,7 +261,7 @@
       "spread": 11.5,
       "total": 45.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -270,7 +270,7 @@
       "spread": 6.5,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -279,7 +279,7 @@
       "spread": 7.5,
       "total": 46.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -288,7 +288,7 @@
       "spread": 3.0,
       "total": 48.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -297,7 +297,7 @@
       "spread": -1.5,
       "total": 39.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -306,7 +306,7 @@
       "spread": 9.5,
       "total": 45.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -315,7 +315,7 @@
       "spread": -1.5,
       "total": 45.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -324,7 +324,7 @@
       "spread": -7.5,
       "total": 44.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -333,7 +333,7 @@
       "spread": 3.0,
       "total": 44.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -342,7 +342,7 @@
       "spread": -1.5,
       "total": 46.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -351,7 +351,7 @@
       "spread": 1.5,
       "total": 44.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -360,7 +360,7 @@
       "spread": -2.5,
       "total": 51.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -369,7 +369,7 @@
       "spread": 3.5,
       "total": 42.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -378,7 +378,7 @@
       "spread": 1.5,
       "total": 46.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -387,7 +387,7 @@
       "spread": -2.5,
       "total": 40.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -396,7 +396,7 @@
       "spread": 1.5,
       "total": 50.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -405,7 +405,7 @@
       "spread": 8.5,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -414,7 +414,7 @@
       "spread": 8.5,
       "total": 45.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -423,7 +423,7 @@
       "spread": 2.5,
       "total": 51.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -432,7 +432,7 @@
       "spread": 2.5,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -441,7 +441,7 @@
       "spread": 7.0,
       "total": 45.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -450,7 +450,7 @@
       "spread": -1.5,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -459,7 +459,7 @@
       "spread": 7.5,
       "total": 43.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -468,7 +468,7 @@
       "spread": -5.5,
       "total": 43.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -477,7 +477,7 @@
       "spread": -3.0,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -486,7 +486,7 @@
       "spread": 2.5,
       "total": 45.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -495,7 +495,7 @@
       "spread": 3.5,
       "total": 52.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -504,7 +504,7 @@
       "spread": -1.5,
       "total": 45.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -513,7 +513,7 @@
       "spread": -6.0,
       "total": 49.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -522,7 +522,7 @@
       "spread": -1.5,
       "total": 44.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -531,7 +531,7 @@
       "spread": 2.5,
       "total": 39.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -540,7 +540,7 @@
       "spread": 2.5,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -549,7 +549,7 @@
       "spread": -3.5,
       "total": 43.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -558,7 +558,7 @@
       "spread": 2.5,
       "total": 48.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -567,7 +567,7 @@
       "spread": 2.5,
       "total": 44.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -576,7 +576,7 @@
       "spread": -8.5,
       "total": 48.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -585,7 +585,7 @@
       "spread": 3.0,
       "total": 49.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -594,7 +594,7 @@
       "spread": -4.5,
       "total": 48.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -603,7 +603,7 @@
       "spread": 1.5,
       "total": 42.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -612,7 +612,7 @@
       "spread": -3.0,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -621,7 +621,7 @@
       "spread": -6.5,
       "total": 44.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -630,7 +630,7 @@
       "spread": 3.5,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -639,7 +639,7 @@
       "spread": 2.5,
       "total": 44.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -648,7 +648,7 @@
       "spread": 6.5,
       "total": 43.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -657,7 +657,7 @@
       "spread": 1.5,
       "total": 45.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -666,7 +666,7 @@
       "spread": 2.5,
       "total": 46.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -675,7 +675,7 @@
       "spread": -6.5,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -684,7 +684,7 @@
       "spread": 3.0,
       "total": 51.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -693,7 +693,7 @@
       "spread": -2.5,
       "total": 42.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -702,7 +702,7 @@
       "spread": 3.5,
       "total": 51.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -711,7 +711,7 @@
       "spread": -1.5,
       "total": 45.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -720,7 +720,7 @@
       "spread": 5.5,
       "total": 43.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -729,7 +729,7 @@
       "spread": 2.5,
       "total": 46.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -738,7 +738,7 @@
       "spread": 2.5,
       "total": 41.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -747,7 +747,7 @@
       "spread": 2.5,
       "total": 40.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -756,7 +756,7 @@
       "spread": -7.5,
       "total": 43.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -765,7 +765,7 @@
       "spread": 2.5,
       "total": 50.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -774,7 +774,7 @@
       "spread": 3.0,
       "total": 48.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -783,7 +783,7 @@
       "spread": 7.0,
       "total": 45.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -792,7 +792,7 @@
       "spread": 2.5,
       "total": 51.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -801,7 +801,7 @@
       "spread": 6.5,
       "total": 49.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -810,7 +810,7 @@
       "spread": 10.5,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -819,7 +819,7 @@
       "spread": 4.5,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -828,7 +828,7 @@
       "spread": 4.5,
       "total": 49.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -837,7 +837,7 @@
       "spread": 1.5,
       "total": 40.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -846,7 +846,7 @@
       "spread": 6.0,
       "total": 39.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -855,7 +855,7 @@
       "spread": 4.5,
       "total": 46.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -864,7 +864,7 @@
       "spread": 1.5,
       "total": 43.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -873,7 +873,7 @@
       "spread": -1.5,
       "total": 46.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -882,7 +882,7 @@
       "spread": 4.5,
       "total": 49.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -891,7 +891,16 @@
       "spread": -5.5,
       "total": 49.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_DEN_CAR",
+      "spread": -3.0,
+      "total": 42.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -900,16 +909,7 @@
       "spread": -1.5,
       "total": 52.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
-    },
-    {
-      "season": 2026,
-      "week": 9,
-      "game_id": "2026_09_NYJ_KC",
-      "spread": 9.5,
-      "total": 41.5,
-      "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
@@ -918,16 +918,16 @@
       "spread": -6.5,
       "total": 47.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     },
     {
       "season": 2026,
       "week": 9,
-      "game_id": "2026_09_NYG_PHI",
-      "spread": 5.5,
-      "total": 44.5,
+      "game_id": "2026_09_CLE_NO",
+      "spread": 3.5,
+      "total": 41.5,
       "source": "nflverse",
-      "updated_at": "2026-09-12T03:02:22Z"
+      "updated_at": "2026-09-12T07:40:07Z"
     }
   ]
 }
