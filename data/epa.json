@@ -397755,6 +397755,272 @@
       ],
       "teams": [
         {
+          "team": "ARI",
+          "weeks": {
+            "1": {
+              "off": 0.02656193794711913,
+              "off_plays": 93,
+              "def": 0.22711220284685427,
+              "def_plays": 70,
+              "off_pass": 0.2371806496092959,
+              "off_pass_plays": 38,
+              "off_rush": 0.030096648407989344,
+              "off_rush_plays": 31,
+              "def_pass": 0.1869222105674756,
+              "def_pass_plays": 30,
+              "def_rush": 0.32544013614200856,
+              "def_rush_plays": 21
+            }
+          }
+        },
+        {
+          "team": "ATL",
+          "weeks": {
+            "1": {
+              "off": -0.3057050069800334,
+              "off_plays": 78,
+              "def": 0.21140097605910024,
+              "def_plays": 84,
+              "off_pass": -0.6063287474406966,
+              "off_pass_plays": 26,
+              "off_rush": -0.08170253260203367,
+              "off_rush_plays": 31,
+              "def_pass": 0.32394570725482785,
+              "def_pass_plays": 43,
+              "def_rush": 0.2522056129269509,
+              "def_rush_plays": 18
+            }
+          }
+        },
+        {
+          "team": "BAL",
+          "weeks": {
+            "1": {
+              "off": 0.15656929257570998,
+              "off_plays": 88,
+              "def": 0.11634999733600562,
+              "def_plays": 71,
+              "off_pass": 0.3760311696073936,
+              "off_pass_plays": 26,
+              "off_rush": 0.2797712992813336,
+              "off_rush_plays": 34,
+              "def_pass": 0.46160670501400386,
+              "def_pass_plays": 33,
+              "def_rush": -0.12237417112919502,
+              "def_rush_plays": 20
+            }
+          }
+        },
+        {
+          "team": "BUF",
+          "weeks": {
+            "1": {
+              "off": 0.25935840661673204,
+              "off_plays": 73,
+              "def": -0.08905642748849228,
+              "def_plays": 99,
+              "off_pass": 0.45421949768880043,
+              "off_pass_plays": 32,
+              "off_rush": -0.13067975356098033,
+              "off_rush_plays": 20,
+              "def_pass": -0.03649860520195102,
+              "def_pass_plays": 41,
+              "def_rush": -0.1104318395464361,
+              "def_rush_plays": 32
+            }
+          }
+        },
+        {
+          "team": "CAR",
+          "weeks": {
+            "1": {
+              "off": 0.0774678555789254,
+              "off_plays": 91,
+              "def": -0.35825855741894547,
+              "def_plays": 95,
+              "off_pass": 0.2510585687112924,
+              "off_pass_plays": 40,
+              "off_rush": 0.05513089502082122,
+              "off_rush_plays": 22,
+              "def_pass": -0.44920208415539287,
+              "def_pass_plays": 31,
+              "def_rush": -0.3777295905687751,
+              "def_rush_plays": 39
+            }
+          }
+        },
+        {
+          "team": "CHI",
+          "weeks": {
+            "1": {
+              "off": 0.35825855741894547,
+              "off_plays": 95,
+              "def": -0.0774678555789254,
+              "def_plays": 91,
+              "off_pass": 0.44920208415539287,
+              "off_pass_plays": 31,
+              "off_rush": 0.3777295905687751,
+              "off_rush_plays": 39,
+              "def_pass": -0.2510585687112924,
+              "def_pass_plays": 40,
+              "def_rush": -0.05513089502082122,
+              "def_rush_plays": 22
+            }
+          }
+        },
+        {
+          "team": "CIN",
+          "weeks": {
+            "1": {
+              "off": 0.03740407915498284,
+              "off_plays": 81,
+              "def": 0.021685580065350585,
+              "def_plays": 76,
+              "off_pass": -0.07297091840060486,
+              "off_pass_plays": 36,
+              "off_rush": 0.09731624911364634,
+              "off_rush_plays": 26,
+              "def_pass": 0.24725821220238764,
+              "def_pass_plays": 32,
+              "def_rush": 0.08071813075864491,
+              "def_rush_plays": 19
+            }
+          }
+        },
+        {
+          "team": "CLE",
+          "weeks": {
+            "1": {
+              "off": -0.10235258161306345,
+              "off_plays": 69,
+              "def": -0.2712953721088879,
+              "def_plays": 73,
+              "off_pass": -0.36426042891471166,
+              "off_pass_plays": 27,
+              "off_rush": 0.03662623885479248,
+              "off_rush_plays": 22,
+              "def_pass": -0.792561489448417,
+              "def_pass_plays": 24,
+              "def_rush": 0.03788219856015532,
+              "def_rush_plays": 29
+            }
+          }
+        },
+        {
+          "team": "DAL",
+          "weeks": {
+            "1": {
+              "off": 0.20090466354404937,
+              "off_plays": 69,
+              "def": -0.24251792862849517,
+              "def_plays": 85,
+              "off_pass": 0.3053206695459427,
+              "off_pass_plays": 34,
+              "off_rush": 0.060774440615205094,
+              "off_rush_plays": 18,
+              "def_pass": -0.7068532854290454,
+              "def_pass_plays": 31,
+              "def_rush": -0.06072637816353509,
+              "def_rush_plays": 34
+            }
+          }
+        },
+        {
+          "team": "DET",
+          "weeks": {
+            "1": {
+              "off": -0.031917929778035474,
+              "off_plays": 99,
+              "def": 0.013886998394022215,
+              "def_plays": 107,
+              "off_pass": 0.018428114368014337,
+              "off_pass_plays": 40,
+              "off_rush": -0.021430521453801317,
+              "off_rush_plays": 33,
+              "def_pass": 0.016098134454466003,
+              "def_pass_plays": 61,
+              "def_rush": 0.06624949644319714,
+              "def_rush_plays": 25
+            }
+          }
+        },
+        {
+          "team": "GB",
+          "weeks": {
+            "1": {
+              "off": -0.10951876083385786,
+              "off_plays": 89,
+              "def": -0.0874914984579026,
+              "def_plays": 84,
+              "off_pass": -0.05877491507986125,
+              "off_pass_plays": 46,
+              "off_rush": -0.4290321110262691,
+              "off_rush_plays": 21,
+              "def_pass": -0.018529170133391646,
+              "def_pass_plays": 28,
+              "def_rush": 0.054034851098080136,
+              "def_rush_plays": 31
+            }
+          }
+        },
+        {
+          "team": "HOU",
+          "weeks": {
+            "1": {
+              "off": 0.08905642748849228,
+              "off_plays": 99,
+              "def": -0.25935840661673204,
+              "def_plays": 73,
+              "off_pass": 0.03649860520195102,
+              "off_pass_plays": 41,
+              "off_rush": 0.1104318395464361,
+              "off_rush_plays": 32,
+              "def_pass": -0.45421949768880043,
+              "def_pass_plays": 32,
+              "def_rush": 0.13067975356098033,
+              "def_rush_plays": 20
+            }
+          }
+        },
+        {
+          "team": "IND",
+          "weeks": {
+            "1": {
+              "off": -0.11634999733600562,
+              "off_plays": 71,
+              "def": -0.15656929257570998,
+              "def_plays": 88,
+              "off_pass": -0.46160670501400386,
+              "off_pass_plays": 33,
+              "off_rush": 0.12237417112919502,
+              "off_rush_plays": 20,
+              "def_pass": -0.3760311696073936,
+              "def_pass_plays": 26,
+              "def_rush": -0.2797712992813336,
+              "def_rush_plays": 34
+            }
+          }
+        },
+        {
+          "team": "JAX",
+          "weeks": {
+            "1": {
+              "off": 0.2712953721088879,
+              "off_plays": 73,
+              "def": 0.10235258161306345,
+              "def_plays": 69,
+              "off_pass": 0.792561489448417,
+              "off_pass_plays": 24,
+              "off_rush": -0.03788219856015532,
+              "off_rush_plays": 29,
+              "def_pass": 0.36426042891471166,
+              "def_pass_plays": 27,
+              "def_rush": -0.03662623885479248,
+              "def_rush_plays": 22
+            }
+          }
+        },
+        {
           "team": "LA",
           "weeks": {
             "1": {
@@ -397774,6 +398040,82 @@
           }
         },
         {
+          "team": "LAC",
+          "weeks": {
+            "1": {
+              "off": -0.22711220284685427,
+              "off_plays": 70,
+              "def": -0.02656193794711913,
+              "def_plays": 93,
+              "off_pass": -0.1869222105674756,
+              "off_pass_plays": 30,
+              "off_rush": -0.32544013614200856,
+              "off_rush_plays": 21,
+              "def_pass": -0.2371806496092959,
+              "def_pass_plays": 38,
+              "def_rush": -0.030096648407989344,
+              "def_rush_plays": 31
+            }
+          }
+        },
+        {
+          "team": "LV",
+          "weeks": {
+            "1": {
+              "off": 0.0015050314475532481,
+              "off_plays": 83,
+              "def": 0.2150674138943133,
+              "def_plays": 74,
+              "off_pass": 0.013106488745309857,
+              "off_pass_plays": 30,
+              "off_rush": -0.08525705048369299,
+              "off_rush_plays": 34,
+              "def_pass": 0.288433956995324,
+              "def_pass_plays": 32,
+              "def_rush": 0.14247820392168295,
+              "def_rush_plays": 18
+            }
+          }
+        },
+        {
+          "team": "MIA",
+          "weeks": {
+            "1": {
+              "off": -0.2150674138943133,
+              "off_plays": 74,
+              "def": -0.0015050314475532481,
+              "def_plays": 83,
+              "off_pass": -0.288433956995324,
+              "off_pass_plays": 32,
+              "off_rush": -0.14247820392168295,
+              "off_rush_plays": 18,
+              "def_pass": -0.013106488745309857,
+              "def_pass_plays": 30,
+              "def_rush": 0.08525705048369299,
+              "def_rush_plays": 34
+            }
+          }
+        },
+        {
+          "team": "MIN",
+          "weeks": {
+            "1": {
+              "off": 0.0874914984579026,
+              "off_plays": 84,
+              "def": 0.10951876083385786,
+              "def_plays": 89,
+              "off_pass": 0.018529170133391646,
+              "off_pass_plays": 28,
+              "off_rush": -0.054034851098080136,
+              "off_rush_plays": 31,
+              "def_pass": 0.05877491507986125,
+              "def_pass_plays": 46,
+              "def_rush": 0.4290321110262691,
+              "def_rush_plays": 21
+            }
+          }
+        },
+        {
           "team": "NE",
           "weeks": {
             "1": {
@@ -397789,6 +398131,101 @@
               "def_pass_plays": 26,
               "def_rush": 0.06119518151085469,
               "def_rush_plays": 21
+            }
+          }
+        },
+        {
+          "team": "NO",
+          "weeks": {
+            "1": {
+              "off": -0.013886998394022215,
+              "off_plays": 107,
+              "def": 0.031917929778035474,
+              "def_plays": 99,
+              "off_pass": -0.016098134454466003,
+              "off_pass_plays": 61,
+              "off_rush": -0.06624949644319714,
+              "off_rush_plays": 25,
+              "def_pass": -0.018428114368014337,
+              "def_pass_plays": 40,
+              "def_rush": 0.021430521453801317,
+              "def_rush_plays": 33
+            }
+          }
+        },
+        {
+          "team": "NYG",
+          "weeks": {
+            "1": {
+              "off": 0.24251792862849517,
+              "off_plays": 85,
+              "def": -0.20090466354404937,
+              "def_plays": 69,
+              "off_pass": 0.7068532854290454,
+              "off_pass_plays": 31,
+              "off_rush": 0.06072637816353509,
+              "off_rush_plays": 34,
+              "def_pass": -0.3053206695459427,
+              "def_pass_plays": 34,
+              "def_rush": -0.060774440615205094,
+              "def_rush_plays": 18
+            }
+          }
+        },
+        {
+          "team": "NYJ",
+          "weeks": {
+            "1": {
+              "off": 0.06428858546014105,
+              "off_plays": 85,
+              "def": 0.17615818812484135,
+              "def_plays": 67,
+              "off_pass": 0.4064521710191151,
+              "off_pass_plays": 24,
+              "off_rush": 0.009615403262706379,
+              "off_rush_plays": 36,
+              "def_pass": 0.21003582130091553,
+              "def_pass_plays": 35,
+              "def_rush": -0.1099063428305921,
+              "def_rush_plays": 14
+            }
+          }
+        },
+        {
+          "team": "PHI",
+          "weeks": {
+            "1": {
+              "off": 0.029184219320781107,
+              "off_plays": 73,
+              "def": -0.018400593221505595,
+              "def_plays": 90,
+              "off_pass": 0.04547772599315103,
+              "off_pass_plays": 28,
+              "off_rush": 0.1021068639010596,
+              "off_rush_plays": 23,
+              "def_pass": -0.10849542931035999,
+              "def_pass_plays": 36,
+              "def_rush": -0.005223323623488402,
+              "def_rush_plays": 32
+            }
+          }
+        },
+        {
+          "team": "PIT",
+          "weeks": {
+            "1": {
+              "off": -0.21140097605910024,
+              "off_plays": 84,
+              "def": 0.3057050069800334,
+              "def_plays": 78,
+              "off_pass": -0.32394570725482785,
+              "off_pass_plays": 43,
+              "off_rush": -0.2522056129269509,
+              "off_rush_plays": 18,
+              "def_pass": 0.6063287474406966,
+              "def_pass_plays": 26,
+              "def_rush": 0.08170253260203367,
+              "def_rush_plays": 31
             }
           }
         },
@@ -397829,9 +398266,318 @@
               "def_rush_plays": 28
             }
           }
+        },
+        {
+          "team": "TB",
+          "weeks": {
+            "1": {
+              "off": -0.021685580065350585,
+              "off_plays": 76,
+              "def": -0.03740407915498284,
+              "def_plays": 81,
+              "off_pass": -0.24725821220238764,
+              "off_pass_plays": 32,
+              "off_rush": -0.08071813075864491,
+              "off_rush_plays": 19,
+              "def_pass": 0.07297091840060486,
+              "def_pass_plays": 36,
+              "def_rush": -0.09731624911364634,
+              "def_rush_plays": 26
+            }
+          }
+        },
+        {
+          "team": "TEN",
+          "weeks": {
+            "1": {
+              "off": -0.17615818812484135,
+              "off_plays": 67,
+              "def": -0.06428858546014105,
+              "def_plays": 85,
+              "off_pass": -0.21003582130091553,
+              "off_pass_plays": 35,
+              "off_rush": 0.1099063428305921,
+              "off_rush_plays": 14,
+              "def_pass": -0.4064521710191151,
+              "def_pass_plays": 24,
+              "def_rush": -0.009615403262706379,
+              "def_rush_plays": 36
+            }
+          }
+        },
+        {
+          "team": "WAS",
+          "weeks": {
+            "1": {
+              "off": 0.018400593221505595,
+              "off_plays": 90,
+              "def": -0.029184219320781107,
+              "def_plays": 73,
+              "off_pass": 0.10849542931035999,
+              "off_pass_plays": 36,
+              "off_rush": 0.005223323623488402,
+              "off_rush_plays": 32,
+              "def_pass": -0.04547772599315103,
+              "def_pass_plays": 28,
+              "def_rush": -0.1021068639010596,
+              "def_rush_plays": 23
+            }
+          }
         }
       ],
       "games": [
+        {
+          "game_id": "2026_01_ARI_LAC",
+          "week": 1,
+          "team": "ARI",
+          "opp": "LAC",
+          "off_epa_pp": 0.02656193794711913,
+          "def_epa_pp": 0.22711220284685427,
+          "off_plays": 93,
+          "def_plays": 70,
+          "points_for": 26,
+          "points_against": 14,
+          "net_epa_pp": 0.2536741407939734,
+          "plays": 163
+        },
+        {
+          "game_id": "2026_01_ARI_LAC",
+          "week": 1,
+          "team": "LAC",
+          "opp": "ARI",
+          "off_epa_pp": -0.22711220284685427,
+          "def_epa_pp": -0.02656193794711913,
+          "off_plays": 70,
+          "def_plays": 93,
+          "points_for": 14,
+          "points_against": 26,
+          "net_epa_pp": -0.2536741407939734,
+          "plays": 163
+        },
+        {
+          "game_id": "2026_01_ATL_PIT",
+          "week": 1,
+          "team": "ATL",
+          "opp": "PIT",
+          "off_epa_pp": -0.3057050069800334,
+          "def_epa_pp": 0.21140097605910024,
+          "off_plays": 78,
+          "def_plays": 84,
+          "points_for": 13,
+          "points_against": 20,
+          "net_epa_pp": -0.09430403092093315,
+          "plays": 162
+        },
+        {
+          "game_id": "2026_01_ATL_PIT",
+          "week": 1,
+          "team": "PIT",
+          "opp": "ATL",
+          "off_epa_pp": -0.21140097605910024,
+          "def_epa_pp": 0.3057050069800334,
+          "off_plays": 84,
+          "def_plays": 78,
+          "points_for": 20,
+          "points_against": 13,
+          "net_epa_pp": 0.09430403092093315,
+          "plays": 162
+        },
+        {
+          "game_id": "2026_01_BAL_IND",
+          "week": 1,
+          "team": "BAL",
+          "opp": "IND",
+          "off_epa_pp": 0.15656929257570998,
+          "def_epa_pp": 0.11634999733600562,
+          "off_plays": 88,
+          "def_plays": 71,
+          "points_for": 41,
+          "points_against": 23,
+          "net_epa_pp": 0.2729192899117156,
+          "plays": 159
+        },
+        {
+          "game_id": "2026_01_BAL_IND",
+          "week": 1,
+          "team": "IND",
+          "opp": "BAL",
+          "off_epa_pp": -0.11634999733600562,
+          "def_epa_pp": -0.15656929257570998,
+          "off_plays": 71,
+          "def_plays": 88,
+          "points_for": 23,
+          "points_against": 41,
+          "net_epa_pp": -0.2729192899117156,
+          "plays": 159
+        },
+        {
+          "game_id": "2026_01_BUF_HOU",
+          "week": 1,
+          "team": "BUF",
+          "opp": "HOU",
+          "off_epa_pp": 0.25935840661673204,
+          "def_epa_pp": -0.08905642748849228,
+          "off_plays": 73,
+          "def_plays": 99,
+          "points_for": 36,
+          "points_against": 31,
+          "net_epa_pp": 0.17030197912823974,
+          "plays": 172
+        },
+        {
+          "game_id": "2026_01_BUF_HOU",
+          "week": 1,
+          "team": "HOU",
+          "opp": "BUF",
+          "off_epa_pp": 0.08905642748849228,
+          "def_epa_pp": -0.25935840661673204,
+          "off_plays": 99,
+          "def_plays": 73,
+          "points_for": 31,
+          "points_against": 36,
+          "net_epa_pp": -0.17030197912823974,
+          "plays": 172
+        },
+        {
+          "game_id": "2026_01_CHI_CAR",
+          "week": 1,
+          "team": "CAR",
+          "opp": "CHI",
+          "off_epa_pp": 0.0774678555789254,
+          "def_epa_pp": -0.35825855741894547,
+          "off_plays": 91,
+          "def_plays": 95,
+          "points_for": 37,
+          "points_against": 59,
+          "net_epa_pp": -0.2807907018400201,
+          "plays": 186
+        },
+        {
+          "game_id": "2026_01_CHI_CAR",
+          "week": 1,
+          "team": "CHI",
+          "opp": "CAR",
+          "off_epa_pp": 0.35825855741894547,
+          "def_epa_pp": -0.0774678555789254,
+          "off_plays": 95,
+          "def_plays": 91,
+          "points_for": 59,
+          "points_against": 37,
+          "net_epa_pp": 0.2807907018400201,
+          "plays": 186
+        },
+        {
+          "game_id": "2026_01_CLE_JAX",
+          "week": 1,
+          "team": "CLE",
+          "opp": "JAX",
+          "off_epa_pp": -0.10235258161306345,
+          "def_epa_pp": -0.2712953721088879,
+          "off_plays": 69,
+          "def_plays": 73,
+          "points_for": 10,
+          "points_against": 34,
+          "net_epa_pp": -0.3736479537219513,
+          "plays": 142
+        },
+        {
+          "game_id": "2026_01_CLE_JAX",
+          "week": 1,
+          "team": "JAX",
+          "opp": "CLE",
+          "off_epa_pp": 0.2712953721088879,
+          "def_epa_pp": 0.10235258161306345,
+          "off_plays": 73,
+          "def_plays": 69,
+          "points_for": 34,
+          "points_against": 10,
+          "net_epa_pp": 0.3736479537219513,
+          "plays": 142
+        },
+        {
+          "game_id": "2026_01_DAL_NYG",
+          "week": 1,
+          "team": "DAL",
+          "opp": "NYG",
+          "off_epa_pp": 0.20090466354404937,
+          "def_epa_pp": -0.24251792862849517,
+          "off_plays": 69,
+          "def_plays": 85,
+          "points_for": 20,
+          "points_against": 28,
+          "net_epa_pp": -0.041613265084445794,
+          "plays": 154
+        },
+        {
+          "game_id": "2026_01_DAL_NYG",
+          "week": 1,
+          "team": "NYG",
+          "opp": "DAL",
+          "off_epa_pp": 0.24251792862849517,
+          "def_epa_pp": -0.20090466354404937,
+          "off_plays": 85,
+          "def_plays": 69,
+          "points_for": 28,
+          "points_against": 20,
+          "net_epa_pp": 0.041613265084445794,
+          "plays": 154
+        },
+        {
+          "game_id": "2026_01_GB_MIN",
+          "week": 1,
+          "team": "GB",
+          "opp": "MIN",
+          "off_epa_pp": -0.10951876083385786,
+          "def_epa_pp": -0.0874914984579026,
+          "off_plays": 89,
+          "def_plays": 84,
+          "points_for": 22,
+          "points_against": 39,
+          "net_epa_pp": -0.19701025929176047,
+          "plays": 173
+        },
+        {
+          "game_id": "2026_01_GB_MIN",
+          "week": 1,
+          "team": "MIN",
+          "opp": "GB",
+          "off_epa_pp": 0.0874914984579026,
+          "def_epa_pp": 0.10951876083385786,
+          "off_plays": 84,
+          "def_plays": 89,
+          "points_for": 39,
+          "points_against": 22,
+          "net_epa_pp": 0.19701025929176047,
+          "plays": 173
+        },
+        {
+          "game_id": "2026_01_MIA_LV",
+          "week": 1,
+          "team": "LV",
+          "opp": "MIA",
+          "off_epa_pp": 0.0015050314475532481,
+          "def_epa_pp": 0.2150674138943133,
+          "off_plays": 83,
+          "def_plays": 74,
+          "points_for": 27,
+          "points_against": 13,
+          "net_epa_pp": 0.21657244534186654,
+          "plays": 157
+        },
+        {
+          "game_id": "2026_01_MIA_LV",
+          "week": 1,
+          "team": "MIA",
+          "opp": "LV",
+          "off_epa_pp": -0.2150674138943133,
+          "def_epa_pp": -0.0015050314475532481,
+          "off_plays": 74,
+          "def_plays": 83,
+          "points_for": 13,
+          "points_against": 27,
+          "net_epa_pp": -0.21657244534186654,
+          "plays": 157
+        },
         {
           "game_id": "2026_01_NE_SEA",
           "week": 1,
@@ -397861,6 +398607,62 @@
           "plays": 153
         },
         {
+          "game_id": "2026_01_NO_DET",
+          "week": 1,
+          "team": "DET",
+          "opp": "NO",
+          "off_epa_pp": -0.031917929778035474,
+          "def_epa_pp": 0.013886998394022215,
+          "off_plays": 99,
+          "def_plays": 107,
+          "points_for": 31,
+          "points_against": 30,
+          "net_epa_pp": -0.01803093138401326,
+          "plays": 206
+        },
+        {
+          "game_id": "2026_01_NO_DET",
+          "week": 1,
+          "team": "NO",
+          "opp": "DET",
+          "off_epa_pp": -0.013886998394022215,
+          "def_epa_pp": 0.031917929778035474,
+          "off_plays": 107,
+          "def_plays": 99,
+          "points_for": 30,
+          "points_against": 31,
+          "net_epa_pp": 0.01803093138401326,
+          "plays": 206
+        },
+        {
+          "game_id": "2026_01_NYJ_TEN",
+          "week": 1,
+          "team": "NYJ",
+          "opp": "TEN",
+          "off_epa_pp": 0.06428858546014105,
+          "def_epa_pp": 0.17615818812484135,
+          "off_plays": 85,
+          "def_plays": 67,
+          "points_for": 23,
+          "points_against": 10,
+          "net_epa_pp": 0.2404467735849824,
+          "plays": 152
+        },
+        {
+          "game_id": "2026_01_NYJ_TEN",
+          "week": 1,
+          "team": "TEN",
+          "opp": "NYJ",
+          "off_epa_pp": -0.17615818812484135,
+          "def_epa_pp": -0.06428858546014105,
+          "off_plays": 67,
+          "def_plays": 85,
+          "points_for": 10,
+          "points_against": 23,
+          "net_epa_pp": -0.2404467735849824,
+          "plays": 152
+        },
+        {
           "game_id": "2026_01_SF_LA",
           "week": 1,
           "team": "LA",
@@ -397887,10 +398689,66 @@
           "points_against": 7,
           "net_epa_pp": 0.3468362380662627,
           "plays": 149
+        },
+        {
+          "game_id": "2026_01_TB_CIN",
+          "week": 1,
+          "team": "CIN",
+          "opp": "TB",
+          "off_epa_pp": 0.03740407915498284,
+          "def_epa_pp": 0.021685580065350585,
+          "off_plays": 81,
+          "def_plays": 76,
+          "points_for": 33,
+          "points_against": 27,
+          "net_epa_pp": 0.05908965922033342,
+          "plays": 157
+        },
+        {
+          "game_id": "2026_01_TB_CIN",
+          "week": 1,
+          "team": "TB",
+          "opp": "CIN",
+          "off_epa_pp": -0.021685580065350585,
+          "def_epa_pp": -0.03740407915498284,
+          "off_plays": 76,
+          "def_plays": 81,
+          "points_for": 27,
+          "points_against": 33,
+          "net_epa_pp": -0.05908965922033342,
+          "plays": 157
+        },
+        {
+          "game_id": "2026_01_WAS_PHI",
+          "week": 1,
+          "team": "PHI",
+          "opp": "WAS",
+          "off_epa_pp": 0.029184219320781107,
+          "def_epa_pp": -0.018400593221505595,
+          "off_plays": 73,
+          "def_plays": 90,
+          "points_for": 24,
+          "points_against": 22,
+          "net_epa_pp": 0.010783626099275512,
+          "plays": 163
+        },
+        {
+          "game_id": "2026_01_WAS_PHI",
+          "week": 1,
+          "team": "WAS",
+          "opp": "PHI",
+          "off_epa_pp": 0.018400593221505595,
+          "def_epa_pp": -0.029184219320781107,
+          "off_plays": 90,
+          "def_plays": 73,
+          "points_for": 22,
+          "points_against": 24,
+          "net_epa_pp": -0.010783626099275512,
+          "plays": 163
         }
       ]
     }
   },
-  "generated_at": "2026-09-13T07:58:42Z",
-  "git_sha": "cc6d9d777fe8968d8eb47e0021eb501ceb230085"
+  "generated_at": "2026-09-14T08:31:36Z",
+  "git_sha": "5cb44337f596f372f026dd4f55c5de44ae1e70b5"
 }
