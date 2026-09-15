@@ -1032,7 +1032,7 @@
       const period = sample.first === 1 ? `first ${count} game${count === 1 ? '' : 's'}` : `games ${sample.first}–${sample.last}`;
       const early = count < 4;
       const label = `${tier} historical tier: approximately ${percentile.toFixed(1)} percentile among ${values.length} historical teams over their ${period} (${Math.min(...reference.seasons)}–${Math.max(...reference.seasons)}), ${metricMode === 'sos' ? 'SOS-adjusted' : 'raw'} ${metric} EPA/play. Byes excluded.${early ? ' Early sample: describes this start or stretch, not proven team quality.' : ''}`;
-      return `<span class="historical-tier tier-${tier.toLowerCase()}" tabindex="0" title="${label}" aria-label="${label}">${tier} · ${count} game${count === 1 ? '' : 's'}</span>${early ? '<span class="tier-sample-note">Early sample</span>' : ''}`;
+      return `<span class="historical-tier tier-${tier.toLowerCase()}" tabindex="0" title="${label}" aria-label="${label}">${tier}</span>`;
     }
 
     function renderTable(rows, ranksByMetric = { combined: {}, off: {}, def: {}, sosOff: {}, sosDef: {} }, metricMode = 'raw') {
@@ -1055,7 +1055,7 @@
         const sosDefValue = Number.isFinite(row.sosDefFaced) ? row.sosDefFaced.toFixed(6) : 'N/A';
         tr.innerHTML = `
           <td class="rank-cell" data-value="${index + 1}">${index + 1}</td>
-          <td data-value="${row.team}">${row.displayName} (${row.team})</td>
+          <td data-value="${row.team}" title="${row.displayName}">${row.team}</td>
           <td data-type="number" data-value="${Number.isFinite(row.winPct) ? row.winPct : ''}">${row.record ?? 'N/A'}</td>
           <td data-type="number" data-value="${Number.isFinite(row.winPct) ? row.winPct : ''}">${Number.isFinite(row.winPct) ? row.winPct.toFixed(3) : 'N/A'}</td>
           <td class="metric-cell" data-value="${row.combined.toFixed(6)}">
@@ -1258,7 +1258,7 @@
 
         tr.innerHTML = `
           <td class="rank-cell" data-value="${index + 1}">${index + 1}</td>
-          <td data-value="${row.team}">${row.displayName} (${row.team})</td>
+          <td data-value="${row.team}" title="${row.displayName}">${row.team}</td>
           <td class="metric-cell" data-value="${row.combined.toFixed(6)}">
             <span class="metric-value">${formatNumber(row.combined)}</span>
             <span class="rank-label" style="color: ${getRankColor(combinedRank, totalTeams)}">(#${combinedRank})</span>
@@ -1488,34 +1488,3 @@
     updateSosControlsVisibility(metricModeSelect.value);
     toggleTrailingWindowControl(teamModeSelect.value);
     bootstrap();
-
-    // Phone cards retain the same sorting controls and underlying rows.
-    [['epa-table', sortTable], ['split-table', sortSplitTable]].forEach(([id, sort]) => {
-      const source = document.getElementById(id);
-      const controls = document.createElement('div');
-      controls.className = 'mobile-table-sort';
-      const label = document.createElement('label');
-      label.textContent = 'Sort teams by';
-      const select = document.createElement('select');
-      select.id = `${id}-mobile-sort`;
-      label.htmlFor = select.id;
-      source.querySelectorAll('th').forEach((header, index) => {
-        if (index === 0) return;
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = header.textContent;
-        option.className = header.classList.contains('sos-only') ? 'sos-only' : '';
-        select.appendChild(option);
-      });
-      select.value = id === 'epa-table' ? '4' : '2';
-      const button = document.createElement('button');
-      button.textContent = 'Reverse order';
-      select.addEventListener('change', () => {
-        const state = id === 'epa-table' ? sortState : splitSortState;
-        state.direction = Number(select.value) === 1 ? 'asc' : 'desc';
-        sort(Number(select.value), false);
-      });
-      button.addEventListener('click', () => sort(Number(select.value)));
-      controls.append(label, select, button);
-      source.parentElement.before(controls);
-    });

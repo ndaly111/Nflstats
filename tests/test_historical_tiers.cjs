@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const element = { getContext() {}, querySelector() { return this; }, querySelectorAll() { return []; }, addEventListener() {}, style: {}, classList: { toggle() {}, contains() { return false; } } };
 const context = vm.createContext({ URL, console, document: { baseURI: 'http://localhost/', getElementById() { return element; }, body: element } });
-const source = fs.readFileSync('assets/js/main.js', 'utf8').replace('    bootstrap();', '').split('    // Phone cards')[0];
+const source = fs.readFileSync('assets/js/main.js', 'utf8').replace('    bootstrap();', '');
 vm.runInContext(source, context);
 context.dataset = JSON.parse(fs.readFileSync('data/epa.json', 'utf8'));
 vm.runInContext(`
@@ -17,7 +17,7 @@ for (const mode of ['raw', 'sos']) {
 `, context);
 for (const [value, tier] of [[100,'S'], [90,'A'], [70,'B'], [50,'C'], [30,'D'], [-1,'F']]) {
   const result = vm.runInContext(`historicalTierCache.set('test:1:1:season_to_date', { combined: Array.from({length:100}, (_, i) => i), seasons: [2025] }); historicalTierBadge(${value}, 'combined', 'test', {first: 1, last: 1})`, context);
-  assert.ok(result.includes(`>${tier} · 1 game</span>`), result);
+  assert.ok(result.includes(`>${tier}</span>`), result);
 }
 assert.equal(vm.runInContext("historicalTierBadge(null, 'combined')", context), '');
 assert.equal(vm.runInContext("historicalTierBadge(NaN, 'combined')", context), '');
