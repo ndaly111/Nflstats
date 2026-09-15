@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T21:26:47Z",
+  "generated_at": "2026-09-15T03:18:52Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -4591,6 +4591,33 @@
       "total": 44.5,
       "source": "nflverse",
       "updated_at": "2026-09-14T21:26:47Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_CAR_ATL",
+      "spread": -1.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-15T03:18:52Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_NO_BAL",
+      "spread": 8.5,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-15T03:18:52Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_PHI_TEN",
+      "spread": -7.0,
+      "total": 39.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-15T03:18:52Z"
     }
   ]
 }
