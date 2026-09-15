@@ -963,6 +963,78 @@
       return rankMap;
     }
 
+    const historicalTierCache = new Map();
+
+    function regularGameWeeks(team, year) {
+      return Object.entries(team.weeks).filter(([week, value]) =>
+        Number(week) >= 1 && Number(week) <= getRegSeasonMax(year) &&
+        Number.isFinite(value.off) && Number.isFinite(value.def))
+        .map(([week]) => Number(week)).sort((a, b) => a - b);
+    }
+
+    function historicalSample(team, year, start, end) {
+      if (!team) return null;
+      const weeks = regularGameWeeks(team, year);
+      const selected = weeks.filter((week) => week >= start && week <= end);
+      const hasPostseason = Object.keys(team.weeks).some((week) =>
+        Number(week) > getRegSeasonMax(year) && Number(week) >= start && Number(week) <= end);
+      if (!selected.length || hasPostseason) return null;
+      return { first: weeks.indexOf(selected[0]) + 1, last: weeks.indexOf(selected.at(-1)) + 1 };
+    }
+
+    function historicalReference(metricMode, sample, sosBasis = 'season_to_date') {
+      const key = `${metricMode}:${sample.first}:${sample.last}:${sosBasis}`;
+      if (historicalTierCache.has(key)) return historicalTierCache.get(key);
+      const reference = { combined: [], off: [], def: [], seasons: [] };
+      const now = new Date();
+      const activeSeason = now.getUTCFullYear() - (now.getUTCMonth() < 8 ? 1 : 0);
+      Object.entries(seasonData).forEach(([year, season]) => {
+        if (Number(year) >= activeSeason) return;
+        const rangeCache = new Map();
+        let included = false;
+        season.teams.forEach((team) => {
+          const weeks = regularGameWeeks(team, year);
+          // Require a complete historical season so missing data cannot shift game numbers.
+          if (weeks.length < (Number(year) >= 2021 ? 17 : 16) || weeks.length < sample.last) return;
+          const start = weeks[sample.first - 1];
+          const end = weeks[sample.last - 1];
+          const rangeKey = `${start}:${end}`;
+          if (!rangeCache.has(rangeKey)) {
+            const sos = metricMode === 'sos'
+              ? computeSosRatingsForRange(year, start, end, sosBasis) : null;
+            rangeCache.set(rangeKey, sos?.error ? [] :
+              buildTeamRows(year, start, end, metricMode, sosBasis, sos));
+          }
+          const row = rangeCache.get(rangeKey).find((entry) => entry.team === team.team);
+          if (!row) return;
+          ['combined', 'off', 'def'].forEach((metric) => {
+            if (Number.isFinite(row[metric])) reference[metric].push(row[metric]);
+          });
+          included = true;
+        });
+        if (included) reference.seasons.push(Number(year));
+      });
+      historicalTierCache.set(key, reference);
+      return reference;
+    }
+
+    function historicalTierBadge(value, metric, metricMode = 'raw', sample = null, sosBasis = 'season_to_date') {
+      if (!sample || !Number.isFinite(value)) return '';
+      const reference = historicalReference(metricMode, sample, sosBasis);
+      const values = reference[metric];
+      if (!values?.length) return '';
+      const below = values.filter((item) => item < value).length;
+      const equal = values.filter((item) => item === value).length;
+      const percentile = 100 * (below + equal / 2) / values.length;
+      const tier = percentile >= 95 ? 'S' : percentile >= 80 ? 'A' :
+        percentile >= 60 ? 'B' : percentile >= 40 ? 'C' : percentile >= 20 ? 'D' : 'F';
+      const count = sample.last - sample.first + 1;
+      const period = sample.first === 1 ? `first ${count} game${count === 1 ? '' : 's'}` : `games ${sample.first}–${sample.last}`;
+      const early = count < 4;
+      const label = `${tier} historical tier: approximately ${percentile.toFixed(1)} percentile among ${values.length} historical teams over their ${period} (${Math.min(...reference.seasons)}–${Math.max(...reference.seasons)}), ${metricMode === 'sos' ? 'SOS-adjusted' : 'raw'} ${metric} EPA/play. Byes excluded.${early ? ' Early sample: describes this start or stretch, not proven team quality.' : ''}`;
+      return `<span class="historical-tier tier-${tier.toLowerCase()}" tabindex="0" title="${label}" aria-label="${label}">${tier} · ${count} game${count === 1 ? '' : 's'}</span>${early ? '<span class="tier-sample-note">Early sample</span>' : ''}`;
+    }
+
     function renderTable(rows, ranksByMetric = { combined: {}, off: {}, def: {}, sosOff: {}, sosDef: {} }, metricMode = 'raw') {
       tableBody.innerHTML = '';
       if (!rows.length) {
@@ -973,6 +1045,7 @@
       const showRaw = metricMode === 'sos' && document.body.classList.contains('sos-mode');
       rows.forEach((row, index) => {
         const tr = document.createElement('tr');
+        const sample = historicalSample(seasonData[seasonSelect.value]?.teams.find((team) => team.team === row.team), seasonSelect.value, Number(weekStartSelect.value), Number(weekEndSelect.value));
         const combinedRank = ranksByMetric.combined[row.team];
         const offRank = ranksByMetric.off[row.team];
         const defRank = ranksByMetric.def[row.team];
@@ -989,6 +1062,7 @@
             <span class="metric-value">${formatNumber(row.combined)}</span>
             ${showRaw ? `<span class="raw-value">(raw ${formatNumber(row.rawCombined)})</span>` : ''}
             <span class="rank-label" style="color: ${getRankColor(combinedRank, totalTeams)}">(#${combinedRank})</span>
+            ${historicalTierBadge(row.combined, 'combined', metricMode, sample, sosBasisSelect.value)}
           </td>
           <td class="metric-cell sos-only" data-value="${sosOffValue}">
             <span class="metric-value">${Number.isFinite(row.sosOffFaced) ? formatNumber(row.sosOffFaced) : 'N/A'}</span>
@@ -1006,11 +1080,13 @@
             <span class="metric-value">${formatNumber(row.off)}</span>
             ${showRaw ? `<span class="raw-value">(raw ${formatNumber(row.rawOff)})</span>` : ''}
             <span class="rank-label" style="color: ${getRankColor(offRank, totalTeams)}">(#${offRank})</span>
+            ${historicalTierBadge(row.off, 'off', metricMode, sample, sosBasisSelect.value)}
           </td>
           <td class="metric-cell" data-value="${row.def.toFixed(6)}">
             <span class="metric-value">${formatNumber(row.def)}</span>
             ${showRaw ? `<span class="raw-value">(raw ${formatNumber(row.rawDef)})</span>` : ''}
             <span class="rank-label" style="color: ${getRankColor(defRank, totalTeams)}">(#${defRank})</span>
+            ${historicalTierBadge(row.def, 'def', metricMode, sample, sosBasisSelect.value)}
           </td>
         `;
         tableBody.appendChild(tr);

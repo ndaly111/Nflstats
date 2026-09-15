@@ -97,3 +97,29 @@
     transition: none;
   }
 }
+
+/* Historical EPA tiers sit immediately after each season rank. */
+.historical-tier {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.65rem;
+  padding: 0.15rem 0.4rem;
+  margin-left: 0.35rem;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+  vertical-align: middle;
+}
+.historical-tier:focus-visible { outline: 2px solid #2563eb; outline-offset: 3px; }
+.tier-s { color: #6b21a8; background: #f3e8ff; }
+.tier-a { color: #166534; background: #dcfce7; }
+.tier-b { color: #075985; background: #e0f2fe; }
+.tier-c { color: #475569; background: #f1f5f9; }
+.tier-d { color: #9a3412; background: #ffedd5; }
+.tier-f { color: #991b1b; background: #fee2e2; }
+.tier-legend { font-size: 0.82rem; line-height: 1.8; }
+
+.tier-sample-note { display: block; color: #64748b; font-size: 0.7rem; margin-top: 0.2rem; }
