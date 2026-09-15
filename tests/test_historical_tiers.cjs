@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const element = { getContext() {}, querySelector() { return this; }, querySelectorAll() { return []; }, addEventListener() {}, style: {}, classList: { toggle() {}, contains() { return false; } } };
 const context = vm.createContext({ URL, console, document: { baseURI: 'http://localhost/', getElementById() { return element; }, body: element } });
-const source = fs.readFileSync('assets/js/main.js', 'utf8').replace('    bootstrap();', '');
+const source = fs.readFileSync('assets/js/main.js', 'utf8').replace('    bootstrap();', '').split('    // Phone cards')[0];
 vm.runInContext(source, context);
 context.dataset = JSON.parse(fs.readFileSync('data/epa.json', 'utf8'));
 vm.runInContext(`

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/site.css" />
+  <link rel="stylesheet" href="assets/css/site.css?v=mobile-cards-1" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <style>
@@ -348,8 +348,8 @@
 
         <section id="table-section" class="table-wrapper">
           <h2>EPA/play table</h2>
-          <p class="table-note">Click any column header to sort. Combined EPA follows the selected view; SOS columns show play-weighted opponent ratings faced for each side of the ball (SOS rank #1 = hardest schedule).</p>
-          <p class="table-note tier-legend"><strong>Historical tiers:</strong> <span class="historical-tier tier-s">S</span> top 5% · <span class="historical-tier tier-a">A</span> 80–95th · <span class="historical-tier tier-b">B</span> 60–80th · <span class="historical-tier tier-c">C</span> 40–60th · <span class="historical-tier tier-d">D</span> 20–40th · <span class="historical-tier tier-f">F</span> bottom 20%. Percentiles compare the same games played in historical seasons: one game vs. historical opening games, five games vs. historical five-game starts. Byes do not count. Custom ranges match game numbers (e.g. games 3–5); ranges including playoffs have no tier. Raw and SOS-adjusted views use matching comparisons. Fewer than four games are marked “Early sample.” Hover or focus a badge for details.</p>
+          <p class="table-note">Sort using column headers or the phone sorting controls. Combined EPA follows the selected view; SOS columns show play-weighted opponent ratings faced for each side of the ball (SOS rank #1 = hardest schedule).</p>
+          <details class="tier-details"><summary>How historical tiers work</summary><p class="table-note tier-legend"><strong>Historical tiers:</strong> <span class="historical-tier tier-s">S</span> top 5% · <span class="historical-tier tier-a">A</span> 80–95th · <span class="historical-tier tier-b">B</span> 60–80th · <span class="historical-tier tier-c">C</span> 40–60th · <span class="historical-tier tier-d">D</span> 20–40th · <span class="historical-tier tier-f">F</span> bottom 20%. Percentiles compare the same games played in historical seasons: one game vs. historical opening games, five games vs. historical five-game starts. Byes do not count. Custom ranges match game numbers (e.g. games 3–5); ranges including playoffs have no tier. Raw and SOS-adjusted views use matching comparisons. Fewer than four games are marked “Early sample.” Hover or focus a badge for details.</p></details>
           <div class="table-scroll">
             <table id="epa-table">
               <thead>
@@ -373,7 +373,7 @@
 
       <section id="split-section" class="table-wrapper" style="display:none;">
         <h2>Pass / Run EPA Breakdown</h2>
-        <p class="table-note">Click any column header to sort. Higher is better for all four metrics — defensive values are sign-flipped (higher = better defense). For the players behind these numbers, see <a href="players.html">Players</a>.</p>
+        <p class="table-note">Sort using column headers or the phone sorting controls. Higher is better for all four metrics — defensive values are sign-flipped (higher = better defense). For the players behind these numbers, see <a href="players.html">Players</a>.</p>
         <div class="table-scroll">
           <table id="split-table">
             <thead>
@@ -443,6 +443,6 @@
     </footer>
   </main>
 
-  <script src="assets/js/main.js"></script>
+  <script src="assets/js/main.js?v=mobile-cards-1"></script>
 </body>
 </html>

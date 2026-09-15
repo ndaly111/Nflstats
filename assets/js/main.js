@@ -1089,6 +1089,9 @@
             ${historicalTierBadge(row.def, 'def', metricMode, sample, sosBasisSelect.value)}
           </td>
         `;
+        Array.from(tr.children).forEach((cell, index) => {
+          cell.dataset.label = tableHeaders[index].textContent.trim();
+        });
         tableBody.appendChild(tr);
       });
       updateRankNumbers();
@@ -1266,6 +1269,9 @@
           ${metricCell(row.defRush, defRushRank, row.defRushPlays)}
           <td data-type="number" data-value="${Number.isFinite(row.winPct) ? row.winPct : ''}">${row.record ?? 'N/A'}</td>
         `;
+        Array.from(tr.children).forEach((cell, index) => {
+          cell.dataset.label = splitTableHeaders[index].textContent.trim();
+        });
         splitTableBody.appendChild(tr);
       });
       updateSplitRankNumbers();
@@ -1482,3 +1488,34 @@
     updateSosControlsVisibility(metricModeSelect.value);
     toggleTrailingWindowControl(teamModeSelect.value);
     bootstrap();
+
+    // Phone cards retain the same sorting controls and underlying rows.
+    [['epa-table', sortTable], ['split-table', sortSplitTable]].forEach(([id, sort]) => {
+      const source = document.getElementById(id);
+      const controls = document.createElement('div');
+      controls.className = 'mobile-table-sort';
+      const label = document.createElement('label');
+      label.textContent = 'Sort teams by';
+      const select = document.createElement('select');
+      select.id = `${id}-mobile-sort`;
+      label.htmlFor = select.id;
+      source.querySelectorAll('th').forEach((header, index) => {
+        if (index === 0) return;
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = header.textContent;
+        option.className = header.classList.contains('sos-only') ? 'sos-only' : '';
+        select.appendChild(option);
+      });
+      select.value = id === 'epa-table' ? '4' : '2';
+      const button = document.createElement('button');
+      button.textContent = 'Reverse order';
+      select.addEventListener('change', () => {
+        const state = id === 'epa-table' ? sortState : splitSortState;
+        state.direction = Number(select.value) === 1 ? 'asc' : 'desc';
+        sort(Number(select.value), false);
+      });
+      button.addEventListener('click', () => sort(Number(select.value)));
+      controls.append(label, select, button);
+      source.parentElement.before(controls);
+    });

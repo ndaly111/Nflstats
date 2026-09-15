@@ -123,3 +123,29 @@
 .tier-legend { font-size: 0.82rem; line-height: 1.8; }
 
 .tier-sample-note { display: block; color: #64748b; font-size: 0.7rem; margin-top: 0.2rem; }
+
+.mobile-table-sort { display: none; }
+.tier-details { margin: 0 0 1rem; }
+.tier-details summary { cursor: pointer; color: #475569; font-size: .9rem; padding: .4rem 0; }
+@media (max-width: 640px) {
+  body:has(#epa-table) { padding: 1rem .65rem 2rem; }
+  #table-section, #split-section { padding: .65rem; }
+  .mobile-table-sort { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; margin-bottom: 1rem; }
+  .mobile-table-sort label { grid-column: 1 / -1; margin: 0; font-size: .85rem; }
+  .mobile-table-sort button { width: auto; padding: .5rem .7rem; font-size: .8rem; box-shadow: none; }
+  #epa-table, #split-table { display: block; background: transparent; overflow: visible; }
+  #epa-table thead, #split-table thead { display: none; }
+  #epa-table tbody, #split-table tbody { display: grid; gap: .8rem; }
+  #epa-table tbody tr, #split-table tbody tr { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); border: 1px solid #cbd5e1; border-radius: 10px; overflow: hidden; background: white; }
+  #epa-table td, #split-table td { display: block; grid-column: 1 / -1; border: 0; border-top: 1px solid #e2e8f0; padding: .55rem .65rem; white-space: normal; }
+  #epa-table td:first-child, #split-table td:first-child { grid-column: 1; border-top: 0; background: #f1f5f9; font-weight: 700; padding-right: 0; }
+  #epa-table td:nth-child(2), #split-table td:nth-child(2) { grid-column: 2; border-top: 0; background: #f1f5f9; font-weight: 700; }
+  #epa-table td:nth-child(n+3)::before, #split-table td:nth-child(n+3)::before { content: attr(data-label); display: block; font-size: .75rem; font-weight: 600; color: #64748b; margin-bottom: .2rem; }
+  #epa-table td.sos-only { display: none; }
+  body.sos-mode #epa-table td.sos-only { display: block; }
+  #epa-table .metric-cell, #split-table .metric-cell { font-size: 1rem; }
+  #epa-table td:nth-child(3), #epa-table td:nth-child(4) { grid-column: auto; }
+  #epa-table td:nth-child(3) { grid-column: 1 / -1; }
+  #epa-table td:nth-child(4) { grid-column: 1 / -1; }
+  .tier-sample-note { display: inline; margin-left: .4rem; }
+}
