@@ -134,7 +134,7 @@
   #epa-table td:nth-child(2), #split-table td:nth-child(2) { font-weight: 700; }
   #epa-table .metric-value, #split-table .metric-value { display: block; font-size: .8rem; }
   #epa-table .rank-label, #split-table .rank-label { font-size: .65rem; margin-left: 0; }
-  #epa-table .historical-tier { min-width: 1rem; padding: .05rem .2rem; margin-left: .15rem; font-size: .65rem; border-radius: 4px; }
+  #epa-table .historical-tier, #split-table .historical-tier { min-width: 1rem; padding: .05rem .2rem; margin-left: .15rem; font-size: .65rem; border-radius: 4px; }
   #epa-table th:nth-child(4), #epa-table td:nth-child(4), #epa-table .sos-only, #epa-table .raw-value { display: none; }
   #epa-table { table-layout: fixed; }
   #epa-table th:first-child { width: 7%; }

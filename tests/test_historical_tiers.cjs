@@ -41,3 +41,15 @@ assert.ok(!historicalTierBadge(0.1, 'off', 'raw', {first: 1, last: 5}).includes(
 assert.ok(historicalTierBadge(0.1, 'off', 'raw', {first: 3, last: 5}).includes('games 3–5'));
 `, context);
 console.log('Matched game count, byes, custom ranges, and early sample checks passed.');
+
+vm.runInContext(`
+const splitRef = historicalReference('split', {first:1, last:1});
+for (const metric of ['offPass', 'offRush', 'defPass', 'defRush']) {
+  assert.ok(splitRef[metric].length > 0, metric);
+  assert.ok(historicalTierBadge(0.1, metric, 'split', {first:1,last:1}).includes('historical-tier'));
+  assert.equal(historicalTierBadge(null, metric, 'split', {first:1,last:1}), '');
+}
+const splitAri = buildSplitRows('2025', 1, 1).find(row => row.team === 'ARI');
+assert.ok(splitRef.offPass.includes(splitAri.offPass));
+`, context);
+console.log('Pass/run historical badge checks passed.');

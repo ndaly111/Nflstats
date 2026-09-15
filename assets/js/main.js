@@ -985,7 +985,7 @@
     function historicalReference(metricMode, sample, sosBasis = 'season_to_date') {
       const key = `${metricMode}:${sample.first}:${sample.last}:${sosBasis}`;
       if (historicalTierCache.has(key)) return historicalTierCache.get(key);
-      const reference = { combined: [], off: [], def: [], seasons: [] };
+      const reference = { combined: [], off: [], def: [], offPass: [], offRush: [], defPass: [], defRush: [], seasons: [], metricSeasons: {} };
       const now = new Date();
       const activeSeason = now.getUTCFullYear() - (now.getUTCMonth() < 8 ? 1 : 0);
       Object.entries(seasonData).forEach(([year, season]) => {
@@ -1003,12 +1003,16 @@
             const sos = metricMode === 'sos'
               ? computeSosRatingsForRange(year, start, end, sosBasis) : null;
             rangeCache.set(rangeKey, sos?.error ? [] :
-              buildTeamRows(year, start, end, metricMode, sosBasis, sos));
+              (metricMode === 'split' ? buildSplitRows(year, start, end) : buildTeamRows(year, start, end, metricMode, sosBasis, sos)));
           }
           const row = rangeCache.get(rangeKey).find((entry) => entry.team === team.team);
           if (!row) return;
-          ['combined', 'off', 'def'].forEach((metric) => {
-            if (Number.isFinite(row[metric])) reference[metric].push(row[metric]);
+          const metrics = metricMode === 'split' ? ['combined', 'offPass', 'offRush', 'defPass', 'defRush'] : ['combined', 'off', 'def'];
+          metrics.forEach((metric) => {
+            if (Number.isFinite(row[metric])) {
+              reference[metric].push(row[metric]);
+              (reference.metricSeasons[metric] ??= []).push(Number(year));
+            }
           });
           included = true;
         });
@@ -1031,7 +1035,8 @@
       const count = sample.last - sample.first + 1;
       const period = sample.first === 1 ? `first ${count} game${count === 1 ? '' : 's'}` : `games ${sample.first}–${sample.last}`;
       const early = count < 4;
-      const label = `${tier} historical tier: approximately ${percentile.toFixed(1)} percentile among ${values.length} historical teams over their ${period} (${Math.min(...reference.seasons)}–${Math.max(...reference.seasons)}), ${metricMode === 'sos' ? 'SOS-adjusted' : 'raw'} ${metric} EPA/play. Byes excluded.${early ? ' Early sample: describes this start or stretch, not proven team quality.' : ''}`;
+      const years = reference.metricSeasons?.[metric] || reference.seasons;
+      const label = `${tier} historical tier: approximately ${percentile.toFixed(1)} percentile among ${values.length} historical teams over their ${period} (${Math.min(...years)}–${Math.max(...years)}), ${metricMode === 'sos' ? 'SOS-adjusted' : 'raw'} ${metric} EPA/play. Byes excluded.${early ? ' Early sample: describes this start or stretch, not proven team quality.' : ''}`;
       return `<span class="historical-tier tier-${tier.toLowerCase()}" tabindex="0" title="${label}" aria-label="${label}">${tier}</span>`;
     }
 
@@ -1241,18 +1246,20 @@
       rows.forEach((_row, index) => {
         const row = _row;
         const tr = document.createElement('tr');
+        const sample = historicalSample(seasonData[seasonSelect.value]?.teams.find((team) => team.team === row.team), seasonSelect.value, Number(weekStartSelect.value), Number(weekEndSelect.value));
         const combinedRank = ranksByMetric.combined[row.team];
         const offPassRank = ranksByMetric.offPass[row.team];
         const offRushRank = ranksByMetric.offRush[row.team];
         const defPassRank = ranksByMetric.defPass[row.team];
         const defRushRank = ranksByMetric.defRush[row.team];
 
-        function metricCell(value, rank, plays) {
+        function metricCell(value, rank, plays, metric) {
           const playsHint = plays > 0 ? ` title="${plays} plays"` : '';
           if (value === null) return `<td data-value="-9999">N/A</td>`;
           return `<td class="metric-cell" data-value="${value.toFixed(6)}"${playsHint}>
             <span class="metric-value">${formatNumber(value)}</span>
             <span class="rank-label" style="color: ${getRankColor(rank, totalTeams)}">(#${rank})</span>
+            ${historicalTierBadge(value, metric, 'split', sample)}
           </td>`;
         }
 
@@ -1262,11 +1269,12 @@
           <td class="metric-cell" data-value="${row.combined.toFixed(6)}">
             <span class="metric-value">${formatNumber(row.combined)}</span>
             <span class="rank-label" style="color: ${getRankColor(combinedRank, totalTeams)}">(#${combinedRank})</span>
+            ${historicalTierBadge(row.combined, 'combined', 'raw', sample)}
           </td>
-          ${metricCell(row.offPass, offPassRank, row.offPassPlays)}
-          ${metricCell(row.offRush, offRushRank, row.offRushPlays)}
-          ${metricCell(row.defPass, defPassRank, row.defPassPlays)}
-          ${metricCell(row.defRush, defRushRank, row.defRushPlays)}
+          ${metricCell(row.offPass, offPassRank, row.offPassPlays, 'offPass')}
+          ${metricCell(row.offRush, offRushRank, row.offRushPlays, 'offRush')}
+          ${metricCell(row.defPass, defPassRank, row.defPassPlays, 'defPass')}
+          ${metricCell(row.defRush, defRushRank, row.defRushPlays, 'defRush')}
           <td data-type="number" data-value="${Number.isFinite(row.winPct) ? row.winPct : ''}">${row.record ?? 'N/A'}</td>
         `;
         Array.from(tr.children).forEach((cell, index) => {
