@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-15T03:18:52Z",
+  "generated_at": "2026-09-15T08:21:37Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -4618,6 +4618,24 @@
       "total": 39.5,
       "source": "nflverse",
       "updated_at": "2026-09-15T03:18:52Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_PIT_NE",
+      "spread": 5.5,
+      "total": 42.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-15T08:21:37Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_IND_KC",
+      "spread": 6.5,
+      "total": 47.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-15T08:21:37Z"
     }
   ]
 }
