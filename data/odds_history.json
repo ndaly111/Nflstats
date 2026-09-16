@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T03:15:09Z",
+  "generated_at": "2026-09-16T08:15:26Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -4933,6 +4933,33 @@
       "total": 47.5,
       "source": "nflverse",
       "updated_at": "2026-09-16T03:15:09Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_NO_BAL",
+      "spread": 7.5,
+      "total": 47.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-16T08:15:26Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_MIN_CHI",
+      "spread": 5.5,
+      "total": 47.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-16T08:15:26Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_PIT_NE",
+      "spread": 4.5,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-16T08:15:26Z"
     }
   ]
 }
