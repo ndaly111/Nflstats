@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-17T03:20:18Z",
+  "generated_at": "2026-09-17T08:21:40Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -5068,6 +5068,15 @@
       "total": 40.5,
       "source": "nflverse",
       "updated_at": "2026-09-17T03:20:18Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_SEA_ARI",
+      "spread": -3.5,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-17T08:21:40Z"
     }
   ]
 }
