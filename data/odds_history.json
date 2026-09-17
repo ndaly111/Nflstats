@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-17T08:21:40Z",
+  "generated_at": "2026-09-17T10:56:01Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -5077,6 +5077,15 @@
       "total": 41.5,
       "source": "nflverse",
       "updated_at": "2026-09-17T08:21:40Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_DET_BUF",
+      "spread": 5.5,
+      "total": 54.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-17T10:56:00Z"
     }
   ]
 }
