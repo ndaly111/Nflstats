@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-18T15:47:31Z",
+  "generated_at": "2026-09-18T20:22:39Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -5167,6 +5167,51 @@
       "total": 44.5,
       "source": "nflverse",
       "updated_at": "2026-09-18T15:47:31Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_NO_BAL",
+      "spread": 8.5,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-18T20:22:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_MIN_CHI",
+      "spread": 4.5,
+      "total": 47.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-18T20:22:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_CIN_HOU",
+      "spread": 2.5,
+      "total": 45.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-18T20:22:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_WAS_DAL",
+      "spread": 4.5,
+      "total": 50.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-18T20:22:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_MIA_SF",
+      "spread": 13.5,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-18T20:22:39Z"
     }
   ]
 }
