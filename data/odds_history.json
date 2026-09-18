@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-18T10:32:06Z",
+  "generated_at": "2026-09-18T15:47:31Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -5158,6 +5158,15 @@
       "total": 48.5,
       "source": "nflverse",
       "updated_at": "2026-09-18T07:57:10Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_MIA_SF",
+      "spread": 12.5,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-18T15:47:31Z"
     }
   ]
 }
