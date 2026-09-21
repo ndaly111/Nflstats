@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-21T11:57:27Z",
+  "generated_at": "2026-09-21T17:59:22Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -5608,6 +5608,96 @@
       "total": 47.5,
       "source": "nflverse",
       "updated_at": "2026-09-21T11:57:27Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_ATL_GB",
+      "spread": 7.0,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-21T17:59:22Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_CAR_CLE",
+      "spread": -3.0,
+      "total": 42.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-21T17:59:22Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_HOU_IND",
+      "spread": -3.0,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-21T17:59:22Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_NE_JAX",
+      "spread": 3.0,
+      "total": 45.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-21T17:59:22Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_KC_MIA",
+      "spread": -11.5,
+      "total": 45.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-21T17:59:22Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_SEA_WAS",
+      "spread": -6.5,
+      "total": 39.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-21T17:59:22Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_ARI_SF",
+      "spread": 8.5,
+      "total": 47.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-21T17:59:22Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_MIN_TB",
+      "spread": -1.5,
+      "total": 42.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-21T17:59:22Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_LV_NO",
+      "spread": 3.0,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-21T17:59:22Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_PHI_CHI",
+      "spread": -3.5,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-21T17:59:22Z"
     }
   ]
 }
