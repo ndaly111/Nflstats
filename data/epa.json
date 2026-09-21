@@ -397771,6 +397771,20 @@
               "def_pass_plays": 30,
               "def_rush": 0.32544013614200856,
               "def_rush_plays": 21
+            },
+            "2": {
+              "off": -0.259305013420163,
+              "off_plays": 65,
+              "def": -0.16845919073819238,
+              "def_plays": 82,
+              "off_pass": -0.2694760061431831,
+              "off_pass_plays": 30,
+              "off_rush": -0.42363597910769063,
+              "off_rush_plays": 17,
+              "def_pass": -0.5958990921469789,
+              "def_pass_plays": 27,
+              "def_rush": 0.17837541937697096,
+              "def_rush_plays": 40
             }
           }
         },
@@ -397790,6 +397804,20 @@
               "def_pass_plays": 43,
               "def_rush": 0.2522056129269509,
               "def_rush_plays": 18
+            },
+            "2": {
+              "off": -0.47280220063515455,
+              "off_plays": 83,
+              "def": 0.010799943655146341,
+              "def_plays": 82,
+              "off_pass": -0.7157339613721461,
+              "off_pass_plays": 35,
+              "off_rush": -0.20828559875917563,
+              "off_rush_plays": 32,
+              "def_pass": -0.29131670526042663,
+              "def_pass_plays": 38,
+              "def_rush": 0.12791345240215637,
+              "def_rush_plays": 21
             }
           }
         },
@@ -397809,6 +397837,20 @@
               "def_pass_plays": 33,
               "def_rush": -0.12237417112919502,
               "def_rush_plays": 20
+            },
+            "2": {
+              "off": 0.023849233299177604,
+              "off_plays": 71,
+              "def": -0.1389904048687501,
+              "def_plays": 84,
+              "off_pass": 0.10288045879708729,
+              "off_pass_plays": 33,
+              "off_rush": 0.13611691659951414,
+              "off_rush_plays": 22,
+              "def_pass": -0.29537792824557496,
+              "def_pass_plays": 37,
+              "def_rush": 0.051455753834393346,
+              "def_rush_plays": 27
             }
           }
         },
@@ -397861,6 +397903,20 @@
               "def_pass_plays": 31,
               "def_rush": -0.3777295905687751,
               "def_rush_plays": 39
+            },
+            "2": {
+              "off": -0.010799943655146341,
+              "off_plays": 82,
+              "def": 0.47280220063515455,
+              "def_plays": 83,
+              "off_pass": 0.29131670526042663,
+              "off_pass_plays": 38,
+              "off_rush": -0.12791345240215637,
+              "off_rush_plays": 21,
+              "def_pass": 0.7157339613721461,
+              "def_pass_plays": 35,
+              "def_rush": 0.20828559875917563,
+              "def_rush_plays": 32
             }
           }
         },
@@ -397880,6 +397936,20 @@
               "def_pass_plays": 40,
               "def_rush": -0.05513089502082122,
               "def_rush_plays": 22
+            },
+            "2": {
+              "off": -0.12584099415663547,
+              "off_plays": 89,
+              "def": 0.032023213967477204,
+              "def_plays": 64,
+              "off_pass": -0.0971088150688405,
+              "off_pass_plays": 38,
+              "off_rush": -0.159965540487127,
+              "off_rush_plays": 31,
+              "def_pass": -0.022317555060179083,
+              "def_pass_plays": 23,
+              "def_rush": 0.16020020804509322,
+              "def_rush_plays": 28
             }
           }
         },
@@ -397899,6 +397969,20 @@
               "def_pass_plays": 32,
               "def_rush": 0.08071813075864491,
               "def_rush_plays": 19
+            },
+            "2": {
+              "off": -0.07727672101449172,
+              "off_plays": 82,
+              "def": 0.24938339781136054,
+              "def_plays": 99,
+              "off_pass": -0.015214599767865981,
+              "off_pass_plays": 36,
+              "off_rush": -0.21744537200852807,
+              "off_rush_plays": 22,
+              "def_pass": 0.1570425613442205,
+              "def_pass_plays": 58,
+              "def_rush": 0.538290933463281,
+              "def_rush_plays": 18
             }
           }
         },
@@ -397918,6 +398002,20 @@
               "def_pass_plays": 24,
               "def_rush": 0.03788219856015532,
               "def_rush_plays": 29
+            },
+            "2": {
+              "off": 0.04679518927228631,
+              "off_plays": 76,
+              "def": 0.054957487936564645,
+              "def_plays": 84,
+              "off_pass": 0.3241815717890828,
+              "off_pass_plays": 32,
+              "off_rush": -0.470350549018587,
+              "off_rush_plays": 21,
+              "def_pass": 0.3665024664633411,
+              "def_pass_plays": 37,
+              "def_rush": -0.1802316443726886,
+              "def_rush_plays": 25
             }
           }
         },
@@ -397937,6 +398035,20 @@
               "def_pass_plays": 31,
               "def_rush": -0.06072637816353509,
               "def_rush_plays": 34
+            },
+            "2": {
+              "off": 0.2590586303895438,
+              "off_plays": 69,
+              "def": -0.002244128512095834,
+              "def_plays": 86,
+              "off_pass": 0.4576977571097905,
+              "off_pass_plays": 33,
+              "off_rush": -0.1364267110891108,
+              "off_rush_plays": 21,
+              "def_pass": -0.03463363753303938,
+              "def_pass_plays": 35,
+              "def_rush": -0.10605991343891219,
+              "def_rush_plays": 32
             }
           }
         },
@@ -397956,6 +398068,20 @@
               "def_pass_plays": 29,
               "def_rush": -0.36643374804739975,
               "def_rush_plays": 35
+            },
+            "2": {
+              "off": 0.06463891047015656,
+              "off_plays": 75,
+              "def": 0.03063224533436264,
+              "def_plays": 75,
+              "off_pass": 0.27196343148877683,
+              "off_pass_plays": 31,
+              "off_rush": -0.05845795505465658,
+              "off_rush_plays": 25,
+              "def_pass": 0.13274366642350774,
+              "def_pass_plays": 31,
+              "def_rush": -0.06245600875627133,
+              "def_rush_plays": 24
             }
           }
         },
@@ -398008,6 +398134,20 @@
               "def_pass_plays": 28,
               "def_rush": 0.054034851098080136,
               "def_rush_plays": 31
+            },
+            "2": {
+              "off": -0.04578041231088273,
+              "off_plays": 76,
+              "def": 0.08651611504099163,
+              "def_plays": 94,
+              "off_pass": -0.09901575894680531,
+              "off_pass_plays": 32,
+              "off_rush": -0.44114246292802917,
+              "off_rush_plays": 18,
+              "def_pass": -0.09782270895811962,
+              "def_pass_plays": 44,
+              "def_rush": 0.4385823352624559,
+              "def_rush_plays": 27
             }
           }
         },
@@ -398027,6 +398167,20 @@
               "def_pass_plays": 32,
               "def_rush": 0.13067975356098033,
               "def_rush_plays": 20
+            },
+            "2": {
+              "off": -0.24938339781136054,
+              "off_plays": 99,
+              "def": 0.07727672101449172,
+              "def_plays": 82,
+              "off_pass": -0.1570425613442205,
+              "off_pass_plays": 58,
+              "off_rush": -0.538290933463281,
+              "off_rush_plays": 18,
+              "def_pass": 0.015214599767865981,
+              "def_pass_plays": 36,
+              "def_rush": 0.21744537200852807,
+              "def_rush_plays": 22
             }
           }
         },
@@ -398046,6 +398200,20 @@
               "def_pass_plays": 26,
               "def_rush": -0.2797712992813336,
               "def_rush_plays": 34
+            },
+            "2": {
+              "off": 0.1964978661469903,
+              "off_plays": 86,
+              "def": -0.1659549287225105,
+              "def_plays": 100,
+              "off_pass": 0.1898822895365752,
+              "off_pass_plays": 31,
+              "off_rush": 0.12018137580707844,
+              "off_rush_plays": 32,
+              "def_pass": -0.2739705127419756,
+              "def_pass_plays": 49,
+              "def_rush": -0.15288410432718735,
+              "def_rush_plays": 29
             }
           }
         },
@@ -398065,6 +398233,20 @@
               "def_pass_plays": 27,
               "def_rush": -0.03662623885479248,
               "def_rush_plays": 22
+            },
+            "2": {
+              "off": -0.03063224533436264,
+              "off_plays": 75,
+              "def": -0.06463891047015656,
+              "def_plays": 75,
+              "off_pass": -0.13274366642350774,
+              "off_pass_plays": 31,
+              "off_rush": 0.06245600875627133,
+              "off_rush_plays": 24,
+              "def_pass": -0.27196343148877683,
+              "def_pass_plays": 31,
+              "def_rush": 0.05845795505465658,
+              "def_rush_plays": 25
             }
           }
         },
@@ -398084,6 +398266,20 @@
               "def_pass_plays": 32,
               "def_rush": 0.10256191935990122,
               "def_rush_plays": 14
+            },
+            "2": {
+              "off": 0.1659549287225105,
+              "off_plays": 100,
+              "def": -0.1964978661469903,
+              "def_plays": 86,
+              "off_pass": 0.2739705127419756,
+              "off_pass_plays": 49,
+              "off_rush": 0.15288410432718735,
+              "off_rush_plays": 29,
+              "def_pass": -0.1898822895365752,
+              "def_pass_plays": 31,
+              "def_rush": -0.12018137580707844,
+              "def_rush_plays": 32
             }
           }
         },
@@ -398122,6 +398318,20 @@
               "def_pass_plays": 38,
               "def_rush": -0.030096648407989344,
               "def_rush_plays": 31
+            },
+            "2": {
+              "off": -0.2455457554177792,
+              "off_plays": 85,
+              "def": 0.08543772266631859,
+              "def_plays": 80,
+              "off_pass": -0.018771120971534928,
+              "off_pass_plays": 30,
+              "off_rush": -0.48824074024378206,
+              "off_rush_plays": 32,
+              "def_pass": -0.19266906147447205,
+              "def_pass_plays": 31,
+              "def_rush": 0.4412588765191474,
+              "def_rush_plays": 26
             }
           }
         },
@@ -398141,6 +398351,20 @@
               "def_pass_plays": 32,
               "def_rush": 0.14247820392168295,
               "def_rush_plays": 18
+            },
+            "2": {
+              "off": -0.08543772266631859,
+              "off_plays": 80,
+              "def": 0.2455457554177792,
+              "def_plays": 85,
+              "off_pass": 0.19266906147447205,
+              "off_pass_plays": 31,
+              "off_rush": -0.4412588765191474,
+              "off_rush_plays": 26,
+              "def_pass": 0.018771120971534928,
+              "def_pass_plays": 30,
+              "def_rush": 0.48824074024378206,
+              "def_rush_plays": 32
             }
           }
         },
@@ -398160,6 +398384,20 @@
               "def_pass_plays": 30,
               "def_rush": 0.08525705048369299,
               "def_rush_plays": 34
+            },
+            "2": {
+              "off": -0.04718740772180274,
+              "off_plays": 76,
+              "def": -0.30444203644095047,
+              "def_plays": 65,
+              "off_pass": 0.16495987969437334,
+              "off_pass_plays": 27,
+              "off_rush": -0.15551702063616177,
+              "off_rush_plays": 29,
+              "def_pass": -1.060473342105979,
+              "def_pass_plays": 22,
+              "def_rush": 0.06757379121845589,
+              "def_rush_plays": 25
             }
           }
         },
@@ -398179,6 +398417,20 @@
               "def_pass_plays": 46,
               "def_rush": 0.4290321110262691,
               "def_rush_plays": 21
+            },
+            "2": {
+              "off": -0.032023213967477204,
+              "off_plays": 64,
+              "def": 0.12584099415663547,
+              "def_plays": 89,
+              "off_pass": 0.022317555060179083,
+              "off_pass_plays": 23,
+              "off_rush": -0.16020020804509322,
+              "off_rush_plays": 28,
+              "def_pass": 0.0971088150688405,
+              "def_pass_plays": 38,
+              "def_rush": 0.159965540487127,
+              "def_rush_plays": 31
             }
           }
         },
@@ -398198,6 +398450,20 @@
               "def_pass_plays": 26,
               "def_rush": 0.06119518151085469,
               "def_rush_plays": 21
+            },
+            "2": {
+              "off": -0.06998209632642245,
+              "off_plays": 68,
+              "def": 0.2862217339236107,
+              "def_plays": 87,
+              "off_pass": -0.21121075473070086,
+              "off_pass_plays": 25,
+              "off_rush": 0.06642227923013987,
+              "off_rush_plays": 26,
+              "def_pass": 0.49607501720644526,
+              "def_pass_plays": 44,
+              "def_rush": 0.08726424818261243,
+              "def_rush_plays": 23
             }
           }
         },
@@ -398217,6 +398483,20 @@
               "def_pass_plays": 40,
               "def_rush": 0.021430521453801317,
               "def_rush_plays": 33
+            },
+            "2": {
+              "off": 0.1389904048687501,
+              "off_plays": 84,
+              "def": -0.023849233299177604,
+              "def_plays": 71,
+              "off_pass": 0.29537792824557496,
+              "off_pass_plays": 37,
+              "off_rush": -0.051455753834393346,
+              "off_rush_plays": 27,
+              "def_pass": -0.10288045879708729,
+              "def_pass_plays": 33,
+              "def_rush": -0.13611691659951414,
+              "def_rush_plays": 22
             }
           }
         },
@@ -398255,6 +398535,20 @@
               "def_pass_plays": 35,
               "def_rush": -0.1099063428305921,
               "def_rush_plays": 14
+            },
+            "2": {
+              "off": -0.08651611504099163,
+              "off_plays": 94,
+              "def": 0.04578041231088273,
+              "def_plays": 76,
+              "off_pass": 0.09782270895811962,
+              "off_pass_plays": 44,
+              "off_rush": -0.4385823352624559,
+              "off_rush_plays": 27,
+              "def_pass": 0.09901575894680531,
+              "def_pass_plays": 32,
+              "def_rush": 0.44114246292802917,
+              "def_rush_plays": 18
             }
           }
         },
@@ -398274,6 +398568,20 @@
               "def_pass_plays": 36,
               "def_rush": -0.005223323623488402,
               "def_rush_plays": 32
+            },
+            "2": {
+              "off": 0.11114977519835938,
+              "off_plays": 87,
+              "def": -0.05243006070712712,
+              "def_plays": 68,
+              "off_pass": 0.21917532933203726,
+              "off_pass_plays": 40,
+              "off_rush": -0.18627309525982128,
+              "off_rush_plays": 32,
+              "def_pass": 0.004441569740513593,
+              "def_pass_plays": 22,
+              "def_rush": -0.13530821932716397,
+              "def_rush_plays": 29
             }
           }
         },
@@ -398293,6 +398601,20 @@
               "def_pass_plays": 26,
               "def_rush": 0.08170253260203367,
               "def_rush_plays": 31
+            },
+            "2": {
+              "off": -0.2862217339236107,
+              "off_plays": 87,
+              "def": 0.06998209632642245,
+              "def_plays": 68,
+              "off_pass": -0.49607501720644526,
+              "off_pass_plays": 44,
+              "off_rush": -0.08726424818261243,
+              "off_rush_plays": 23,
+              "def_pass": 0.21121075473070086,
+              "def_pass_plays": 25,
+              "def_rush": -0.06642227923013987,
+              "def_rush_plays": 26
             }
           }
         },
@@ -398312,6 +398634,20 @@
               "def_pass_plays": 36,
               "def_rush": 0.08786257971716564,
               "def_rush_plays": 31
+            },
+            "2": {
+              "off": 0.16845919073819238,
+              "off_plays": 82,
+              "def": 0.259305013420163,
+              "def_plays": 65,
+              "off_pass": 0.5958990921469789,
+              "off_pass_plays": 27,
+              "off_rush": -0.17837541937697096,
+              "off_rush_plays": 40,
+              "def_pass": 0.2694760061431831,
+              "def_pass_plays": 30,
+              "def_rush": 0.42363597910769063,
+              "def_rush_plays": 17
             }
           }
         },
@@ -398331,6 +398667,20 @@
               "def_pass_plays": 28,
               "def_rush": 0.1354256611250873,
               "def_rush_plays": 28
+            },
+            "2": {
+              "off": 0.30444203644095047,
+              "off_plays": 65,
+              "def": 0.04718740772180274,
+              "def_plays": 76,
+              "off_pass": 1.060473342105979,
+              "off_pass_plays": 22,
+              "off_rush": -0.06757379121845589,
+              "off_rush_plays": 25,
+              "def_pass": -0.16495987969437334,
+              "def_pass_plays": 27,
+              "def_rush": 0.15551702063616177,
+              "def_rush_plays": 29
             }
           }
         },
@@ -398350,6 +398700,20 @@
               "def_pass_plays": 36,
               "def_rush": -0.09731624911364634,
               "def_rush_plays": 26
+            },
+            "2": {
+              "off": -0.054957487936564645,
+              "off_plays": 84,
+              "def": -0.04679518927228631,
+              "def_plays": 76,
+              "off_pass": -0.3665024664633411,
+              "off_pass_plays": 37,
+              "off_rush": 0.1802316443726886,
+              "off_rush_plays": 25,
+              "def_pass": -0.3241815717890828,
+              "def_pass_plays": 32,
+              "def_rush": 0.470350549018587,
+              "def_rush_plays": 21
             }
           }
         },
@@ -398369,6 +398733,20 @@
               "def_pass_plays": 24,
               "def_rush": -0.009615403262706379,
               "def_rush_plays": 36
+            },
+            "2": {
+              "off": 0.05243006070712712,
+              "off_plays": 68,
+              "def": -0.11114977519835938,
+              "def_plays": 87,
+              "off_pass": -0.004441569740513593,
+              "off_pass_plays": 22,
+              "off_rush": 0.13530821932716397,
+              "off_rush_plays": 29,
+              "def_pass": -0.21917532933203726,
+              "def_pass_plays": 40,
+              "def_rush": 0.18627309525982128,
+              "def_rush_plays": 32
             }
           }
         },
@@ -398388,6 +398766,20 @@
               "def_pass_plays": 28,
               "def_rush": -0.1021068639010596,
               "def_rush_plays": 23
+            },
+            "2": {
+              "off": 0.002244128512095834,
+              "off_plays": 86,
+              "def": -0.2590586303895438,
+              "def_plays": 69,
+              "off_pass": 0.03463363753303938,
+              "off_pass_plays": 35,
+              "off_rush": 0.10605991343891219,
+              "off_rush_plays": 32,
+              "def_pass": -0.4576977571097905,
+              "def_pass_plays": 33,
+              "def_rush": 0.1364267110891108,
+              "def_rush_plays": 21
             }
           }
         }
@@ -398842,6 +399234,90 @@
           "plays": 163
         },
         {
+          "game_id": "2026_02_CAR_ATL",
+          "week": 2,
+          "team": "ATL",
+          "opp": "CAR",
+          "off_epa_pp": -0.47280220063515455,
+          "def_epa_pp": 0.010799943655146341,
+          "off_plays": 83,
+          "def_plays": 82,
+          "points_for": 3,
+          "points_against": 34,
+          "net_epa_pp": -0.4620022569800082,
+          "plays": 165
+        },
+        {
+          "game_id": "2026_02_CAR_ATL",
+          "week": 2,
+          "team": "CAR",
+          "opp": "ATL",
+          "off_epa_pp": -0.010799943655146341,
+          "def_epa_pp": 0.47280220063515455,
+          "off_plays": 82,
+          "def_plays": 83,
+          "points_for": 34,
+          "points_against": 3,
+          "net_epa_pp": 0.4620022569800082,
+          "plays": 165
+        },
+        {
+          "game_id": "2026_02_CIN_HOU",
+          "week": 2,
+          "team": "CIN",
+          "opp": "HOU",
+          "off_epa_pp": -0.07727672101449172,
+          "def_epa_pp": 0.24938339781136054,
+          "off_plays": 82,
+          "def_plays": 99,
+          "points_for": 20,
+          "points_against": 6,
+          "net_epa_pp": 0.1721066767968688,
+          "plays": 181
+        },
+        {
+          "game_id": "2026_02_CIN_HOU",
+          "week": 2,
+          "team": "HOU",
+          "opp": "CIN",
+          "off_epa_pp": -0.24938339781136054,
+          "def_epa_pp": 0.07727672101449172,
+          "off_plays": 99,
+          "def_plays": 82,
+          "points_for": 6,
+          "points_against": 20,
+          "net_epa_pp": -0.1721066767968688,
+          "plays": 181
+        },
+        {
+          "game_id": "2026_02_CLE_TB",
+          "week": 2,
+          "team": "CLE",
+          "opp": "TB",
+          "off_epa_pp": 0.04679518927228631,
+          "def_epa_pp": 0.054957487936564645,
+          "off_plays": 76,
+          "def_plays": 84,
+          "points_for": 23,
+          "points_against": 19,
+          "net_epa_pp": 0.10175267720885095,
+          "plays": 160
+        },
+        {
+          "game_id": "2026_02_CLE_TB",
+          "week": 2,
+          "team": "TB",
+          "opp": "CLE",
+          "off_epa_pp": -0.054957487936564645,
+          "def_epa_pp": -0.04679518927228631,
+          "off_plays": 84,
+          "def_plays": 76,
+          "points_for": 19,
+          "points_against": 23,
+          "net_epa_pp": -0.10175267720885095,
+          "plays": 160
+        },
+        {
           "game_id": "2026_02_DET_BUF",
           "week": 2,
           "team": "BUF",
@@ -398868,10 +399344,318 @@
           "points_against": 41,
           "net_epa_pp": -0.10415277441279966,
           "plays": 173
+        },
+        {
+          "game_id": "2026_02_GB_NYJ",
+          "week": 2,
+          "team": "GB",
+          "opp": "NYJ",
+          "off_epa_pp": -0.04578041231088273,
+          "def_epa_pp": 0.08651611504099163,
+          "off_plays": 76,
+          "def_plays": 94,
+          "points_for": 20,
+          "points_against": 17,
+          "net_epa_pp": 0.0407357027301089,
+          "plays": 170
+        },
+        {
+          "game_id": "2026_02_GB_NYJ",
+          "week": 2,
+          "team": "NYJ",
+          "opp": "GB",
+          "off_epa_pp": -0.08651611504099163,
+          "def_epa_pp": 0.04578041231088273,
+          "off_plays": 94,
+          "def_plays": 76,
+          "points_for": 17,
+          "points_against": 20,
+          "net_epa_pp": -0.0407357027301089,
+          "plays": 170
+        },
+        {
+          "game_id": "2026_02_IND_KC",
+          "week": 2,
+          "team": "IND",
+          "opp": "KC",
+          "off_epa_pp": 0.1964978661469903,
+          "def_epa_pp": -0.1659549287225105,
+          "off_plays": 86,
+          "def_plays": 100,
+          "points_for": 30,
+          "points_against": 33,
+          "net_epa_pp": 0.030542937424479805,
+          "plays": 186
+        },
+        {
+          "game_id": "2026_02_IND_KC",
+          "week": 2,
+          "team": "KC",
+          "opp": "IND",
+          "off_epa_pp": 0.1659549287225105,
+          "def_epa_pp": -0.1964978661469903,
+          "off_plays": 100,
+          "def_plays": 86,
+          "points_for": 33,
+          "points_against": 30,
+          "net_epa_pp": -0.030542937424479805,
+          "plays": 186
+        },
+        {
+          "game_id": "2026_02_JAX_DEN",
+          "week": 2,
+          "team": "DEN",
+          "opp": "JAX",
+          "off_epa_pp": 0.06463891047015656,
+          "def_epa_pp": 0.03063224533436264,
+          "off_plays": 75,
+          "def_plays": 75,
+          "points_for": 20,
+          "points_against": 13,
+          "net_epa_pp": 0.0952711558045192,
+          "plays": 150
+        },
+        {
+          "game_id": "2026_02_JAX_DEN",
+          "week": 2,
+          "team": "JAX",
+          "opp": "DEN",
+          "off_epa_pp": -0.03063224533436264,
+          "def_epa_pp": -0.06463891047015656,
+          "off_plays": 75,
+          "def_plays": 75,
+          "points_for": 13,
+          "points_against": 20,
+          "net_epa_pp": -0.0952711558045192,
+          "plays": 150
+        },
+        {
+          "game_id": "2026_02_LV_LAC",
+          "week": 2,
+          "team": "LAC",
+          "opp": "LV",
+          "off_epa_pp": -0.2455457554177792,
+          "def_epa_pp": 0.08543772266631859,
+          "off_plays": 85,
+          "def_plays": 80,
+          "points_for": 14,
+          "points_against": 26,
+          "net_epa_pp": -0.16010803275146063,
+          "plays": 165
+        },
+        {
+          "game_id": "2026_02_LV_LAC",
+          "week": 2,
+          "team": "LV",
+          "opp": "LAC",
+          "off_epa_pp": -0.08543772266631859,
+          "def_epa_pp": 0.2455457554177792,
+          "off_plays": 80,
+          "def_plays": 85,
+          "points_for": 26,
+          "points_against": 14,
+          "net_epa_pp": 0.16010803275146063,
+          "plays": 165
+        },
+        {
+          "game_id": "2026_02_MIA_SF",
+          "week": 2,
+          "team": "MIA",
+          "opp": "SF",
+          "off_epa_pp": -0.04718740772180274,
+          "def_epa_pp": -0.30444203644095047,
+          "off_plays": 76,
+          "def_plays": 65,
+          "points_for": 13,
+          "points_against": 35,
+          "net_epa_pp": -0.3516294441627532,
+          "plays": 141
+        },
+        {
+          "game_id": "2026_02_MIA_SF",
+          "week": 2,
+          "team": "SF",
+          "opp": "MIA",
+          "off_epa_pp": 0.30444203644095047,
+          "def_epa_pp": 0.04718740772180274,
+          "off_plays": 65,
+          "def_plays": 76,
+          "points_for": 35,
+          "points_against": 13,
+          "net_epa_pp": 0.3516294441627532,
+          "plays": 141
+        },
+        {
+          "game_id": "2026_02_MIN_CHI",
+          "week": 2,
+          "team": "CHI",
+          "opp": "MIN",
+          "off_epa_pp": -0.12584099415663547,
+          "def_epa_pp": 0.032023213967477204,
+          "off_plays": 89,
+          "def_plays": 64,
+          "points_for": 3,
+          "points_against": 9,
+          "net_epa_pp": -0.09381778018915826,
+          "plays": 153
+        },
+        {
+          "game_id": "2026_02_MIN_CHI",
+          "week": 2,
+          "team": "MIN",
+          "opp": "CHI",
+          "off_epa_pp": -0.032023213967477204,
+          "def_epa_pp": 0.12584099415663547,
+          "off_plays": 64,
+          "def_plays": 89,
+          "points_for": 9,
+          "points_against": 3,
+          "net_epa_pp": 0.09381778018915826,
+          "plays": 153
+        },
+        {
+          "game_id": "2026_02_NO_BAL",
+          "week": 2,
+          "team": "BAL",
+          "opp": "NO",
+          "off_epa_pp": 0.023849233299177604,
+          "def_epa_pp": -0.1389904048687501,
+          "off_plays": 71,
+          "def_plays": 84,
+          "points_for": 17,
+          "points_against": 24,
+          "net_epa_pp": -0.11514117156957251,
+          "plays": 155
+        },
+        {
+          "game_id": "2026_02_NO_BAL",
+          "week": 2,
+          "team": "NO",
+          "opp": "BAL",
+          "off_epa_pp": 0.1389904048687501,
+          "def_epa_pp": -0.023849233299177604,
+          "off_plays": 84,
+          "def_plays": 71,
+          "points_for": 24,
+          "points_against": 17,
+          "net_epa_pp": 0.11514117156957251,
+          "plays": 155
+        },
+        {
+          "game_id": "2026_02_PHI_TEN",
+          "week": 2,
+          "team": "PHI",
+          "opp": "TEN",
+          "off_epa_pp": 0.11114977519835938,
+          "def_epa_pp": -0.05243006070712712,
+          "off_plays": 87,
+          "def_plays": 68,
+          "points_for": 24,
+          "points_against": 20,
+          "net_epa_pp": 0.058719714491232256,
+          "plays": 155
+        },
+        {
+          "game_id": "2026_02_PHI_TEN",
+          "week": 2,
+          "team": "TEN",
+          "opp": "PHI",
+          "off_epa_pp": 0.05243006070712712,
+          "def_epa_pp": -0.11114977519835938,
+          "off_plays": 68,
+          "def_plays": 87,
+          "points_for": 20,
+          "points_against": 24,
+          "net_epa_pp": -0.058719714491232256,
+          "plays": 155
+        },
+        {
+          "game_id": "2026_02_PIT_NE",
+          "week": 2,
+          "team": "NE",
+          "opp": "PIT",
+          "off_epa_pp": -0.06998209632642245,
+          "def_epa_pp": 0.2862217339236107,
+          "off_plays": 68,
+          "def_plays": 87,
+          "points_for": 20,
+          "points_against": 3,
+          "net_epa_pp": 0.21623963759718828,
+          "plays": 155
+        },
+        {
+          "game_id": "2026_02_PIT_NE",
+          "week": 2,
+          "team": "PIT",
+          "opp": "NE",
+          "off_epa_pp": -0.2862217339236107,
+          "def_epa_pp": 0.06998209632642245,
+          "off_plays": 87,
+          "def_plays": 68,
+          "points_for": 3,
+          "points_against": 20,
+          "net_epa_pp": -0.21623963759718828,
+          "plays": 155
+        },
+        {
+          "game_id": "2026_02_SEA_ARI",
+          "week": 2,
+          "team": "ARI",
+          "opp": "SEA",
+          "off_epa_pp": -0.259305013420163,
+          "def_epa_pp": -0.16845919073819238,
+          "off_plays": 65,
+          "def_plays": 82,
+          "points_for": 7,
+          "points_against": 31,
+          "net_epa_pp": -0.42776420415835537,
+          "plays": 147
+        },
+        {
+          "game_id": "2026_02_SEA_ARI",
+          "week": 2,
+          "team": "SEA",
+          "opp": "ARI",
+          "off_epa_pp": 0.16845919073819238,
+          "def_epa_pp": 0.259305013420163,
+          "off_plays": 82,
+          "def_plays": 65,
+          "points_for": 31,
+          "points_against": 7,
+          "net_epa_pp": 0.42776420415835537,
+          "plays": 147
+        },
+        {
+          "game_id": "2026_02_WAS_DAL",
+          "week": 2,
+          "team": "DAL",
+          "opp": "WAS",
+          "off_epa_pp": 0.2590586303895438,
+          "def_epa_pp": -0.002244128512095834,
+          "off_plays": 69,
+          "def_plays": 86,
+          "points_for": 37,
+          "points_against": 20,
+          "net_epa_pp": 0.256814501877448,
+          "plays": 155
+        },
+        {
+          "game_id": "2026_02_WAS_DAL",
+          "week": 2,
+          "team": "WAS",
+          "opp": "DAL",
+          "off_epa_pp": 0.002244128512095834,
+          "def_epa_pp": -0.2590586303895438,
+          "off_plays": 86,
+          "def_plays": 69,
+          "points_for": 20,
+          "points_against": 37,
+          "net_epa_pp": -0.256814501877448,
+          "plays": 155
         }
       ]
     }
   },
-  "generated_at": "2026-09-20T08:15:56Z",
-  "git_sha": "35880110c82758c684e46a664124f091e36bb97c"
+  "generated_at": "2026-09-21T08:33:11Z",
+  "git_sha": "bb7e5a871b30a57721b946791cb0854db45b3107"
 }
