@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-21T08:33:15Z",
+  "generated_at": "2026-09-21T11:57:27Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -5599,6 +5599,15 @@
       "total": 43.5,
       "source": "nflverse",
       "updated_at": "2026-09-21T08:33:15Z"
+    },
+    {
+      "season": 2026,
+      "week": 2,
+      "game_id": "2026_02_NYG_LA",
+      "spread": 6.5,
+      "total": 47.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-21T11:57:27Z"
     }
   ]
 }
