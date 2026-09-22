@@ -282,6 +282,122 @@
       background: var(--panel);
     }
 
+    .movers-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      margin: 0 0 1rem;
+    }
+
+    .movers-group {
+      display: inline-flex;
+      gap: 0.35rem;
+    }
+
+    .movers-btn {
+      width: auto;
+      padding: 0.3rem 0.85rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      background: white;
+      border: 1px solid var(--border);
+      box-shadow: none;
+      cursor: pointer;
+    }
+
+    .movers-btn.active {
+      background: var(--text);
+      color: white;
+      border-color: var(--text);
+    }
+
+    .movers-btn:hover:not(.active) {
+      background: var(--panel);
+    }
+
+    .movers-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .movers-row {
+      display: grid;
+      grid-template-columns: 2.2rem 2.9rem 1fr auto;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.55rem 0.8rem;
+      border-bottom: 1px solid var(--border);
+      border-left: 4px solid var(--team, var(--border));
+    }
+
+    .movers-row:nth-child(even) {
+      background: var(--panel);
+    }
+
+    .movers-rank {
+      font-size: 1.05rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .movers-name {
+      display: block;
+      font-weight: 600;
+    }
+
+    .movers-sub {
+      display: block;
+      margin-top: 0.1rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .movers-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .movers-change {
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+    }
+
+    .movers-change.up { color: #15803d; }
+    .movers-change.down { color: #b91c1c; }
+    .movers-change.flat { color: #94a3b8; }
+
+    .movers-bye {
+      margin-left: 0.4rem;
+      padding: 0.05rem 0.3rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 0.66rem;
+      font-weight: 700;
+      color: var(--muted);
+      vertical-align: 0.1em;
+    }
+
+    @media (max-width: 640px) {
+      .movers-row {
+        grid-template-columns: 1.7rem 2.6rem 1fr auto;
+        gap: 0.4rem;
+        padding: 0.5rem 0.55rem;
+      }
+      .movers-name { font-size: 0.92rem; }
+      .movers-controls { gap: 0.75rem; }
+    }
+
   </style>
 </head>
 <body>
@@ -339,6 +455,7 @@
       <div class="view-toggle">
         <button id="view-summary-btn" class="view-btn active">EPA Summary</button>
         <button id="view-split-btn" class="view-btn">Pass / Run Breakdown</button>
+        <button id="view-movers-btn" class="view-btn">Rank Movers</button>
       </div>
 
       <div id="summary-view">
@@ -391,6 +508,23 @@
             <tbody></tbody>
           </table>
         </div>
+      </section>
+
+      <section id="movers-section" class="table-wrapper" style="display:none;">
+        <h2>Rank movers</h2>
+        <p class="table-note" id="movers-caption"></p>
+        <div class="movers-controls">
+          <div class="movers-group" role="group" aria-label="Ranking metric">
+            <button type="button" class="movers-btn active" data-metric="combined">Total</button>
+            <button type="button" class="movers-btn" data-metric="off">Offense</button>
+            <button type="button" class="movers-btn" data-metric="def">Defense</button>
+          </div>
+          <div class="movers-group" role="group" aria-label="List order">
+            <button type="button" class="movers-btn active" data-order="rank">By rank</button>
+            <button type="button" class="movers-btn" data-order="movement">Biggest moves</button>
+          </div>
+        </div>
+        <ul id="movers-list" class="movers-list"></ul>
       </section>
 
       <section id="team-epa-section" class="team-section" aria-labelledby="team-epa-heading">

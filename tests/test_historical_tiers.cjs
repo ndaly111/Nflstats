@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const element = { getContext() {}, querySelector() { return this; }, querySelectorAll() { return []; }, addEventListener() {}, style: {}, classList: { toggle() {}, contains() { return false; } } };
-const context = vm.createContext({ URL, console, document: { baseURI: 'http://localhost/', getElementById() { return element; }, body: element } });
+const context = vm.createContext({ URL, console, document: { baseURI: 'http://localhost/', getElementById() { return element; }, querySelectorAll() { return []; }, body: element } });
 const source = fs.readFileSync('assets/js/main.js', 'utf8').replace('    bootstrap();', '');
 vm.runInContext(source, context);
 context.dataset = JSON.parse(fs.readFileSync('data/epa.json', 'utf8'));

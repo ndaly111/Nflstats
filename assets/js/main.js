@@ -51,6 +51,12 @@
     const viewSplitBtn = document.getElementById('view-split-btn');
     const summaryView = document.getElementById('summary-view');
     const splitSection = document.getElementById('split-section');
+    const viewMoversBtn = document.getElementById('view-movers-btn');
+    const moversSection = document.getElementById('movers-section');
+    const moversList = document.getElementById('movers-list');
+    const moversCaption = document.getElementById('movers-caption');
+    let moversMetric = 'combined';
+    let moversOrder = 'rank';
     const splitTable = document.getElementById('split-table');
     const splitTableBody = splitTable.querySelector('tbody');
     const splitTableHeaders = splitTable.querySelectorAll('th');
@@ -963,6 +969,64 @@
       return rankMap;
     }
 
+    const MOVEMENT_METRICS = ['combined', 'off', 'def'];
+
+    function playedWeek(selectedSeason, team, week) {
+      const entry = seasonData[selectedSeason]?.teams.find((t) => t.team === team);
+      const payload = entry?.weeks?.[week] ?? entry?.weeks?.[String(week)];
+      return Boolean(payload && typeof payload.off === 'number');
+    }
+
+    // Compares the standings through endWeek against the standings through the week
+    // before it, so a move reflects how the cumulative ranking shifted.
+    function computeRankMovement(selectedSeason, startWeek, endWeek, metricMode, sosBasis) {
+      const season = seasonData[selectedSeason];
+      if (!season) return { error: 'No EPA data for that season.', rows: [], priorEnd: null };
+      if (!(endWeek > startWeek)) {
+        return { error: 'Rank movement needs at least two weeks. Widen the week range.', rows: [], priorEnd: null };
+      }
+      const priorEnd = endWeek - 1;
+      const currentSos = metricMode === 'sos' ? computeSosRatingsForRange(selectedSeason, startWeek, endWeek, sosBasis) : null;
+      const priorSos = metricMode === 'sos' ? computeSosRatingsForRange(selectedSeason, startWeek, priorEnd, sosBasis) : null;
+      if (metricMode === 'sos' && (currentSos?.error || priorSos?.error)) {
+        return { error: currentSos?.error || priorSos?.error, rows: [], priorEnd };
+      }
+      const currentRows = buildTeamRows(selectedSeason, startWeek, endWeek, metricMode, sosBasis, currentSos);
+      const priorRows = buildTeamRows(selectedSeason, startWeek, priorEnd, metricMode, sosBasis, priorSos);
+      if (currentRows.length === 0) {
+        return { error: 'No EPA points available for that range. Try a different week selection.', rows: [], priorEnd };
+      }
+      const currentRanks = {};
+      const priorRanks = {};
+      MOVEMENT_METRICS.forEach((metric) => {
+        currentRanks[metric] = computeRanks(currentRows, metric);
+        priorRanks[metric] = computeRanks(priorRows, metric);
+      });
+      const rows = currentRows.map((row) => {
+        const movement = {};
+        MOVEMENT_METRICS.forEach((metric) => {
+          const rank = currentRanks[metric][row.team];
+          const prevRank = priorRanks[metric][row.team];
+          const comparable = Number.isFinite(rank) && Number.isFinite(prevRank);
+          movement[metric] = {
+            rank,
+            prevRank: Number.isFinite(prevRank) ? prevRank : null,
+            delta: comparable ? prevRank - rank : null,
+            value: row[metric],
+          };
+        });
+        return {
+          team: row.team,
+          displayName: row.displayName,
+          color: row.backgroundColor,
+          record: row.record,
+          onBye: !playedWeek(selectedSeason, row.team, endWeek),
+          movement,
+        };
+      });
+      return { error: null, rows, priorEnd };
+    }
+
     const historicalTierCache = new Map();
 
     function regularGameWeeks(team, year) {
@@ -1335,20 +1399,101 @@
       sortSplitTable(splitSortState.column ?? 2, false); // column 2 = Combined EPA
     }
 
-    viewSummaryBtn.addEventListener('click', () => {
-      viewSummaryBtn.classList.add('active');
-      viewSplitBtn.classList.remove('active');
-      summaryView.style.display = '';
-      splitSection.style.display = 'none';
+    const MOVEMENT_LABELS = {
+      combined: 'Total EPA/play',
+      off: 'Offense EPA/play',
+      def: 'Defense EPA/play',
+    };
+
+    function isMoversViewActive() {
+      return moversSection.style.display !== 'none';
+    }
+
+    function movementBadge(delta, prevRank) {
+      const from = Number.isFinite(prevRank) ? ` from #${prevRank}` : '';
+      if (!Number.isFinite(delta)) {
+        return '<span class="movers-change flat" role="img" aria-label="No ranking last week" title="Not ranked last week">&mdash;</span>';
+      }
+      if (delta === 0) {
+        return `<span class="movers-change flat" role="img" aria-label="No change" title="Held #${prevRank}">&mdash;</span>`;
+      }
+      const places = Math.abs(delta) === 1 ? 'place' : 'places';
+      if (delta > 0) {
+        return `<span class="movers-change up" role="img" aria-label="Up ${delta} ${places}${from}" title="Up ${delta} ${places}${from}">&#9650;${delta}</span>`;
+      }
+      const drop = Math.abs(delta);
+      return `<span class="movers-change down" role="img" aria-label="Down ${drop} ${places}${from}" title="Down ${drop} ${places}${from}">&#9660;${drop}</span>`;
+    }
+
+    function refreshMovers() {
+      const season = seasonSelect.value;
+      const { start, end } = syncWeekRange();
+      const result = computeRankMovement(season, start, end, metricModeSelect.value, sosBasisSelect.value);
+      if (result.error) {
+        moversList.innerHTML = '';
+        moversCaption.textContent = result.error;
+        return;
+      }
+      const metric = moversMetric;
+      const rows = [...result.rows].sort((a, b) => {
+        if (moversOrder === 'movement') {
+          const aDelta = a.movement[metric].delta ?? 0;
+          const bDelta = b.movement[metric].delta ?? 0;
+          if (bDelta !== aDelta) return bDelta - aDelta;
+        }
+        return a.movement[metric].rank - b.movement[metric].rank;
+      });
+      const adjusted = metricModeSelect.value === 'sos' ? 'SOS-adjusted ' : '';
+      moversCaption.textContent = `${adjusted}${MOVEMENT_LABELS[metric]} through week ${end}, against the same ranking through week ${result.priorEnd}. Green means the team climbed.`;
+      moversList.innerHTML = rows.map((row) => {
+        const move = row.movement[metric];
+        const bye = row.onBye ? '<span class="movers-bye" title="No game this week">BYE</span>' : '';
+        return `
+          <li class="movers-row" style="--team: ${row.color}">
+            <span class="movers-rank" aria-label="Rank ${move.rank}">${move.rank}</span>
+            ${movementBadge(move.delta, move.prevRank)}
+            <span class="movers-team">
+              <span class="movers-name">${row.displayName}${bye}</span>
+              <span class="movers-sub">${row.record || ''}</span>
+            </span>
+            <span class="movers-value" title="${MOVEMENT_LABELS[metric]}">${formatNumber(move.value)}</span>
+          </li>`;
+      }).join('');
+    }
+
+    function setMoversControl(button, attribute) {
+      const group = button.parentElement;
+      group.querySelectorAll('.movers-btn').forEach((btn) => btn.classList.remove('active'));
+      button.classList.add('active');
+      if (attribute === 'metric') moversMetric = button.dataset.metric;
+      else moversOrder = button.dataset.order;
+      refreshMovers();
+    }
+
+    document.querySelectorAll('.movers-btn[data-metric]').forEach((button) => {
+      button.addEventListener('click', () => setMoversControl(button, 'metric'));
+    });
+    document.querySelectorAll('.movers-btn[data-order]').forEach((button) => {
+      button.addEventListener('click', () => setMoversControl(button, 'order'));
     });
 
-    viewSplitBtn.addEventListener('click', () => {
-      viewSplitBtn.classList.add('active');
-      viewSummaryBtn.classList.remove('active');
-      summaryView.style.display = 'none';
-      splitSection.style.display = '';
-      refreshSplitTable();
-    });
+    function showView(name) {
+      const views = {
+        summary: [viewSummaryBtn, summaryView],
+        split: [viewSplitBtn, splitSection],
+        movers: [viewMoversBtn, moversSection],
+      };
+      Object.entries(views).forEach(([key, [button, panel]]) => {
+        button.classList.toggle('active', key === name);
+        panel.style.display = key === name ? '' : 'none';
+      });
+      if (name === 'split') refreshSplitTable();
+      if (name === 'movers') refreshMovers();
+    }
+
+    viewSummaryBtn.addEventListener('click', () => showView('summary'));
+    viewSplitBtn.addEventListener('click', () => showView('split'));
+    viewMoversBtn.addEventListener('click', () => showView('movers'));
 
     function refreshChart() {
       hideStatus();
@@ -1450,6 +1595,7 @@
       weekEndSelect.value = selected.weeks[selected.weeks.length - 1];
       refreshChart();
       if (isSplitViewActive()) refreshSplitTable();
+      if (isMoversViewActive()) refreshMovers();
       if (teamSeasonSelect) {
         teamSeasonSelect.value = seasonSelect.value;
         populateTeamOptions(teamSeasonSelect.value);
@@ -1460,19 +1606,26 @@
     weekStartSelect.addEventListener('change', () => {
       syncWeekRange();
       if (isSplitViewActive()) refreshSplitTable();
+      if (isMoversViewActive()) refreshMovers();
     });
     weekEndSelect.addEventListener('change', () => {
       syncWeekRange();
       if (isSplitViewActive()) refreshSplitTable();
+      if (isMoversViewActive()) refreshMovers();
     });
     metricModeSelect.addEventListener('change', () => {
       updateSosControlsVisibility(metricModeSelect.value);
       refreshChart();
+      if (isMoversViewActive()) refreshMovers();
     });
-    sosBasisSelect.addEventListener('change', refreshChart);
+    sosBasisSelect.addEventListener('change', () => {
+      refreshChart();
+      if (isMoversViewActive()) refreshMovers();
+    });
     updateButton.addEventListener('click', () => {
       refreshChart();
       if (isSplitViewActive()) refreshSplitTable();
+      if (isMoversViewActive()) refreshMovers();
     });
     if (teamSeasonSelect) {
       teamSeasonSelect.addEventListener('change', () => {
