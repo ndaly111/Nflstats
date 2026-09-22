@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22T10:56:32Z",
+  "generated_at": "2026-09-22T16:14:35Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -5779,6 +5779,33 @@
       "total": 44.5,
       "source": "nflverse",
       "updated_at": "2026-09-22T08:13:26Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_ATL_GB",
+      "spread": 6.0,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-22T16:14:35Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_KC_MIA",
+      "spread": -11.5,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-22T16:14:35Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_PHI_CHI",
+      "spread": -3.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-22T16:14:35Z"
     }
   ]
 }
