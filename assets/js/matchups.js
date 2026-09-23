@@ -287,6 +287,72 @@
       return weeks.length ? weeks[weeks.length - 1] : 1;
     }
 
+    function weekEndDatesFromGames(games) {
+      const dates = {};
+      (Array.isArray(games) ? games : []).forEach((g) => {
+        const week = Number(g?.week);
+        const day = String(g?.gameday || '').slice(0, 10);
+        if (!Number.isFinite(week) || !/^\d{4}-\d{2}-\d{2}$/.test(day)) return;
+        if (!dates[week] || day > dates[week]) dates[week] = day;
+      });
+      return dates;
+    }
+
+    // The week currently in progress, or the next one up once its last game is done.
+    function pickCurrentWeekFromDates(weekDates, todayISO) {
+      const entries = Object.entries(weekDates || {})
+        .map(([week, day]) => [Number(week), day])
+        .filter(([week, day]) => Number.isFinite(week) && typeof day === 'string' && day)
+        .sort((a, b) => a[0] - b[0]);
+      if (!entries.length) return null;
+      const live = entries.find(([, day]) => day >= todayISO);
+      return live ? live[0] : entries[entries.length - 1][0];
+    }
+
+    function todayInEastern() {
+      try {
+        return new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+      } catch (err) {
+        return new Date().toISOString().slice(0, 10);
+      }
+    }
+
+    function maxOddsWeek(seasonKey) {
+      const source = Array.isArray(oddsPayload?.odds) ? oddsPayload.odds : [];
+      let best = null;
+      source.forEach((r) => {
+        if (String(r?.season) !== String(seasonKey)) return;
+        const week = Number(r?.week);
+        if (!Number.isFinite(week)) return;
+        if (best === null || week > best) best = week;
+      });
+      return best;
+    }
+
+    // Prefer real kickoff dates; fall back to how far the book feed reaches, then to EPA.
+    function resolveCurrentWeek(season, seasonKey, weeks) {
+      const list = (weeks || []).filter((w) => Number.isFinite(w));
+      const has = (w) => Number.isFinite(w) && list.includes(w);
+
+      const scheduleGames = schedulePayload?.seasons?.[String(seasonKey)]?.games
+        || (Array.isArray(schedulePayload?.schedules)
+          ? (schedulePayload.schedules.find((s) => String(s?.season) === String(seasonKey))?.games || [])
+          : []);
+      const byDate = pickCurrentWeekFromDates(weekEndDatesFromGames(scheduleGames), todayInEastern());
+      if (has(byDate)) return byDate;
+
+      const byOdds = maxOddsWeek(seasonKey);
+      if (has(byOdds)) return byOdds;
+
+      const epaWeeks = (season?.weeks || [])
+        .map((w) => normalizeWeekValue(w, Number(seasonKey)))
+        .filter((w) => Number.isFinite(w));
+      const lastEpa = epaWeeks.length ? epaWeeks[epaWeeks.length - 1] : null;
+      if (has(lastEpa)) return lastEpa;
+
+      return list.length ? list[list.length - 1] : 1;
+    }
+
     function getWeekOverride(weeks, seasonKey = null) {
       const seasonNum = Number(seasonKey);
       const override = normalizeWeekValue(urlParams.get('week'), seasonNum);
@@ -1322,6 +1388,16 @@
       return detail;
     }
 
+    function fmtOddsTimestamp(value) {
+      const raw = String(value || '').trim();
+      if (!raw) return '';
+      const when = new Date(raw);
+      if (Number.isNaN(when.getTime())) return raw;
+      return when.toLocaleString(undefined, {
+        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+      });
+    }
+
     function buildSparkline(values, {
       width = 260,
       height = 44,
@@ -1329,6 +1405,7 @@
       labels = null,
       zeroLine = false,
       tooltipFmt = (v) => String(v),
+      onSelect = null,
     } = {}) {
       const series = (values || [])
         .map((v, i) => ({ value: Number(v), label: labels && labels[i] != null ? String(labels[i]) : '' }))
@@ -1381,6 +1458,7 @@
 
       svg.appendChild(path);
 
+      const dots = [];
       xy.forEach(([x, y], i) => {
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         const isLast = i === xy.length - 1;
@@ -1390,12 +1468,41 @@
         circle.setAttribute('fill', '#0f172a');
         circle.setAttribute('stroke', '#ffffff');
         circle.setAttribute('stroke-width', '1');
+        circle.setAttribute('class', 'spark-dot');
         const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
         const label = series[i]?.label || '';
         title.textContent = `${label}${label ? ': ' : ''}${tooltipFmt(series[i].value)}`;
         circle.appendChild(title);
         svg.appendChild(circle);
+        dots.push(circle);
       });
+
+      if (typeof onSelect === 'function') {
+        let selected = null;
+        const select = (i) => {
+          selected = selected === i ? null : i;
+          dots.forEach((dot, idx) => dot.classList.toggle('is-selected', idx === selected));
+          onSelect(selected === null ? null : { index: i, value: series[i].value, label: series[i].label });
+        };
+        // A 2px dot is not a tap target; overlay a generous invisible one.
+        xy.forEach(([x, y], i) => {
+          const hit = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          hit.setAttribute('cx', x.toFixed(2));
+          hit.setAttribute('cy', y.toFixed(2));
+          hit.setAttribute('r', '8');
+          hit.setAttribute('fill', 'transparent');
+          hit.setAttribute('class', 'spark-hit');
+          hit.setAttribute('tabindex', '0');
+          hit.setAttribute('role', 'button');
+          const label = series[i]?.label || '';
+          hit.setAttribute('aria-label', `${label}${label ? ': ' : ''}${tooltipFmt(series[i].value)}`);
+          hit.addEventListener('click', (ev) => { ev.stopPropagation(); select(i); });
+          hit.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); select(i); }
+          });
+          svg.appendChild(hit);
+        });
+      }
       return svg;
     }
 
@@ -1422,17 +1529,38 @@
         const row = document.createElement('div');
         row.className = 'spark-row';
 
-        if (Number.isFinite(first) && Number.isFinite(last)) {
-          row.title = `Open ${fmt(first)} → Now ${fmt(last)}`;
-        }
+        const summary = Number.isFinite(first) && Number.isFinite(last)
+          ? `Open ${fmt(first)} → Now ${fmt(last)}`
+          : '';
+        if (summary) row.title = summary;
 
         const meta = document.createElement('div');
         meta.className = 'spark-meta';
         meta.innerHTML = `<span class="k">${label}</span><span class="v">${fmt(last)}</span>`;
         row.appendChild(meta);
 
-        const spark = buildSparkline(series, { labels, zeroLine, tooltipFmt: fmt });
+        const readout = document.createElement('div');
+        readout.className = 'spark-readout';
+        readout.setAttribute('aria-live', 'polite');
+        readout.textContent = summary;
+
+        const spark = buildSparkline(series, {
+          labels,
+          zeroLine,
+          tooltipFmt: fmt,
+          onSelect: (point) => {
+            if (!point) {
+              readout.textContent = summary;
+              readout.classList.remove('is-active');
+              return;
+            }
+            const when = fmtOddsTimestamp(point.label);
+            readout.textContent = when ? `${when} · ${fmt(point.value)}` : fmt(point.value);
+            readout.classList.add('is-active');
+          },
+        });
         if (spark) row.appendChild(spark);
+        if (summary || spark) row.appendChild(readout);
 
         wrap.appendChild(row);
       }
@@ -1686,10 +1814,10 @@
       const previousWeek = normalizeWeekValue(weekSelect.value, seasonKey);
       const weeks = getSeasonWeeks(season, seasonKey);
       fillSelect(weekSelect, weeks, seasonKey);
-      const latestWeek = weeks.length ? weeks[weeks.length - 1] : getCurrentWeek(season, seasonKey);
+      const currentWeek = resolveCurrentWeek(season, seasonKey, weeks);
       const overrideWeek = getWeekOverride(weeks, seasonKey);
       const keepPrevious = userSelectedWeek && Number.isFinite(previousWeek) && weeks.includes(previousWeek);
-      const defaultWeek = overrideWeek ?? (keepPrevious ? previousWeek : latestWeek);
+      const defaultWeek = overrideWeek ?? (keepPrevious ? previousWeek : currentWeek);
       weekSelect.value = defaultWeek;
       renderMatchups();
     }

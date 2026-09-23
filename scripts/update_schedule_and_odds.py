@@ -343,6 +343,8 @@ def main() -> None:
                     "week": week_out,
                     "home": home_team,
                     "away": away_team,
+                    # Kickoff date drives the current-week default on matchups.html
+                    "gameday": (str(row.get("gameday") or "").strip()[:10] or None),
                     # Preserve helpful context if present (matchups.html can use it)
                     "season_type": (str(row.get("season_type") or "").strip().upper() or None),
                     "game_type": (str(row.get("game_type") or "").strip().upper() or None),

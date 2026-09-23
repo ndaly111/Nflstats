@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T16:03:51Z",
+  "generated_at": "2026-09-23T17:23:57Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "seasons": {
     "2026": {
@@ -9,6 +9,7 @@
           "week": 1,
           "home": "SEA",
           "away": "NE",
+          "gameday": "2026-09-09",
           "season_type": null,
           "game_type": "REG"
         },
@@ -17,6 +18,7 @@
           "week": 1,
           "home": "LA",
           "away": "SF",
+          "gameday": "2026-09-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -25,6 +27,7 @@
           "week": 1,
           "home": "CAR",
           "away": "CHI",
+          "gameday": "2026-09-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -33,6 +36,7 @@
           "week": 1,
           "home": "CIN",
           "away": "TB",
+          "gameday": "2026-09-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -41,6 +45,7 @@
           "week": 1,
           "home": "DET",
           "away": "NO",
+          "gameday": "2026-09-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -49,6 +54,7 @@
           "week": 1,
           "home": "HOU",
           "away": "BUF",
+          "gameday": "2026-09-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -57,6 +63,7 @@
           "week": 1,
           "home": "IND",
           "away": "BAL",
+          "gameday": "2026-09-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -65,6 +72,7 @@
           "week": 1,
           "home": "JAX",
           "away": "CLE",
+          "gameday": "2026-09-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -73,6 +81,7 @@
           "week": 1,
           "home": "PIT",
           "away": "ATL",
+          "gameday": "2026-09-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -81,6 +90,7 @@
           "week": 1,
           "home": "TEN",
           "away": "NYJ",
+          "gameday": "2026-09-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -89,6 +99,7 @@
           "week": 1,
           "home": "LAC",
           "away": "ARI",
+          "gameday": "2026-09-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -97,6 +108,7 @@
           "week": 1,
           "home": "LV",
           "away": "MIA",
+          "gameday": "2026-09-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -105,6 +117,7 @@
           "week": 1,
           "home": "MIN",
           "away": "GB",
+          "gameday": "2026-09-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -113,6 +126,7 @@
           "week": 1,
           "home": "PHI",
           "away": "WAS",
+          "gameday": "2026-09-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -121,6 +135,7 @@
           "week": 1,
           "home": "NYG",
           "away": "DAL",
+          "gameday": "2026-09-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -129,6 +144,7 @@
           "week": 1,
           "home": "KC",
           "away": "DEN",
+          "gameday": "2026-09-14",
           "season_type": null,
           "game_type": "REG"
         },
@@ -137,6 +153,7 @@
           "week": 2,
           "home": "BUF",
           "away": "DET",
+          "gameday": "2026-09-17",
           "season_type": null,
           "game_type": "REG"
         },
@@ -145,6 +162,7 @@
           "week": 2,
           "home": "ATL",
           "away": "CAR",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -153,6 +171,7 @@
           "week": 2,
           "home": "BAL",
           "away": "NO",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -161,6 +180,7 @@
           "week": 2,
           "home": "CHI",
           "away": "MIN",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -169,6 +189,7 @@
           "week": 2,
           "home": "HOU",
           "away": "CIN",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -177,6 +198,7 @@
           "week": 2,
           "home": "NE",
           "away": "PIT",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -185,6 +207,7 @@
           "week": 2,
           "home": "NYJ",
           "away": "GB",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -193,6 +216,7 @@
           "week": 2,
           "home": "TB",
           "away": "CLE",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -201,6 +225,7 @@
           "week": 2,
           "home": "TEN",
           "away": "PHI",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -209,6 +234,7 @@
           "week": 2,
           "home": "DEN",
           "away": "JAX",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -217,6 +243,7 @@
           "week": 2,
           "home": "LAC",
           "away": "LV",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -225,6 +252,7 @@
           "week": 2,
           "home": "ARI",
           "away": "SEA",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -233,6 +261,7 @@
           "week": 2,
           "home": "DAL",
           "away": "WAS",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -241,6 +270,7 @@
           "week": 2,
           "home": "SF",
           "away": "MIA",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -249,6 +279,7 @@
           "week": 2,
           "home": "KC",
           "away": "IND",
+          "gameday": "2026-09-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -257,6 +288,7 @@
           "week": 2,
           "home": "LA",
           "away": "NYG",
+          "gameday": "2026-09-21",
           "season_type": null,
           "game_type": "REG"
         },
@@ -265,6 +297,7 @@
           "week": 3,
           "home": "GB",
           "away": "ATL",
+          "gameday": "2026-09-24",
           "season_type": null,
           "game_type": "REG"
         },
@@ -273,6 +306,7 @@
           "week": 3,
           "home": "BUF",
           "away": "LAC",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -281,6 +315,7 @@
           "week": 3,
           "home": "CLE",
           "away": "CAR",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -289,6 +324,7 @@
           "week": 3,
           "home": "DET",
           "away": "NYJ",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -297,6 +333,7 @@
           "week": 3,
           "home": "IND",
           "away": "HOU",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -305,6 +342,7 @@
           "week": 3,
           "home": "JAX",
           "away": "NE",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -313,6 +351,7 @@
           "week": 3,
           "home": "MIA",
           "away": "KC",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -321,6 +360,7 @@
           "week": 3,
           "home": "NYG",
           "away": "TEN",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -329,6 +369,7 @@
           "week": 3,
           "home": "PIT",
           "away": "CIN",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -337,6 +378,7 @@
           "week": 3,
           "home": "WAS",
           "away": "SEA",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -345,6 +387,7 @@
           "week": 3,
           "home": "SF",
           "away": "ARI",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -353,6 +396,7 @@
           "week": 3,
           "home": "TB",
           "away": "MIN",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -361,6 +405,7 @@
           "week": 3,
           "home": "DAL",
           "away": "BAL",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -369,6 +414,7 @@
           "week": 3,
           "home": "NO",
           "away": "LV",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -377,6 +423,7 @@
           "week": 3,
           "home": "DEN",
           "away": "LA",
+          "gameday": "2026-09-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -385,6 +432,7 @@
           "week": 3,
           "home": "CHI",
           "away": "PHI",
+          "gameday": "2026-09-28",
           "season_type": null,
           "game_type": "REG"
         },
@@ -393,6 +441,7 @@
           "week": 4,
           "home": "CLE",
           "away": "PIT",
+          "gameday": "2026-10-01",
           "season_type": null,
           "game_type": "REG"
         },
@@ -401,6 +450,7 @@
           "week": 4,
           "home": "WAS",
           "away": "IND",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -409,6 +459,7 @@
           "week": 4,
           "home": "BAL",
           "away": "TEN",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -417,6 +468,7 @@
           "week": 4,
           "home": "BUF",
           "away": "NE",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -425,6 +477,7 @@
           "week": 4,
           "home": "CHI",
           "away": "NYJ",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -433,6 +486,7 @@
           "week": 4,
           "home": "CIN",
           "away": "JAX",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -441,6 +495,7 @@
           "week": 4,
           "home": "HOU",
           "away": "DAL",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -449,6 +504,7 @@
           "week": 4,
           "home": "NYG",
           "away": "ARI",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -457,6 +513,7 @@
           "week": 4,
           "home": "PHI",
           "away": "LA",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -465,6 +522,7 @@
           "week": 4,
           "home": "TB",
           "away": "GB",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -473,6 +531,7 @@
           "week": 4,
           "home": "MIN",
           "away": "MIA",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -481,6 +540,7 @@
           "week": 4,
           "home": "LV",
           "away": "KC",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -489,6 +549,7 @@
           "week": 4,
           "home": "SEA",
           "away": "LAC",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -497,6 +558,7 @@
           "week": 4,
           "home": "SF",
           "away": "DEN",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -505,6 +567,7 @@
           "week": 4,
           "home": "CAR",
           "away": "DET",
+          "gameday": "2026-10-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -513,6 +576,7 @@
           "week": 4,
           "home": "NO",
           "away": "ATL",
+          "gameday": "2026-10-05",
           "season_type": null,
           "game_type": "REG"
         },
@@ -521,6 +585,7 @@
           "week": 5,
           "home": "DAL",
           "away": "TB",
+          "gameday": "2026-10-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -529,6 +594,7 @@
           "week": 5,
           "home": "JAX",
           "away": "PHI",
+          "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
         },
@@ -537,6 +603,7 @@
           "week": 5,
           "home": "MIA",
           "away": "CIN",
+          "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
         },
@@ -545,6 +612,7 @@
           "week": 5,
           "home": "NE",
           "away": "LV",
+          "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
         },
@@ -553,6 +621,7 @@
           "week": 5,
           "home": "NO",
           "away": "MIN",
+          "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
         },
@@ -561,6 +630,7 @@
           "week": 5,
           "home": "NYJ",
           "away": "CLE",
+          "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
         },
@@ -569,6 +639,7 @@
           "week": 5,
           "home": "PIT",
           "away": "IND",
+          "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
         },
@@ -577,6 +648,7 @@
           "week": 5,
           "home": "TEN",
           "away": "HOU",
+          "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
         },
@@ -585,6 +657,7 @@
           "week": 5,
           "home": "WAS",
           "away": "NYG",
+          "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
         },
@@ -593,6 +666,7 @@
           "week": 5,
           "home": "LAC",
           "away": "DEN",
+          "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
         },
@@ -601,6 +675,7 @@
           "week": 5,
           "home": "ARI",
           "away": "DET",
+          "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
         },
@@ -609,6 +684,7 @@
           "week": 5,
           "home": "GB",
           "away": "CHI",
+          "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
         },
@@ -617,6 +693,7 @@
           "week": 5,
           "home": "SEA",
           "away": "SF",
+          "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
         },
@@ -625,6 +702,7 @@
           "week": 5,
           "home": "ATL",
           "away": "BAL",
+          "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
         },
@@ -633,6 +711,7 @@
           "week": 5,
           "home": "LA",
           "away": "BUF",
+          "gameday": "2026-10-12",
           "season_type": null,
           "game_type": "REG"
         },
@@ -641,6 +720,7 @@
           "week": 6,
           "home": "DEN",
           "away": "SEA",
+          "gameday": "2026-10-15",
           "season_type": null,
           "game_type": "REG"
         },
@@ -649,6 +729,7 @@
           "week": 6,
           "home": "JAX",
           "away": "HOU",
+          "gameday": "2026-10-18",
           "season_type": null,
           "game_type": "REG"
         },
@@ -657,6 +738,7 @@
           "week": 6,
           "home": "ATL",
           "away": "CHI",
+          "gameday": "2026-10-18",
           "season_type": null,
           "game_type": "REG"
         },
@@ -665,6 +747,7 @@
           "week": 6,
           "home": "CLE",
           "away": "BAL",
+          "gameday": "2026-10-18",
           "season_type": null,
           "game_type": "REG"
         },
@@ -673,6 +756,7 @@
           "week": 6,
           "home": "IND",
           "away": "TEN",
+          "gameday": "2026-10-18",
           "season_type": null,
           "game_type": "REG"
         },
@@ -681,6 +765,7 @@
           "week": 6,
           "home": "NE",
           "away": "NYJ",
+          "gameday": "2026-10-18",
           "season_type": null,
           "game_type": "REG"
         },
@@ -689,6 +774,7 @@
           "week": 6,
           "home": "NYG",
           "away": "NO",
+          "gameday": "2026-10-18",
           "season_type": null,
           "game_type": "REG"
         },
@@ -697,6 +783,7 @@
           "week": 6,
           "home": "PHI",
           "away": "CAR",
+          "gameday": "2026-10-18",
           "season_type": null,
           "game_type": "REG"
         },
@@ -705,6 +792,7 @@
           "week": 6,
           "home": "TB",
           "away": "PIT",
+          "gameday": "2026-10-18",
           "season_type": null,
           "game_type": "REG"
         },
@@ -713,6 +801,7 @@
           "week": 6,
           "home": "LA",
           "away": "ARI",
+          "gameday": "2026-10-18",
           "season_type": null,
           "game_type": "REG"
         },
@@ -721,6 +810,7 @@
           "week": 6,
           "home": "KC",
           "away": "LAC",
+          "gameday": "2026-10-18",
           "season_type": null,
           "game_type": "REG"
         },
@@ -729,6 +819,7 @@
           "week": 6,
           "home": "LV",
           "away": "BUF",
+          "gameday": "2026-10-18",
           "season_type": null,
           "game_type": "REG"
         },
@@ -737,6 +828,7 @@
           "week": 6,
           "home": "GB",
           "away": "DAL",
+          "gameday": "2026-10-18",
           "season_type": null,
           "game_type": "REG"
         },
@@ -745,6 +837,7 @@
           "week": 6,
           "home": "SF",
           "away": "WAS",
+          "gameday": "2026-10-19",
           "season_type": null,
           "game_type": "REG"
         },
@@ -753,6 +846,7 @@
           "week": 7,
           "home": "CHI",
           "away": "NE",
+          "gameday": "2026-10-22",
           "season_type": null,
           "game_type": "REG"
         },
@@ -761,6 +855,7 @@
           "week": 7,
           "home": "NO",
           "away": "PIT",
+          "gameday": "2026-10-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -769,6 +864,7 @@
           "week": 7,
           "home": "ATL",
           "away": "SF",
+          "gameday": "2026-10-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -777,6 +873,7 @@
           "week": 7,
           "home": "BAL",
           "away": "CIN",
+          "gameday": "2026-10-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -785,6 +882,7 @@
           "week": 7,
           "home": "CAR",
           "away": "TB",
+          "gameday": "2026-10-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -793,6 +891,7 @@
           "week": 7,
           "home": "HOU",
           "away": "NYG",
+          "gameday": "2026-10-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -801,6 +900,7 @@
           "week": 7,
           "home": "MIN",
           "away": "IND",
+          "gameday": "2026-10-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -809,6 +909,7 @@
           "week": 7,
           "home": "NYJ",
           "away": "MIA",
+          "gameday": "2026-10-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -817,6 +918,7 @@
           "week": 7,
           "home": "TEN",
           "away": "CLE",
+          "gameday": "2026-10-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -825,6 +927,7 @@
           "week": 7,
           "home": "ARI",
           "away": "DEN",
+          "gameday": "2026-10-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -833,6 +936,7 @@
           "week": 7,
           "home": "DET",
           "away": "GB",
+          "gameday": "2026-10-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -841,6 +945,7 @@
           "week": 7,
           "home": "LV",
           "away": "LA",
+          "gameday": "2026-10-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -849,6 +954,7 @@
           "week": 7,
           "home": "SEA",
           "away": "KC",
+          "gameday": "2026-10-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -857,6 +963,7 @@
           "week": 7,
           "home": "PHI",
           "away": "DAL",
+          "gameday": "2026-10-26",
           "season_type": null,
           "game_type": "REG"
         },
@@ -865,6 +972,7 @@
           "week": 8,
           "home": "GB",
           "away": "CAR",
+          "gameday": "2026-10-29",
           "season_type": null,
           "game_type": "REG"
         },
@@ -873,6 +981,7 @@
           "week": 8,
           "home": "BUF",
           "away": "BAL",
+          "gameday": "2026-11-01",
           "season_type": null,
           "game_type": "REG"
         },
@@ -881,6 +990,7 @@
           "week": 8,
           "home": "CIN",
           "away": "TEN",
+          "gameday": "2026-11-01",
           "season_type": null,
           "game_type": "REG"
         },
@@ -889,6 +999,7 @@
           "week": 8,
           "home": "DAL",
           "away": "ARI",
+          "gameday": "2026-11-01",
           "season_type": null,
           "game_type": "REG"
         },
@@ -897,6 +1008,7 @@
           "week": 8,
           "home": "DET",
           "away": "MIN",
+          "gameday": "2026-11-01",
           "season_type": null,
           "game_type": "REG"
         },
@@ -905,6 +1017,7 @@
           "week": 8,
           "home": "JAX",
           "away": "IND",
+          "gameday": "2026-11-01",
           "season_type": null,
           "game_type": "REG"
         },
@@ -913,6 +1026,7 @@
           "week": 8,
           "home": "NYJ",
           "away": "LV",
+          "gameday": "2026-11-01",
           "season_type": null,
           "game_type": "REG"
         },
@@ -921,6 +1035,7 @@
           "week": 8,
           "home": "PIT",
           "away": "CLE",
+          "gameday": "2026-11-01",
           "season_type": null,
           "game_type": "REG"
         },
@@ -929,6 +1044,7 @@
           "week": 8,
           "home": "TB",
           "away": "ATL",
+          "gameday": "2026-11-01",
           "season_type": null,
           "game_type": "REG"
         },
@@ -937,6 +1053,7 @@
           "week": 8,
           "home": "LA",
           "away": "LAC",
+          "gameday": "2026-11-01",
           "season_type": null,
           "game_type": "REG"
         },
@@ -945,6 +1062,7 @@
           "week": 8,
           "home": "DEN",
           "away": "KC",
+          "gameday": "2026-11-01",
           "season_type": null,
           "game_type": "REG"
         },
@@ -953,6 +1071,7 @@
           "week": 8,
           "home": "MIA",
           "away": "NE",
+          "gameday": "2026-11-01",
           "season_type": null,
           "game_type": "REG"
         },
@@ -961,6 +1080,7 @@
           "week": 8,
           "home": "WAS",
           "away": "PHI",
+          "gameday": "2026-11-01",
           "season_type": null,
           "game_type": "REG"
         },
@@ -969,6 +1089,7 @@
           "week": 8,
           "home": "SEA",
           "away": "CHI",
+          "gameday": "2026-11-02",
           "season_type": null,
           "game_type": "REG"
         },
@@ -977,6 +1098,7 @@
           "week": 9,
           "home": "BAL",
           "away": "JAX",
+          "gameday": "2026-11-05",
           "season_type": null,
           "game_type": "REG"
         },
@@ -985,6 +1107,7 @@
           "week": 9,
           "home": "ATL",
           "away": "CIN",
+          "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -993,6 +1116,7 @@
           "week": 9,
           "home": "CAR",
           "away": "DEN",
+          "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1001,6 +1125,7 @@
           "week": 9,
           "home": "IND",
           "away": "DAL",
+          "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1009,6 +1134,7 @@
           "week": 9,
           "home": "KC",
           "away": "NYJ",
+          "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1017,6 +1143,7 @@
           "week": 9,
           "home": "MIA",
           "away": "DET",
+          "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1025,6 +1152,7 @@
           "week": 9,
           "home": "NO",
           "away": "CLE",
+          "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1033,6 +1161,7 @@
           "week": 9,
           "home": "PHI",
           "away": "NYG",
+          "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1041,6 +1170,7 @@
           "week": 9,
           "home": "WAS",
           "away": "LA",
+          "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1049,6 +1179,7 @@
           "week": 9,
           "home": "LAC",
           "away": "HOU",
+          "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1057,6 +1188,7 @@
           "week": 9,
           "home": "SF",
           "away": "LV",
+          "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1065,6 +1197,7 @@
           "week": 9,
           "home": "NE",
           "away": "GB",
+          "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1073,6 +1206,7 @@
           "week": 9,
           "home": "SEA",
           "away": "ARI",
+          "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1081,6 +1215,7 @@
           "week": 9,
           "home": "CHI",
           "away": "TB",
+          "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1089,6 +1224,7 @@
           "week": 9,
           "home": "MIN",
           "away": "BUF",
+          "gameday": "2026-11-09",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1097,6 +1233,7 @@
           "week": 10,
           "home": "NYG",
           "away": "WAS",
+          "gameday": "2026-11-12",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1105,6 +1242,7 @@
           "week": 10,
           "home": "DET",
           "away": "NE",
+          "gameday": "2026-11-15",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1113,6 +1251,7 @@
           "week": 10,
           "home": "ATL",
           "away": "KC",
+          "gameday": "2026-11-15",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1121,6 +1260,7 @@
           "week": 10,
           "home": "CLE",
           "away": "HOU",
+          "gameday": "2026-11-15",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1129,6 +1269,7 @@
           "week": 10,
           "home": "GB",
           "away": "MIN",
+          "gameday": "2026-11-15",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1137,6 +1278,7 @@
           "week": 10,
           "home": "IND",
           "away": "MIA",
+          "gameday": "2026-11-15",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1145,6 +1287,7 @@
           "week": 10,
           "home": "NO",
           "away": "CAR",
+          "gameday": "2026-11-15",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1153,6 +1296,7 @@
           "week": 10,
           "home": "NYJ",
           "away": "BUF",
+          "gameday": "2026-11-15",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1161,6 +1305,7 @@
           "week": 10,
           "home": "TEN",
           "away": "JAX",
+          "gameday": "2026-11-15",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1169,6 +1314,7 @@
           "week": 10,
           "home": "ARI",
           "away": "LA",
+          "gameday": "2026-11-15",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1177,6 +1323,7 @@
           "week": 10,
           "home": "LV",
           "away": "SEA",
+          "gameday": "2026-11-15",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1185,6 +1332,7 @@
           "week": 10,
           "home": "DAL",
           "away": "SF",
+          "gameday": "2026-11-15",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1193,6 +1341,7 @@
           "week": 10,
           "home": "CIN",
           "away": "PIT",
+          "gameday": "2026-11-15",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1201,6 +1350,7 @@
           "week": 10,
           "home": "BAL",
           "away": "LAC",
+          "gameday": "2026-11-16",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1209,6 +1359,7 @@
           "week": 11,
           "home": "HOU",
           "away": "IND",
+          "gameday": "2026-11-19",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1217,6 +1368,7 @@
           "week": 11,
           "home": "BUF",
           "away": "MIA",
+          "gameday": "2026-11-22",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1225,6 +1377,7 @@
           "week": 11,
           "home": "CAR",
           "away": "BAL",
+          "gameday": "2026-11-22",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1233,6 +1386,7 @@
           "week": 11,
           "home": "CHI",
           "away": "NO",
+          "gameday": "2026-11-22",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1241,6 +1395,7 @@
           "week": 11,
           "home": "DAL",
           "away": "TEN",
+          "gameday": "2026-11-22",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1249,6 +1404,7 @@
           "week": 11,
           "home": "DET",
           "away": "TB",
+          "gameday": "2026-11-22",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1257,6 +1413,7 @@
           "week": 11,
           "home": "KC",
           "away": "ARI",
+          "gameday": "2026-11-22",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1265,6 +1422,7 @@
           "week": 11,
           "home": "NYG",
           "away": "JAX",
+          "gameday": "2026-11-22",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1273,6 +1431,7 @@
           "week": 11,
           "home": "LAC",
           "away": "NYJ",
+          "gameday": "2026-11-22",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1281,6 +1440,7 @@
           "week": 11,
           "home": "DEN",
           "away": "LV",
+          "gameday": "2026-11-22",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1289,6 +1449,7 @@
           "week": 11,
           "home": "PHI",
           "away": "PIT",
+          "gameday": "2026-11-22",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1297,6 +1458,7 @@
           "week": 11,
           "home": "SF",
           "away": "MIN",
+          "gameday": "2026-11-22",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1305,6 +1467,7 @@
           "week": 11,
           "home": "WAS",
           "away": "CIN",
+          "gameday": "2026-11-23",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1313,6 +1476,7 @@
           "week": 12,
           "home": "LA",
           "away": "GB",
+          "gameday": "2026-11-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1321,6 +1485,7 @@
           "week": 12,
           "home": "DET",
           "away": "CHI",
+          "gameday": "2026-11-26",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1329,6 +1494,7 @@
           "week": 12,
           "home": "DAL",
           "away": "PHI",
+          "gameday": "2026-11-26",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1337,6 +1503,7 @@
           "week": 12,
           "home": "BUF",
           "away": "KC",
+          "gameday": "2026-11-26",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1345,6 +1512,7 @@
           "week": 12,
           "home": "PIT",
           "away": "DEN",
+          "gameday": "2026-11-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1353,6 +1521,7 @@
           "week": 12,
           "home": "CIN",
           "away": "NO",
+          "gameday": "2026-11-29",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1361,6 +1530,7 @@
           "week": 12,
           "home": "CLE",
           "away": "LV",
+          "gameday": "2026-11-29",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1369,6 +1539,7 @@
           "week": 12,
           "home": "HOU",
           "away": "BAL",
+          "gameday": "2026-11-29",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1377,6 +1548,7 @@
           "week": 12,
           "home": "IND",
           "away": "NYG",
+          "gameday": "2026-11-29",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1385,6 +1557,7 @@
           "week": 12,
           "home": "MIA",
           "away": "NYJ",
+          "gameday": "2026-11-29",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1393,6 +1566,7 @@
           "week": 12,
           "home": "MIN",
           "away": "ATL",
+          "gameday": "2026-11-29",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1401,6 +1575,7 @@
           "week": 12,
           "home": "JAX",
           "away": "TEN",
+          "gameday": "2026-11-29",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1409,6 +1584,7 @@
           "week": 12,
           "home": "ARI",
           "away": "WAS",
+          "gameday": "2026-11-29",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1417,6 +1593,7 @@
           "week": 12,
           "home": "SF",
           "away": "SEA",
+          "gameday": "2026-11-29",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1425,6 +1602,7 @@
           "week": 12,
           "home": "LAC",
           "away": "NE",
+          "gameday": "2026-11-29",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1433,6 +1611,7 @@
           "week": 12,
           "home": "TB",
           "away": "CAR",
+          "gameday": "2026-11-30",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1441,6 +1620,7 @@
           "week": 13,
           "home": "LA",
           "away": "KC",
+          "gameday": "2026-12-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1449,6 +1629,7 @@
           "week": 13,
           "home": "ATL",
           "away": "DET",
+          "gameday": "2026-12-06",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1457,6 +1638,7 @@
           "week": 13,
           "home": "CHI",
           "away": "JAX",
+          "gameday": "2026-12-06",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1465,6 +1647,7 @@
           "week": 13,
           "home": "CLE",
           "away": "CIN",
+          "gameday": "2026-12-06",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1473,6 +1656,7 @@
           "week": 13,
           "home": "NO",
           "away": "GB",
+          "gameday": "2026-12-06",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1481,6 +1665,7 @@
           "week": 13,
           "home": "NYG",
           "away": "SF",
+          "gameday": "2026-12-06",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1489,6 +1674,7 @@
           "week": 13,
           "home": "TB",
           "away": "LAC",
+          "gameday": "2026-12-06",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1497,6 +1683,7 @@
           "week": 13,
           "home": "TEN",
           "away": "WAS",
+          "gameday": "2026-12-06",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1505,6 +1692,7 @@
           "week": 13,
           "home": "ARI",
           "away": "PHI",
+          "gameday": "2026-12-06",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1513,6 +1701,7 @@
           "week": 13,
           "home": "DEN",
           "away": "MIA",
+          "gameday": "2026-12-06",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1521,6 +1710,7 @@
           "week": 13,
           "home": "MIN",
           "away": "CAR",
+          "gameday": "2026-12-06",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1529,6 +1719,7 @@
           "week": 13,
           "home": "NE",
           "away": "BUF",
+          "gameday": "2026-12-06",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1537,6 +1728,7 @@
           "week": 13,
           "home": "PIT",
           "away": "HOU",
+          "gameday": "2026-12-06",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1545,6 +1737,7 @@
           "week": 13,
           "home": "SEA",
           "away": "DAL",
+          "gameday": "2026-12-07",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1553,6 +1746,7 @@
           "week": 14,
           "home": "NE",
           "away": "MIN",
+          "gameday": "2026-12-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1561,6 +1755,7 @@
           "week": 14,
           "home": "BAL",
           "away": "TB",
+          "gameday": "2026-12-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1569,6 +1764,7 @@
           "week": 14,
           "home": "CAR",
           "away": "NO",
+          "gameday": "2026-12-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1577,6 +1773,7 @@
           "week": 14,
           "home": "CLE",
           "away": "ATL",
+          "gameday": "2026-12-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1585,6 +1782,7 @@
           "week": 14,
           "home": "DET",
           "away": "TEN",
+          "gameday": "2026-12-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1593,6 +1791,7 @@
           "week": 14,
           "home": "MIA",
           "away": "CHI",
+          "gameday": "2026-12-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1601,6 +1800,7 @@
           "week": 14,
           "home": "NYJ",
           "away": "DEN",
+          "gameday": "2026-12-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1609,6 +1809,7 @@
           "week": 14,
           "home": "PHI",
           "away": "IND",
+          "gameday": "2026-12-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1617,6 +1818,7 @@
           "week": 14,
           "home": "WAS",
           "away": "HOU",
+          "gameday": "2026-12-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1625,6 +1827,7 @@
           "week": 14,
           "home": "LV",
           "away": "LAC",
+          "gameday": "2026-12-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1633,6 +1836,7 @@
           "week": 14,
           "home": "CIN",
           "away": "KC",
+          "gameday": "2026-12-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1641,6 +1845,7 @@
           "week": 14,
           "home": "SEA",
           "away": "NYG",
+          "gameday": "2026-12-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1649,6 +1854,7 @@
           "week": 14,
           "home": "SF",
           "away": "LA",
+          "gameday": "2026-12-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1657,6 +1863,7 @@
           "week": 14,
           "home": "GB",
           "away": "BUF",
+          "gameday": "2026-12-13",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1665,6 +1872,7 @@
           "week": 14,
           "home": "JAX",
           "away": "PIT",
+          "gameday": "2026-12-14",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1673,6 +1881,7 @@
           "week": 15,
           "home": "LAC",
           "away": "SF",
+          "gameday": "2026-12-17",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1681,6 +1890,7 @@
           "week": 15,
           "home": "PHI",
           "away": "SEA",
+          "gameday": "2026-12-19",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1689,6 +1899,7 @@
           "week": 15,
           "home": "BUF",
           "away": "CHI",
+          "gameday": "2026-12-19",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1697,6 +1908,7 @@
           "week": 15,
           "home": "CAR",
           "away": "CIN",
+          "gameday": "2026-12-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1705,6 +1917,7 @@
           "week": 15,
           "home": "GB",
           "away": "MIA",
+          "gameday": "2026-12-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1713,6 +1926,7 @@
           "week": 15,
           "home": "HOU",
           "away": "JAX",
+          "gameday": "2026-12-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1721,6 +1935,7 @@
           "week": 15,
           "home": "NYG",
           "away": "CLE",
+          "gameday": "2026-12-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1729,6 +1944,7 @@
           "week": 15,
           "home": "PIT",
           "away": "BAL",
+          "gameday": "2026-12-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1737,6 +1953,7 @@
           "week": 15,
           "home": "TB",
           "away": "NO",
+          "gameday": "2026-12-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1745,6 +1962,7 @@
           "week": 15,
           "home": "TEN",
           "away": "IND",
+          "gameday": "2026-12-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1753,6 +1971,7 @@
           "week": 15,
           "home": "WAS",
           "away": "ATL",
+          "gameday": "2026-12-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1761,6 +1980,7 @@
           "week": 15,
           "home": "ARI",
           "away": "NYJ",
+          "gameday": "2026-12-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1769,6 +1989,7 @@
           "week": 15,
           "home": "LA",
           "away": "DAL",
+          "gameday": "2026-12-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1777,6 +1998,7 @@
           "week": 15,
           "home": "LV",
           "away": "DEN",
+          "gameday": "2026-12-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1785,6 +2007,7 @@
           "week": 15,
           "home": "MIN",
           "away": "DET",
+          "gameday": "2026-12-20",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1793,6 +2016,7 @@
           "week": 15,
           "home": "KC",
           "away": "NE",
+          "gameday": "2026-12-21",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1801,6 +2025,7 @@
           "week": 16,
           "home": "PHI",
           "away": "HOU",
+          "gameday": "2026-12-24",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1809,6 +2034,7 @@
           "week": 16,
           "home": "CHI",
           "away": "GB",
+          "gameday": "2026-12-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1817,6 +2043,7 @@
           "week": 16,
           "home": "DEN",
           "away": "BUF",
+          "gameday": "2026-12-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1825,6 +2052,7 @@
           "week": 16,
           "home": "SEA",
           "away": "LA",
+          "gameday": "2026-12-25",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1833,6 +2061,7 @@
           "week": 16,
           "home": "ATL",
           "away": "TB",
+          "gameday": "2026-12-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1841,6 +2070,7 @@
           "week": 16,
           "home": "BAL",
           "away": "CLE",
+          "gameday": "2026-12-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1849,6 +2079,7 @@
           "week": 16,
           "home": "IND",
           "away": "CIN",
+          "gameday": "2026-12-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1857,6 +2088,7 @@
           "week": 16,
           "home": "MIA",
           "away": "LAC",
+          "gameday": "2026-12-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1865,6 +2097,7 @@
           "week": 16,
           "home": "MIN",
           "away": "WAS",
+          "gameday": "2026-12-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1873,6 +2106,7 @@
           "week": 16,
           "home": "NO",
           "away": "ARI",
+          "gameday": "2026-12-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1881,6 +2115,7 @@
           "week": 16,
           "home": "NYJ",
           "away": "NE",
+          "gameday": "2026-12-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1889,6 +2124,7 @@
           "week": 16,
           "home": "PIT",
           "away": "CAR",
+          "gameday": "2026-12-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1897,6 +2133,7 @@
           "week": 16,
           "home": "LV",
           "away": "TEN",
+          "gameday": "2026-12-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1905,6 +2142,7 @@
           "week": 16,
           "home": "KC",
           "away": "SF",
+          "gameday": "2026-12-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1913,6 +2151,7 @@
           "week": 16,
           "home": "DAL",
           "away": "JAX",
+          "gameday": "2026-12-27",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1921,6 +2160,7 @@
           "week": 16,
           "home": "DET",
           "away": "NYG",
+          "gameday": "2026-12-28",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1929,6 +2169,7 @@
           "week": 17,
           "home": "CIN",
           "away": "BAL",
+          "gameday": "2026-12-31",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1937,6 +2178,7 @@
           "week": 17,
           "home": "ATL",
           "away": "NO",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1945,6 +2187,7 @@
           "week": 17,
           "home": "CAR",
           "away": "SEA",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1953,6 +2196,7 @@
           "week": 17,
           "home": "CLE",
           "away": "IND",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1961,6 +2205,7 @@
           "week": 17,
           "home": "DAL",
           "away": "NYG",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1969,6 +2214,7 @@
           "week": 17,
           "home": "JAX",
           "away": "WAS",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1977,6 +2223,7 @@
           "week": 17,
           "home": "LAC",
           "away": "KC",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1985,6 +2232,7 @@
           "week": 17,
           "home": "MIA",
           "away": "BUF",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -1993,6 +2241,7 @@
           "week": 17,
           "home": "NE",
           "away": "DEN",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2001,6 +2250,7 @@
           "week": 17,
           "home": "NYJ",
           "away": "MIN",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2009,6 +2259,7 @@
           "week": 17,
           "home": "TB",
           "away": "LA",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2017,6 +2268,7 @@
           "week": 17,
           "home": "TEN",
           "away": "PIT",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2025,6 +2277,7 @@
           "week": 17,
           "home": "ARI",
           "away": "LV",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2033,6 +2286,7 @@
           "week": 17,
           "home": "CHI",
           "away": "DET",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2041,6 +2295,7 @@
           "week": 17,
           "home": "SF",
           "away": "PHI",
+          "gameday": "2027-01-03",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2049,6 +2304,7 @@
           "week": 17,
           "home": "GB",
           "away": "HOU",
+          "gameday": "2027-01-04",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2057,6 +2313,7 @@
           "week": 18,
           "home": "ARI",
           "away": "SF",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2065,6 +2322,7 @@
           "week": 18,
           "home": "BAL",
           "away": "PIT",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2073,6 +2331,7 @@
           "week": 18,
           "home": "BUF",
           "away": "NYJ",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2081,6 +2340,7 @@
           "week": 18,
           "home": "CAR",
           "away": "ATL",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2089,6 +2349,7 @@
           "week": 18,
           "home": "CIN",
           "away": "CLE",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2097,6 +2358,7 @@
           "week": 18,
           "home": "DEN",
           "away": "LAC",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2105,6 +2367,7 @@
           "week": 18,
           "home": "GB",
           "away": "DET",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2113,6 +2376,7 @@
           "week": 18,
           "home": "HOU",
           "away": "TEN",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2121,6 +2385,7 @@
           "week": 18,
           "home": "IND",
           "away": "JAX",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2129,6 +2394,7 @@
           "week": 18,
           "home": "KC",
           "away": "LV",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2137,6 +2403,7 @@
           "week": 18,
           "home": "LA",
           "away": "SEA",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2145,6 +2412,7 @@
           "week": 18,
           "home": "MIN",
           "away": "CHI",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2153,6 +2421,7 @@
           "week": 18,
           "home": "NE",
           "away": "MIA",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2161,6 +2430,7 @@
           "week": 18,
           "home": "NO",
           "away": "TB",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2169,6 +2439,7 @@
           "week": 18,
           "home": "NYG",
           "away": "PHI",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         },
@@ -2177,6 +2448,7 @@
           "week": 18,
           "home": "WAS",
           "away": "DAL",
+          "gameday": "2027-01-10",
           "season_type": null,
           "game_type": "REG"
         }
