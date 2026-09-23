@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T03:13:48Z",
+  "generated_at": "2026-09-23T08:15:33Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -6058,6 +6058,15 @@
       "total": 45.5,
       "source": "nflverse",
       "updated_at": "2026-09-23T03:13:48Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_LV_NO",
+      "spread": 3.0,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-23T08:15:33Z"
     }
   ]
 }

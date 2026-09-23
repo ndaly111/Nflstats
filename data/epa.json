@@ -397981,7 +397981,7 @@
               "off_rush_plays": 22,
               "def_pass": 0.1570425613442205,
               "def_pass_plays": 58,
-              "def_rush": 0.538290933463281,
+              "def_rush": 0.5382909334632809,
               "def_rush_plays": 18
             }
           }
@@ -398175,7 +398175,7 @@
               "def_plays": 82,
               "off_pass": -0.1570425613442205,
               "off_pass_plays": 58,
-              "off_rush": -0.538290933463281,
+              "off_rush": -0.5382909334632809,
               "off_rush_plays": 18,
               "def_pass": 0.015214599767865981,
               "def_pass_plays": 36,
@@ -398295,7 +398295,7 @@
               "off_pass_plays": 28,
               "off_rush": -0.1354256611250873,
               "off_rush_plays": 28,
-              "def_pass": -0.14193022164355665,
+              "def_pass": -0.1419302216435567,
               "def_pass_plays": 34,
               "def_rush": -0.2205165465323565,
               "def_rush_plays": 30
@@ -398687,7 +398687,7 @@
               "off_plays": 76,
               "def": 0.1930101404599383,
               "def_plays": 73,
-              "off_pass": 0.14193022164355665,
+              "off_pass": 0.1419302216435567,
               "off_pass_plays": 34,
               "off_rush": 0.2205165465323565,
               "off_rush_plays": 30,
@@ -399712,6 +399712,6 @@
       ]
     }
   },
-  "generated_at": "2026-09-22T08:13:22Z",
-  "git_sha": "b0d9c72a29e99d76e6d16e916a73260ff7b4e1f6"
+  "generated_at": "2026-09-23T08:15:30Z",
+  "git_sha": "5ef92c543953823da3699880b321c7f60d98eb9c"
 }
