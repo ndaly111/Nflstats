@@ -397752,7 +397752,8 @@
     "2026": {
       "weeks": [
         1,
-        2
+        2,
+        3
       ],
       "teams": [
         {
@@ -397818,6 +397819,20 @@
               "def_pass_plays": 38,
               "def_rush": 0.12791345240215637,
               "def_rush_plays": 21
+            },
+            "3": {
+              "off": 0.3075907635396249,
+              "off_plays": 82,
+              "def": -0.0021477148697112308,
+              "def_plays": 84,
+              "off_pass": 0.3658105777327553,
+              "off_pass_plays": 26,
+              "off_rush": 0.3089661904318163,
+              "off_rush_plays": 39,
+              "def_pass": -0.06613349090130499,
+              "def_pass_plays": 54,
+              "def_rush": 0.30132993651528117,
+              "def_rush_plays": 9
             }
           }
         },
@@ -397981,7 +397996,7 @@
               "off_rush_plays": 22,
               "def_pass": 0.1570425613442205,
               "def_pass_plays": 58,
-              "def_rush": 0.5382909334632809,
+              "def_rush": 0.538290933463281,
               "def_rush_plays": 18
             }
           }
@@ -398148,6 +398163,20 @@
               "def_pass_plays": 44,
               "def_rush": 0.4385823352624559,
               "def_rush_plays": 27
+            },
+            "3": {
+              "off": 0.0021477148697112308,
+              "off_plays": 84,
+              "def": -0.3075907635396249,
+              "def_plays": 82,
+              "off_pass": 0.06613349090130499,
+              "off_pass_plays": 54,
+              "off_rush": -0.30132993651528117,
+              "off_rush_plays": 9,
+              "def_pass": -0.3658105777327553,
+              "def_pass_plays": 26,
+              "def_rush": -0.3089661904318163,
+              "def_rush_plays": 39
             }
           }
         },
@@ -398175,7 +398204,7 @@
               "def_plays": 82,
               "off_pass": -0.1570425613442205,
               "off_pass_plays": 58,
-              "off_rush": -0.5382909334632809,
+              "off_rush": -0.538290933463281,
               "off_rush_plays": 18,
               "def_pass": 0.015214599767865981,
               "def_pass_plays": 36,
@@ -398295,7 +398324,7 @@
               "off_pass_plays": 28,
               "off_rush": -0.1354256611250873,
               "off_rush_plays": 28,
-              "def_pass": -0.1419302216435567,
+              "def_pass": -0.14193022164355665,
               "def_pass_plays": 34,
               "def_rush": -0.2205165465323565,
               "def_rush_plays": 30
@@ -398687,7 +398716,7 @@
               "off_plays": 76,
               "def": 0.1930101404599383,
               "def_plays": 73,
-              "off_pass": 0.1419302216435567,
+              "off_pass": 0.14193022164355665,
               "off_pass_plays": 34,
               "off_rush": 0.2205165465323565,
               "off_rush_plays": 30,
@@ -399708,10 +399737,38 @@
           "points_against": 37,
           "net_epa_pp": -0.256814501877448,
           "plays": 155
+        },
+        {
+          "game_id": "2026_03_ATL_GB",
+          "week": 3,
+          "team": "ATL",
+          "opp": "GB",
+          "off_epa_pp": 0.3075907635396249,
+          "def_epa_pp": -0.0021477148697112308,
+          "off_plays": 82,
+          "def_plays": 84,
+          "points_for": 35,
+          "points_against": 14,
+          "net_epa_pp": 0.3054430486699137,
+          "plays": 166
+        },
+        {
+          "game_id": "2026_03_ATL_GB",
+          "week": 3,
+          "team": "GB",
+          "opp": "ATL",
+          "off_epa_pp": 0.0021477148697112308,
+          "def_epa_pp": -0.3075907635396249,
+          "off_plays": 84,
+          "def_plays": 82,
+          "points_for": 14,
+          "points_against": 35,
+          "net_epa_pp": -0.3054430486699137,
+          "plays": 166
         }
       ]
     }
   },
-  "generated_at": "2026-09-24T08:06:47Z",
-  "git_sha": "ad188d814fa6ea0ea6f180a1a85fdb1f42c89068"
+  "generated_at": "2026-09-25T08:30:38Z",
+  "git_sha": "cc074319a74025e5706fde647fb837e5a2326eb5"
 }

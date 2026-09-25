@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-25T03:21:08Z",
+  "generated_at": "2026-09-25T08:30:40Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -6256,6 +6256,15 @@
       "total": 45.5,
       "source": "nflverse",
       "updated_at": "2026-09-25T03:21:08Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_NE_JAX",
+      "spread": 3.0,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-25T08:30:40Z"
     }
   ]
 }
