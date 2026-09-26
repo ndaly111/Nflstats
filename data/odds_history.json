@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-26T03:25:57Z",
+  "generated_at": "2026-09-26T08:17:20Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -6364,6 +6364,15 @@
       "total": 45.5,
       "source": "nflverse",
       "updated_at": "2026-09-26T03:25:57Z"
+    },
+    {
+      "season": 2026,
+      "week": 3,
+      "game_id": "2026_03_TEN_NYG",
+      "spread": 2.5,
+      "total": 37.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-26T08:17:20Z"
     }
   ]
 }
