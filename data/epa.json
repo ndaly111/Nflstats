@@ -398021,6 +398021,20 @@
               "def_pass_plays": 23,
               "def_rush": 0.16020020804509322,
               "def_rush_plays": 28
+            },
+            "3": {
+              "off": 0.11094477137035573,
+              "off_plays": 85,
+              "def": 0.2233002508166836,
+              "def_plays": 64,
+              "off_pass": 0.21331955570103975,
+              "off_pass_plays": 34,
+              "off_rush": -0.031122136077046336,
+              "off_rush_plays": 33,
+              "def_pass": 0.7183357208331083,
+              "def_pass_plays": 28,
+              "def_rush": -0.30705264110828895,
+              "def_rush_plays": 19
             }
           }
         },
@@ -398947,6 +398961,20 @@
               "def_pass_plays": 22,
               "def_rush": -0.13530821932716397,
               "def_rush_plays": 29
+            },
+            "3": {
+              "off": -0.2233002508166836,
+              "off_plays": 64,
+              "def": -0.11094477137035573,
+              "def_plays": 85,
+              "off_pass": -0.7183357208331083,
+              "off_pass_plays": 28,
+              "off_rush": 0.30705264110828895,
+              "off_rush_plays": 19,
+              "def_pass": -0.21331955570103975,
+              "def_pass_plays": 34,
+              "def_rush": 0.031122136077046336,
+              "def_rush_plays": 33
             }
           }
         },
@@ -400495,6 +400523,34 @@
           "plays": 158
         },
         {
+          "game_id": "2026_03_PHI_CHI",
+          "week": 3,
+          "team": "CHI",
+          "opp": "PHI",
+          "off_epa_pp": 0.11094477137035573,
+          "def_epa_pp": 0.2233002508166836,
+          "off_plays": 85,
+          "def_plays": 64,
+          "points_for": 27,
+          "points_against": 7,
+          "net_epa_pp": 0.33424502218703933,
+          "plays": 149
+        },
+        {
+          "game_id": "2026_03_PHI_CHI",
+          "week": 3,
+          "team": "PHI",
+          "opp": "CHI",
+          "off_epa_pp": -0.2233002508166836,
+          "def_epa_pp": -0.11094477137035573,
+          "off_plays": 64,
+          "def_plays": 85,
+          "points_for": 7,
+          "points_against": 27,
+          "net_epa_pp": -0.33424502218703933,
+          "plays": 149
+        },
+        {
           "game_id": "2026_03_SEA_WAS",
           "week": 3,
           "team": "SEA",
@@ -400553,6 +400609,6 @@
       ]
     }
   },
-  "generated_at": "2026-09-28T09:19:50Z",
-  "git_sha": "d29cd9efb7a033dfd8f6ea7c45c3bb5da29d0f33"
+  "generated_at": "2026-09-29T09:26:44Z",
+  "git_sha": "4c5e7d4bcae9275dd076c3f4f31e938de4301aed"
 }
