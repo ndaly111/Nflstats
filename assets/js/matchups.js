@@ -17,6 +17,9 @@
     const urlParams = new URLSearchParams(window.location.search);
 
     const PLAYS_PER_TEAM_GAME = 65;
+    // Typical split of those 65 plays; used to turn pass/rush EPA/play edges into points.
+    const PASS_PLAYS_PER_TEAM_GAME = 38;
+    const RUSH_PLAYS_PER_TEAM_GAME = 27;
     const HFA_POINTS = 3;
     const MOMENTUM_WINDOW = 3;
 
@@ -740,6 +743,22 @@
           }
         });
       });
+
+      // Pass/rush momentum from the team-week splits (same last-N window).
+      Object.entries(teamWeekSplits(season, seasonKey)).forEach(([team, rows]) => {
+        momentum[team] ??= {};
+        const history = {};
+        rows.forEach(({ week, values }) => {
+          const entry = (momentum[team][week] ??= {});
+          SPLIT_KEYS.forEach(([key, epaKey, playsKey]) => {
+            const slice = (history[key] || []).slice(-MOMENTUM_WINDOW);
+            entry[key] = weightedMeanEPA(slice);
+            if (Number.isFinite(values[epaKey]) && Number.isFinite(values[playsKey]) && values[playsKey] > 0) {
+              (history[key] ??= []).push({ epa: values[epaKey], plays: values[playsKey] });
+            }
+          });
+        });
+      });
       MOMENTUM_CACHE[seasonKey] = momentum;
       return momentum;
     }
@@ -757,6 +776,9 @@
           defEPA,
           momentumGames: Number.isFinite(momentum.offN) ? momentum.offN : 0,
         };
+        SPLIT_KEYS.forEach(([key]) => {
+          ratings[team][`${key}EPA`] = Number.isFinite(momentum[key]) ? momentum[key] : entry[`${key}EPA`];
+        });
       });
       return ratings;
     }
@@ -791,6 +813,26 @@
         if (includeGame(g, week)) addGame(g);
       });
 
+      // Pass/rush splits live on season.teams[].weeks, not on season.games.
+      const limitWeek = normalizeWeekValue(week, seasonKey);
+      Object.entries(teamWeekSplits(season, seasonKey)).forEach(([team, rows]) => {
+        const sums = {};
+        rows.forEach(({ week: rowWeek, values }) => {
+          if (!Number.isFinite(limitWeek) || rowWeek >= limitWeek) return;
+          SPLIT_KEYS.forEach(([key, epaKey, playsKey]) => {
+            const epa = values[epaKey];
+            const plays = values[playsKey];
+            if (!Number.isFinite(epa) || !Number.isFinite(plays) || plays <= 0) return;
+            sums[key] ??= { sum: 0, plays: 0 };
+            sums[key].sum += epa * plays;
+            sums[key].plays += plays;
+          });
+        });
+        if (!Object.keys(sums).length) return;
+        aggregates[team] ??= { offSum: 0, offPlays: 0, defSum: 0, defPlays: 0 };
+        aggregates[team].splits = sums;
+      });
+
       const ratings = {};
       Object.entries(aggregates).forEach(([team, entry]) => {
         const offEPA = entry.offPlays > 0 ? entry.offSum / entry.offPlays : null;
@@ -801,8 +843,77 @@
           offPlays: entry.offPlays,
           defPlays: entry.defPlays,
         };
+        SPLIT_KEYS.forEach(([key]) => {
+          const split = entry.splits?.[key];
+          ratings[team][`${key}EPA`] = split && split.plays > 0 ? split.sum / split.plays : null;
+          ratings[team][`${key}Plays`] = split?.plays ?? 0;
+        });
       });
       return ratings;
+    }
+
+    const SPLIT_KEYS = [
+      ['offPass', 'off_pass', 'off_pass_plays'],
+      ['offRush', 'off_rush', 'off_rush_plays'],
+      ['defPass', 'def_pass', 'def_pass_plays'],
+      ['defRush', 'def_rush', 'def_rush_plays'],
+    ];
+
+    function teamWeekSplits(season, seasonKey) {
+      const byTeam = {};
+      (season.teams || []).forEach((entry) => {
+        const team = normalizeTeam(entry.team);
+        if (!team) return;
+        const rows = [];
+        Object.entries(entry.weeks || {}).forEach(([weekKey, values]) => {
+          const rowWeek = normalizeWeekValue(Number(weekKey), seasonKey);
+          if (!Number.isFinite(rowWeek) || !values) return;
+          rows.push({ week: rowWeek, values });
+        });
+        rows.sort((a, b) => a.week - b.week);
+        byTeam[team] = rows;
+      });
+      return byTeam;
+    }
+
+    // League rank (1 = best) for each rating column; higher EPA is better for every column
+    // because def_epa_pp is already defense STRENGTH in this repo.
+    const RANK_METRICS = {
+      off: { raw: 'offEPA', sos: 'adjOffEPA' },
+      def: { raw: 'defEPA', sos: 'adjDefEPA' },
+      offPass: { raw: 'offPassEPA' },
+      offRush: { raw: 'offRushEPA' },
+      defPass: { raw: 'defPassEPA' },
+      defRush: { raw: 'defRushEPA' },
+    };
+
+    // Same percentile bands as the front-page historical tiers, applied to league rank.
+    function rankToGrade(rank, total) {
+      if (!Number.isFinite(rank) || !Number.isFinite(total) || total <= 0 || rank < 1) return null;
+      const percentile = 100 * (total - rank + 0.5) / total;
+      return percentile >= 95 ? 'S' : percentile >= 80 ? 'A' :
+        percentile >= 60 ? 'B' : percentile >= 40 ? 'C' : percentile >= 20 ? 'D' : 'F';
+    }
+
+    function computeLeagueRanks(ratings, ratingMode = 'raw') {
+      const ranks = {};
+      Object.keys(ratings).forEach((team) => { ranks[team] = {}; });
+      Object.entries(RANK_METRICS).forEach(([metric, fields]) => {
+        const field = ratingMode === 'sos' && fields.sos ? fields.sos : fields.raw;
+        const ordered = Object.entries(ratings)
+          .map(([team, entry]) => ({ team, value: entry?.[field] }))
+          .filter((item) => Number.isFinite(item.value))
+          .sort((a, b) => b.value - a.value);
+        const total = ordered.length;
+        ordered.forEach((item, idx) => {
+          const rank = idx + 1;
+          ranks[item.team][metric] = { rank, total, grade: rankToGrade(rank, total), value: item.value };
+        });
+        Object.keys(ranks).forEach((team) => {
+          ranks[team][metric] ??= { rank: null, total, grade: null, value: null };
+        });
+      });
+      return ranks;
     }
 
     function computeSOSAdjustedRatings(season, week, baseRatings, seasonKey = null) {
@@ -906,8 +1017,8 @@
       return lum > 0.55 ? '#0f172a' : hex;
     }
 
-    function epaToPoints(epa) {
-      return Number.isFinite(epa) ? epa * PLAYS_PER_TEAM_GAME : null;
+    function epaToPoints(epa, playsPerGame = PLAYS_PER_TEAM_GAME) {
+      return Number.isFinite(epa) ? epa * playsPerGame : null;
     }
 
     function formatSigned(val, digits = 2) {
@@ -959,166 +1070,37 @@
       return `${label}: ${formatNumber(value)}`;
     }
 
-    function toPct(v, scale) {
-      if (v === null || v === undefined || v === '') return null;
-      const num = Number(v);
-      if (!Number.isFinite(num) || !scale || !Number.isFinite(scale.min) || !Number.isFinite(scale.max) || scale.max === scale.min) return null;
-      const pct = ((num - scale.min) / (scale.max - scale.min)) * 100;
-      return Math.min(100, Math.max(0, pct));
-    }
+    const LANE_ROWS = [
+      { key: 'overall', label: 'Overall', offMetric: 'off', defMetric: 'def', playsPerGame: PLAYS_PER_TEAM_GAME },
+      { key: 'pass', label: 'Passing', offMetric: 'offPass', defMetric: 'defPass', playsPerGame: PASS_PLAYS_PER_TEAM_GAME },
+      { key: 'rush', label: 'Rushing', offMetric: 'offRush', defMetric: 'defRush', playsPerGame: RUSH_PLAYS_PER_TEAM_GAME },
+    ];
 
-    function buildDumbbell(offVal, oppDefVal, scale, offTeam, defTeam) {
-      const missing = [offVal, oppDefVal].some((v) => v === null || v === undefined || v === '');
-      const wrap = document.createElement('div');
-      wrap.className = 'db-wrap';
-      wrap.style.setProperty('--offColor', teamColor(offTeam));
-      wrap.style.setProperty('--defColor', teamColor(defTeam));
-
-      const labels = document.createElement('div');
-      labels.className = 'db-labels';
-      const leftLabel = document.createElement('div');
-      leftLabel.className = 'db-label';
-      const rightLabel = document.createElement('div');
-      rightLabel.className = 'db-label';
-      labels.appendChild(leftLabel);
-      labels.appendChild(rightLabel);
-
-      const setLabel = (el, text, keyClass) => {
-        el.innerHTML = '';
-        const key = document.createElement('span');
-        key.className = `db-key ${keyClass}`;
-        const textNode = document.createElement('span');
-        textNode.textContent = text;
-        el.appendChild(key);
-        el.appendChild(textNode);
-      };
-
-      const viz = document.createElement('div');
-      viz.className = 'db-viz';
-      viz.style.setProperty('--offColor', teamColor(offTeam));
-      viz.style.setProperty('--defColor', teamColor(defTeam));
-
-      if (missing) {
-        setLabel(leftLabel, `${offTeam} OFF`, 'off');
-        setLabel(rightLabel, `${defTeam} DEF`, 'def');
-        const placeholder = document.createElement('div');
-        placeholder.className = 'db-placeholder';
-        placeholder.textContent = 'no EPA';
-        viz.appendChild(placeholder);
-        wrap.appendChild(labels);
-        wrap.appendChild(viz);
-        return wrap;
-      }
-
-      const off = Number(offVal);
-      const def = Number(oppDefVal);
-      if (!Number.isFinite(off) || !Number.isFinite(def)) {
-        setLabel(leftLabel, `${offTeam} OFF`, 'off');
-        setLabel(rightLabel, `${defTeam} DEF`, 'def');
-        const placeholder = document.createElement('div');
-        placeholder.className = 'db-placeholder';
-        placeholder.textContent = 'no EPA';
-        viz.appendChild(placeholder);
-        wrap.appendChild(labels);
-        wrap.appendChild(viz);
-        return wrap;
-      }
-
-      const inner = document.createElement('div');
-      inner.className = 'db-inner';
-      viz.appendChild(inner);
-
-      const track = document.createElement('div');
-      track.className = 'db-track';
-      inner.appendChild(track);
-
-      const zeroPct = toPct(0, scale);
-      if (zeroPct !== null && scale && Number.isFinite(scale.min) && Number.isFinite(scale.max) && scale.min <= 0 && scale.max >= 0 && zeroPct >= 0 && zeroPct <= 100) {
-        const zero = document.createElement('div');
-        zero.className = 'db-zero';
-        zero.style.left = `${zeroPct}%`;
-        inner.appendChild(zero);
-      }
-
-      const offPct = toPct(off, scale);
-      const defPct = toPct(def, scale);
-      if (offPct === null || defPct === null) {
-        setLabel(leftLabel, `${offTeam} OFF`, 'off');
-        setLabel(rightLabel, `${defTeam} DEF`, 'def');
-        const placeholder = document.createElement('div');
-        placeholder.className = 'db-placeholder';
-        placeholder.textContent = 'no EPA';
-        viz.appendChild(placeholder);
-        wrap.appendChild(labels);
-        wrap.appendChild(viz);
-        return wrap;
-      }
-
-      if (offPct <= defPct) {
-        setLabel(leftLabel, `${offTeam} OFF`, 'off');
-        setLabel(rightLabel, `${defTeam} DEF`, 'def');
-      } else {
-        setLabel(leftLabel, `${defTeam} DEF`, 'def');
-        setLabel(rightLabel, `${offTeam} OFF`, 'off');
-      }
-
-      const left = Math.min(offPct, defPct);
-      const right = Math.max(offPct, defPct);
-      const range = document.createElement('div');
-      range.className = 'db-range';
-      range.style.left = `${left}%`;
-      range.style.width = `${Math.max(2, right - left)}%`;
-      inner.appendChild(range);
-
-      const offDot = document.createElement('div');
-      offDot.className = 'db-dot off';
-      offDot.style.left = `${offPct}%`;
-      offDot.title = `${offTeam} Off EPA/play: ${formatNumber(offVal)}`;
-      inner.appendChild(offDot);
-
-      const defDot = document.createElement('div');
-      defDot.className = 'db-dot def';
-      defDot.style.left = `${defPct}%`;
-      defDot.title = `${defTeam} Def EPA/play: ${formatNumber(oppDefVal)}`;
-      inner.appendChild(defDot);
-
-      wrap.appendChild(labels);
-      wrap.appendChild(viz);
-      return wrap;
-    }
-
-    function computeScaleFromValues(values) {
-      if (!Array.isArray(values) || values.length === 0) {
-        return { min: -0.15, max: 0.15 };
-      }
-      const min = Math.min(...values);
-      const max = Math.max(...values);
-      const span = max - min || 0.05;
-      const pad = Math.max(0.01, span * 0.1);
-      return { min: min - pad, max: max + pad };
-    }
-
-    function computeScaleFromGames(games, ratings, mode, noRatings) {
-      const values = [];
-      games.forEach((game) => {
-        const [teamA, teamB] = game.teams;
-        if (!teamA || !teamB) return;
-
-        const pairs = [
-          { off: teamA.team, def: teamB.team },
-          { off: teamB.team, def: teamA.team },
-        ];
-
-        pairs.forEach(({ off, def }) => {
-          const offenseEntry = ratings[off] || {};
-          const defenseEntry = ratings[def] || {};
-          const offEPA = mode === 'sos' ? offenseEntry.adjOffEPA : offenseEntry.offEPA;
-          const defEPA = mode === 'sos' ? defenseEntry.adjDefEPA : defenseEntry.defEPA;
-          if (!noRatings && Number.isFinite(offEPA)) values.push(offEPA);
-          if (!noRatings && Number.isFinite(defEPA)) values.push(defEPA);
-        });
+    // One graded row per unit: this offense's grade vs the opposing defense's grade, plus the edge.
+    function buildLaneRows(lane, ranks) {
+      return LANE_ROWS.map((spec) => {
+        const offRank = ranks[lane.off]?.[spec.offMetric] || {};
+        const defRank = ranks[lane.def]?.[spec.defMetric] || {};
+        const offEPA = spec.key === 'overall' ? lane.offEPA : offRank.value;
+        const defEPA = spec.key === 'overall' ? lane.defEPA : defRank.value;
+        const edge = spec.key === 'overall'
+          ? lane.edge
+          : (Number.isFinite(offEPA) && Number.isFinite(defEPA) ? offEPA - defEPA : null);
+        return {
+          key: spec.key,
+          label: spec.label,
+          playsPerGame: spec.playsPerGame,
+          offEPA,
+          defEPA,
+          edge,
+          desc: describeAdvantage(edge),
+          offGrade: offRank.grade ?? null,
+          offRank: offRank.rank ?? null,
+          defGrade: defRank.grade ?? null,
+          defRank: defRank.rank ?? null,
+          total: offRank.total ?? defRank.total ?? null,
+        };
       });
-      return computeScaleFromValues(values);
     }
 
     function rankToPercentile(idx, total) {
@@ -1131,6 +1113,7 @@
       const lanes = [];
       const lanesByGame = {};
       const gameEntries = [];
+      const ranks = noRatings ? {} : computeLeagueRanks(ratings, mode);
 
       games.forEach((game) => {
         const [teamA, teamB] = game.teams;
@@ -1171,6 +1154,9 @@
           week,
           seasonKey,
         };
+
+        laneA.rows = buildLaneRows(laneA, ranks);
+        laneB.rows = buildLaneRows(laneB, ranks);
 
         lanes.push(laneA, laneB);
         if (!lanesByGame[game.game_id]) lanesByGame[game.game_id] = [];
@@ -1237,7 +1223,7 @@
       return total;
     }
 
-    function buildEdgeBadge(lane, totalEdges, { showRankMeta = true } = {}) {
+    function buildEdgeBadge(lane, totalEdges, { showRankMeta = true, playsPerGame = PLAYS_PER_TEAM_GAME } = {}) {
       const badge = document.createElement('div');
       badge.className = 'edge-badge';
       const neutralColor = getComputedStyle(document.documentElement).getPropertyValue('--neutral-edge')?.trim() || '#cbd5e1';
@@ -1253,7 +1239,7 @@
       const valueEl = document.createElement('div');
       valueEl.className = 'value';
       const pointsValue = (!isNoData && Number.isFinite(lane.edge))
-        ? formatPointsShort(epaToPoints(lane.edge))
+        ? formatPointsShort(epaToPoints(lane.edge, playsPerGame))
         : '—';
       valueEl.textContent = pointsValue;
 
@@ -1278,7 +1264,7 @@
         `${lane.off} Off EPA/play: ${formatNumber(lane.offEPA)}`,
         `${lane.def} Def EPA/play: ${formatNumber(lane.defEPA)}`,
         `Edge: ${formatNumber(lane.edge)}`,
-        `EPA×65: ${formatPoints(epaToPoints(lane.edge))}`,
+        `EPA×${playsPerGame}: ${formatPoints(epaToPoints(lane.edge, playsPerGame))}`,
         isNoData
           ? 'NO DATA'
           : (lane.desc.tier === 'EVEN' ? 'EVEN' : `${lane.desc.tier} ${lane.desc.direction === 'off' ? 'OFF' : 'DEF'}`),
@@ -1292,34 +1278,96 @@
       return badge;
     }
 
-    function buildLaneRow(lane, totalEdges, scale, { showGameContext = false, includeDetails = false, showRankMeta = true } = {}) {
+    function buildGradeChip(team, side, row) {
+      const grade = side === 'off' ? row.offGrade : row.defGrade;
+      const rank = side === 'off' ? row.offRank : row.defRank;
+      const epa = side === 'off' ? row.offEPA : row.defEPA;
+      const chip = document.createElement('span');
+      chip.className = `grade-chip ${grade ? `tier-${grade.toLowerCase()}` : 'tier-none'}`;
+      chip.innerHTML = `<b>${grade ?? '—'}</b>${rank ? `<small>#${rank}</small>` : ''}`;
+      const unit = `${row.label.toLowerCase()} ${side === 'off' ? 'offense' : 'defense'}`;
+      const title = grade
+        ? `${team} ${unit}: ${grade} grade, #${rank} of ${row.total} · EPA/play ${formatSigned(epa, 3)}`
+        : `${team} ${unit}: no data yet`;
+      chip.title = title;
+      chip.setAttribute('aria-label', title);
+      chip.tabIndex = 0;
+      return chip;
+    }
+
+    function buildRowEdge(lane, row, totalEdges, showRankMeta) {
+      if (row.key === 'overall') return buildEdgeBadge(lane, totalEdges, { showRankMeta });
+      const pseudoLane = {
+        off: lane.off,
+        def: lane.def,
+        offEPA: row.offEPA,
+        defEPA: row.defEPA,
+        edge: row.edge,
+        desc: row.desc,
+        percentile: null,
+        rank: null,
+      };
+      return buildEdgeBadge(pseudoLane, 0, { showRankMeta: false, playsPerGame: row.playsPerGame });
+    }
+
+    function buildLaneRow(lane, totalEdges, { showGameContext = false, includeDetails = false, showRankMeta = true } = {}) {
       const row = document.createElement('div');
       row.className = 'lane';
 
-      const labelEl = document.createElement('div');
-      labelEl.className = 'lane-label';
-      const main = document.createElement('div');
-      main.innerHTML = `<span style="font-weight:700">${lane.off} OFF</span> vs <span class="sub">${lane.def} DEF</span>`;
-      labelEl.appendChild(main);
       if (showGameContext) {
         const sub = document.createElement('div');
-        sub.className = 'sub';
+        sub.className = 'lane-context';
         sub.textContent = `${lane.teamsLabel} · ${formatWeekLabel(lane.week, lane.seasonKey)}`;
-        labelEl.appendChild(sub);
+        row.appendChild(sub);
       }
-      row.appendChild(labelEl);
 
-      const vizGroup = document.createElement('div');
-      vizGroup.className = 'db';
-      vizGroup.appendChild(buildDumbbell(lane.offEPA, lane.defEPA, scale, lane.off, lane.def));
-      row.appendChild(vizGroup);
+      const grid = document.createElement('div');
+      grid.className = 'matchup-grid';
 
-      row.appendChild(buildEdgeBadge(lane, totalEdges, { showRankMeta }));
+      const head = document.createElement('div');
+      head.className = 'matchup-row matchup-row--head';
+      const offHead = document.createElement('div');
+      offHead.className = 'matchup-row__team';
+      offHead.style.setProperty('--team', teamColor(lane.off));
+      offHead.innerHTML = `<b>${lane.off}</b> OFF`;
+      const defHead = document.createElement('div');
+      defHead.className = 'matchup-row__team';
+      defHead.style.setProperty('--team', teamColor(lane.def));
+      defHead.innerHTML = `<b>${lane.def}</b> DEF`;
+      head.innerHTML = '<div class="matchup-row__label"></div>';
+      head.appendChild(offHead);
+      head.insertAdjacentHTML('beforeend', '<div class="matchup-row__vs">vs</div>');
+      head.appendChild(defHead);
+      head.insertAdjacentHTML('beforeend', '<div class="matchup-row__edge-head">Edge</div>');
+      grid.appendChild(head);
+
+      (lane.rows || []).forEach((unit) => {
+        const line = document.createElement('div');
+        line.className = `matchup-row matchup-row--${unit.key}`;
+        const label = document.createElement('div');
+        label.className = 'matchup-row__label';
+        label.textContent = unit.label;
+        const offCell = document.createElement('div');
+        offCell.className = 'matchup-row__side';
+        offCell.appendChild(buildGradeChip(lane.off, 'off', unit));
+        const vs = document.createElement('div');
+        vs.className = 'matchup-row__vs';
+        vs.textContent = 'vs';
+        const defCell = document.createElement('div');
+        defCell.className = 'matchup-row__side';
+        defCell.appendChild(buildGradeChip(lane.def, 'def', unit));
+        line.appendChild(label);
+        line.appendChild(offCell);
+        line.appendChild(vs);
+        line.appendChild(defCell);
+        line.appendChild(buildRowEdge(lane, unit, totalEdges, showRankMeta));
+        grid.appendChild(line);
+      });
+      row.appendChild(grid);
 
       if (includeDetails) {
         const detail = document.createElement('details');
         detail.className = 'details';
-        detail.style.gridColumn = '1 / -1';
         const isNoData = lane.desc.tier === 'NO DATA';
         const tierLabel = isNoData
           ? 'NO DATA'
@@ -1585,7 +1633,7 @@
       return spread;
     }
 
-    function renderGameCards(gameEntries, lanesByGame, edgeCount, { seasonKey, scale, gameTotal }) {
+    function renderGameCards(gameEntries, lanesByGame, edgeCount, { seasonKey, gameTotal }) {
       cardsEl.innerHTML = '';
       cardsEl.classList.toggle('ranked', layoutMode === 'ranked');
       gameEntries.forEach((game) => {
@@ -1627,7 +1675,7 @@
         const laneGrid = document.createElement('div');
         laneGrid.className = 'lane-grid';
         (lanesByGame[game.game_id] || []).forEach((lane) => {
-          laneGrid.appendChild(buildLaneRow(lane, edgeCount, scale, { includeDetails: false, showRankMeta: layoutMode === 'ranked' }));
+          laneGrid.appendChild(buildLaneRow(lane, edgeCount, { includeDetails: false, showRankMeta: layoutMode === 'ranked' }));
         });
         scoreboard.appendChild(laneGrid);
 
@@ -1778,7 +1826,6 @@
       const momentumText = momentumMode ? `, momentum last ${MOMENTUM_WINDOW} games` : '';
       metaEl.textContent = `Weeks: ${weeksLabel}. Ratings through ${ratingWeekText} (${modeText}${momentumText}). Edge: + favors OFF, − favors DEF.`;
 
-      const scale = computeScaleFromGames(games, ratings, mode, noRatings);
       const { gameEntries, lanes, lanesByGame } = buildGameEntries(games, ratings, { noRatings, week, seasonKey });
       const edgeCount = annotateEdgeDistribution(lanes);
       const gameCount = annotateGameDistribution(gameEntries);
@@ -1790,7 +1837,7 @@
         ? gameEntries.slice().sort((a, b) => ((b.netAbs ?? -Infinity) - (a.netAbs ?? -Infinity)))
         : gameEntries;
 
-      renderGameCards(entriesToRender, lanesByGame, edgeCount, { seasonKey, scale, gameTotal: gameCount || gameEntries.length });
+      renderGameCards(entriesToRender, lanesByGame, edgeCount, { seasonKey, gameTotal: gameCount || gameEntries.length });
 
       if (oddsPayload && !(oddsPayload.odds || []).some((o) => Number(o.season) === Number(seasonKey) && normalizeWeekValue(o.week, o?.season ?? seasonKey, o?.season_type) === week)) {
         infoMessages.push('Betting lines not available for this week yet.');
@@ -1802,8 +1849,8 @@
 
       const fixtureFlag = new URLSearchParams(window.location.search).get('fixture');
       if (fixtureFlag === '1') {
-        const dumbbells = cardsEl.querySelectorAll('.db-viz').length;
-        console.log('dumbbell count', dumbbells);
+        const grids = cardsEl.querySelectorAll('.matchup-grid').length;
+        console.log('matchup grid count', grids);
       }
     }
 

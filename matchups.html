@@ -93,7 +93,6 @@
       color: #9a3412;
     }
 
-    /* Give cards enough room for lane: label + dumbbell + badge without overflow/squish */
     .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 1rem; }
     .cards.ranked { grid-template-columns: 1fr; }
 
@@ -145,18 +144,64 @@
     }
 
     .lane {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
-      gap: 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
       padding: 0.65rem 0.75rem;
-      align-items: center;
       border: 1px solid var(--border);
       border-radius: 10px;
       background: white;
+      min-width: 0;
     }
 
-    .lane-label { font-weight: 700; display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
-    .lane-label .sub { color: var(--muted); font-weight: 600; font-size: 0.95rem; }
+    .lane-context { color: var(--muted); font-weight: 600; font-size: 0.9rem; }
+
+    /* Graded matchup grid: unit label | offense grade | vs | defense grade | edge */
+    .matchup-grid { display: grid; gap: 0.35rem; min-width: 0; }
+    .matchup-row {
+      display: grid;
+      grid-template-columns: 4.6rem minmax(3.6rem, 1fr) 1.4rem minmax(3.6rem, 1fr) auto;
+      align-items: center;
+      gap: 0.4rem;
+      min-width: 0;
+    }
+    .matchup-row--head { padding-bottom: 0.25rem; border-bottom: 1px solid var(--border); }
+    .matchup-row__label { font-weight: 700; font-size: 0.85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; }
+    .matchup-row--overall .matchup-row__label { color: var(--text); }
+    .matchup-row__team {
+      font-size: 0.85rem;
+      color: var(--muted);
+      font-weight: 600;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .matchup-row__team b { color: var(--team, var(--text)); font-weight: 800; }
+    .matchup-row__vs { text-align: center; font-size: 0.75rem; font-weight: 700; color: var(--muted); }
+    .matchup-row__side { display: flex; justify-content: center; }
+    .matchup-row__edge-head { font-size: 0.75rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; text-align: right; }
+    .matchup-row .edge-badge { min-width: 96px; padding: 0.35rem 0.55rem; box-shadow: none; }
+    .matchup-row .edge-badge .value { font-size: 1rem; }
+    .matchup-row .edge-badge .badge-sub { font-size: 0.78rem; }
+
+    .grade-chip {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.3rem;
+      min-width: 3.4rem;
+      padding: 0.2rem 0.5rem;
+      border: 1px solid currentColor;
+      border-radius: 8px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+      justify-content: center;
+    }
+    .grade-chip b { font-size: 1.15rem; font-weight: 900; }
+    .grade-chip small { font-size: 0.75rem; font-weight: 700; opacity: 0.85; }
+    .grade-chip.tier-none { color: var(--muted); background: var(--panel); border-style: dashed; }
+    .grade-chip:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+    .matchup-row--overall .grade-chip b { font-size: 1.3rem; }
 
     .edge-badge, .net-badge {
       display: inline-flex;
@@ -300,24 +345,6 @@
       .drivers { display: none; }
     }
 
-    /* Dumbbell */
-    .db { width: 100%; }
-    .db-wrap { display: flex; flex-direction: column; gap: 0.3rem; }
-    .db-labels { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--muted); gap: 0.5rem; }
-    .db-label { display: inline-flex; align-items: center; gap: 0.35rem; min-width: 0; white-space: nowrap; }
-    .db-label span:last-child { overflow: hidden; text-overflow: ellipsis; }
-    .db-key { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.18); }
-    .db-key.off { background: var(--offColor); border-color: white; }
-    .db-key.def { background: white; border: 2px solid var(--defColor); }
-    .db-viz { position: relative; width: 100%; min-width: 0; height: 22px; background: white; border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; }
-    .db-inner { position: relative; width: 100%; height: 100%; }
-    .db-track { position: absolute; inset: 4px 0; background: var(--panel); border-radius: 999px; }
-    .db-zero { position: absolute; top: 2px; width: 2px; height: 18px; background: var(--border); transform: translateX(-50%); }
-    .db-range { position: absolute; top: 6px; height: 10px; background: linear-gradient(90deg, var(--offColor), var(--defColor)); border-radius: 999px; opacity: 0.9; }
-    .db-dot { position: absolute; top: 50%; width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15); transform: translate(-50%, -50%); }
-    .db-dot.off { background: var(--offColor); border: 2px solid white; }
-    .db-dot.def { background: #fff; border: 3px solid var(--defColor); }
-    .db-placeholder { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.85rem; color: var(--muted); background: rgba(226, 232, 240, 0.4); border-radius: 999px; }
     .inline-toggle { display: inline-flex; gap: 0.5rem; align-items: center; font-weight: 600; }
     .inline-toggle input { accent-color: #0f172a; }
 
@@ -437,18 +464,40 @@
       }
     }
 
+    @media (max-width: 520px) {
+      /* Stack the edge under the grades so nothing wraps into a tall column. */
+      .matchup-row {
+        grid-template-columns: 4.2rem minmax(0, 1fr) 1.2rem minmax(0, 1fr);
+        grid-template-areas: "label off vs def" "edge edge edge edge";
+        row-gap: 0.3rem;
+      }
+      .matchup-row--head { grid-template-areas: "label off vs def"; }
+      .matchup-row > :nth-child(1) { grid-area: label; }
+      .matchup-row > :nth-child(2) { grid-area: off; }
+      .matchup-row > :nth-child(3) { grid-area: vs; }
+      .matchup-row > :nth-child(4) { grid-area: def; }
+      .matchup-row > :nth-child(5) { grid-area: edge; }
+      .matchup-row__edge-head { display: none; }
+      .matchup-row .edge-badge {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        width: 100%;
+        min-width: 0;
+        padding: 0.3rem 0.55rem;
+      }
+      .matchup-row .edge-badge .value { white-space: nowrap; flex-shrink: 0; }
+      .matchup-row .edge-badge .badge-sub { white-space: normal; text-align: right; font-size: 0.72rem; line-height: 1.2; }
+      .matchup-row + .matchup-row { padding-top: 0.3rem; border-top: 1px dashed var(--border); }
+      .matchup-row--head + .matchup-row { border-top: none; padding-top: 0; }
+    }
+
     @media (max-width: 640px) {
       body { padding: 1.5rem 1rem 2.5rem; }
       .controls { grid-template-columns: 1fr; }
-      .lane { grid-template-columns: 1fr; }
-      .lane-label { flex-direction: row; justify-content: space-between; align-items: center; }
-      .edge-badge { align-items: flex-start; }
-      .db-viz { min-width: 0; }
-    }
-
-    @media (max-width: 800px) {
-      .db { min-width: 0; }
-      .db-viz { width: 100%; min-width: 0; }
+      .matchup-row { grid-template-columns: 3.9rem minmax(3rem, 1fr) 1.2rem minmax(3rem, 1fr) auto; gap: 0.3rem; }
+      .matchup-row .edge-badge { min-width: 84px; padding: 0.3rem 0.45rem; }
     }
   </style>
 </head>
@@ -511,7 +560,7 @@
 
     <details class="page-help">
       <summary>Legend</summary>
-      <p class="legend">Filled dot = offense EPA/play (team color). Ring dot = opponent defense strength (team color). Edge: <strong>+</strong> favors offense, <strong>−</strong> favors defense. <strong>Pxx</strong> = percentile of strength this week (NET for game badge; lane |Edge| in Ranked view). EPA×65 (≈65 offensive plays per team) is shown as the primary number; raw EPA/play is secondary. Rank (#/N) is shown in Ranked view.</p>
+      <p class="legend">Each offense gets three rows: <strong>Overall</strong>, <strong>Passing</strong>, <strong>Rushing</strong>. Grades are this season's league rank (through the prior week) in the selected view, using the front-page bands: <span class="historical-tier tier-s">S</span> #1–2 · <span class="historical-tier tier-a">A</span> #3–6 · <span class="historical-tier tier-b">B</span> #7–13 · <span class="historical-tier tier-c">C</span> #14–19 · <span class="historical-tier tier-d">D</span> #20–26 · <span class="historical-tier tier-f">F</span> #27–32. Opponent adjustment applies to the Overall row only; Passing and Rushing are raw (momentum mode applies to all three). Edge: <strong>+</strong> favors offense, <strong>−</strong> favors defense, shown in points (EPA/play × 65 overall, × 38 passing, × 27 rushing). <strong>Pxx</strong> = percentile of the NET edge this week. Rank (#/N) is shown in Ranked view. Hover or focus a grade for details.</p>
     </details>
 
     <div id="cards" class="cards" aria-live="polite"></div>
