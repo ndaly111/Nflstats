@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T17:34:55Z",
+  "generated_at": "2026-09-30T21:51:11Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -7174,6 +7174,24 @@
       "total": 47.5,
       "source": "nflverse",
       "updated_at": "2026-09-30T17:34:55Z"
+    },
+    {
+      "season": 2026,
+      "week": 4,
+      "game_id": "2026_04_NYJ_CHI",
+      "spread": 3.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-30T21:51:11Z"
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "game_id": "2026_05_NYG_WAS",
+      "spread": 2.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-30T21:51:11Z"
     }
   ]
 }
