@@ -398066,7 +398066,7 @@
               "off_rush_plays": 22,
               "def_pass": 0.1570425613442205,
               "def_pass_plays": 58,
-              "def_rush": 0.538290933463281,
+              "def_rush": 0.5382909334632809,
               "def_rush_plays": 18
             },
             "3": {
@@ -398344,7 +398344,7 @@
               "def_plays": 82,
               "off_pass": -0.1570425613442205,
               "off_pass_plays": 58,
-              "off_rush": -0.538290933463281,
+              "off_rush": -0.5382909334632809,
               "off_rush_plays": 18,
               "def_pass": 0.015214599767865981,
               "def_pass_plays": 36,
@@ -398360,7 +398360,7 @@
               "off_pass_plays": 30,
               "off_rush": -0.07671898872303289,
               "off_rush_plays": 21,
-              "def_pass": 0.17178856503454398,
+              "def_pass": 0.17178856503454393,
               "def_pass_plays": 40,
               "def_rush": 0.03877170624271516,
               "def_rush_plays": 31
@@ -398403,7 +398403,7 @@
               "off_plays": 84,
               "def": 0.05467966612427544,
               "def_plays": 70,
-              "off_pass": -0.17178856503454398,
+              "off_pass": -0.17178856503454393,
               "off_pass_plays": 40,
               "off_rush": -0.03877170624271516,
               "off_rush_plays": 31,
@@ -398520,7 +398520,7 @@
               "off_pass_plays": 28,
               "off_rush": -0.1354256611250873,
               "off_rush_plays": 28,
-              "def_pass": -0.14193022164355665,
+              "def_pass": -0.1419302216435567,
               "def_pass_plays": 34,
               "def_rush": -0.2205165465323565,
               "def_rush_plays": 30
@@ -399080,7 +399080,7 @@
               "off_plays": 76,
               "def": 0.1930101404599383,
               "def_plays": 73,
-              "off_pass": 0.14193022164355665,
+              "off_pass": 0.1419302216435567,
               "off_pass_plays": 34,
               "off_rush": 0.2205165465323565,
               "off_rush_plays": 30,
@@ -400609,6 +400609,6 @@
       ]
     }
   },
-  "generated_at": "2026-09-29T09:26:44Z",
-  "git_sha": "4c5e7d4bcae9275dd076c3f4f31e938de4301aed"
+  "generated_at": "2026-09-30T09:17:17Z",
+  "git_sha": "6aadf4a3572cbecbc96d16bc3e208b4f0bb0a279"
 }
