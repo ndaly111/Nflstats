@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T09:17:21Z",
+  "generated_at": "2026-09-30T11:53:41Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -7129,6 +7129,15 @@
       "total": 44.5,
       "source": "nflverse",
       "updated_at": "2026-09-30T03:54:08Z"
+    },
+    {
+      "season": 2026,
+      "week": 4,
+      "game_id": "2026_04_NE_BUF",
+      "spread": 6.5,
+      "total": 48.5,
+      "source": "nflverse",
+      "updated_at": "2026-09-30T11:53:41Z"
     }
   ]
 }
