@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-01T12:24:16Z",
+  "generated_at": "2026-10-01T22:19:39Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -7228,6 +7228,42 @@
       "total": 52.5,
       "source": "nflverse",
       "updated_at": "2026-10-01T04:03:13Z"
+    },
+    {
+      "season": 2026,
+      "week": 4,
+      "game_id": "2026_04_IND_WAS",
+      "spread": -3.5,
+      "total": 48.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-01T22:19:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 4,
+      "game_id": "2026_04_NE_BUF",
+      "spread": 7.0,
+      "total": 48.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-01T22:19:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 4,
+      "game_id": "2026_04_LA_PHI",
+      "spread": -3.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-01T22:19:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 4,
+      "game_id": "2026_04_DET_CAR",
+      "spread": -3.5,
+      "total": 50.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-01T22:19:39Z"
     }
   ]
 }
