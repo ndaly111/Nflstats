@@ -397753,7 +397753,8 @@
       "weeks": [
         1,
         2,
-        3
+        3,
+        4
       ],
       "teams": [
         {
@@ -398066,7 +398067,7 @@
               "off_rush_plays": 22,
               "def_pass": 0.1570425613442205,
               "def_pass_plays": 58,
-              "def_rush": 0.538290933463281,
+              "def_rush": 0.5382909334632809,
               "def_rush_plays": 18
             },
             "3": {
@@ -398129,6 +398130,20 @@
               "def_pass_plays": 50,
               "def_rush": 0.1476985517492673,
               "def_rush_plays": 24
+            },
+            "4": {
+              "off": 0.1281343941534738,
+              "off_plays": 82,
+              "def": -0.08279238090393809,
+              "def_plays": 92,
+              "off_pass": 0.26237273329931354,
+              "off_pass_plays": 35,
+              "off_rush": -0.12914030729436896,
+              "off_rush_plays": 25,
+              "def_pass": -0.052680366410286304,
+              "def_pass_plays": 46,
+              "def_rush": -0.11221720051472076,
+              "def_rush_plays": 20
             }
           }
         },
@@ -398344,7 +398359,7 @@
               "def_plays": 82,
               "off_pass": -0.1570425613442205,
               "off_pass_plays": 58,
-              "off_rush": -0.538290933463281,
+              "off_rush": -0.5382909334632809,
               "off_rush_plays": 18,
               "def_pass": 0.015214599767865981,
               "def_pass_plays": 36,
@@ -398360,7 +398375,7 @@
               "off_pass_plays": 30,
               "off_rush": -0.07671898872303289,
               "off_rush_plays": 21,
-              "def_pass": 0.17178856503454398,
+              "def_pass": 0.17178856503454393,
               "def_pass_plays": 40,
               "def_rush": 0.03877170624271516,
               "def_rush_plays": 31
@@ -398403,7 +398418,7 @@
               "off_plays": 84,
               "def": 0.05467966612427544,
               "def_plays": 70,
-              "off_pass": -0.17178856503454398,
+              "off_pass": -0.17178856503454393,
               "off_pass_plays": 40,
               "off_rush": -0.03877170624271516,
               "off_rush_plays": 31,
@@ -398520,7 +398535,7 @@
               "off_pass_plays": 28,
               "off_rush": -0.1354256611250873,
               "off_rush_plays": 28,
-              "def_pass": -0.14193022164355665,
+              "def_pass": -0.1419302216435567,
               "def_pass_plays": 34,
               "def_rush": -0.2205165465323565,
               "def_rush_plays": 30
@@ -399022,6 +399037,20 @@
               "def_pass_plays": 38,
               "def_rush": -0.05943918614260232,
               "def_rush_plays": 18
+            },
+            "4": {
+              "off": 0.08279238090393809,
+              "off_plays": 92,
+              "def": -0.1281343941534738,
+              "def_plays": 82,
+              "off_pass": 0.052680366410286304,
+              "off_pass_plays": 46,
+              "off_rush": 0.11221720051472076,
+              "off_rush_plays": 20,
+              "def_pass": -0.26237273329931354,
+              "def_pass_plays": 35,
+              "def_rush": 0.12914030729436896,
+              "def_rush_plays": 25
             }
           }
         },
@@ -399080,7 +399109,7 @@
               "off_plays": 76,
               "def": 0.1930101404599383,
               "def_plays": 73,
-              "off_pass": 0.14193022164355665,
+              "off_pass": 0.1419302216435567,
               "off_pass_plays": 34,
               "off_rush": 0.2205165465323565,
               "off_rush_plays": 30,
@@ -400605,10 +400634,38 @@
           "points_against": 12,
           "net_epa_pp": -0.0925033555675253,
           "plays": 152
+        },
+        {
+          "game_id": "2026_04_PIT_CLE",
+          "week": 4,
+          "team": "CLE",
+          "opp": "PIT",
+          "off_epa_pp": 0.1281343941534738,
+          "def_epa_pp": -0.08279238090393809,
+          "off_plays": 82,
+          "def_plays": 92,
+          "points_for": 27,
+          "points_against": 24,
+          "net_epa_pp": 0.04534201324953571,
+          "plays": 174
+        },
+        {
+          "game_id": "2026_04_PIT_CLE",
+          "week": 4,
+          "team": "PIT",
+          "opp": "CLE",
+          "off_epa_pp": 0.08279238090393809,
+          "def_epa_pp": -0.1281343941534738,
+          "off_plays": 92,
+          "def_plays": 82,
+          "points_for": 24,
+          "points_against": 27,
+          "net_epa_pp": -0.04534201324953571,
+          "plays": 174
         }
       ]
     }
   },
-  "generated_at": "2026-10-01T09:44:42Z",
-  "git_sha": "edd88865416d98347e199d63768008d5fb151b59"
+  "generated_at": "2026-10-02T09:19:24Z",
+  "git_sha": "a8cd641aa0be2e3324d9c4012e71e85e6c2b7ef8"
 }
