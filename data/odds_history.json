@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-03T15:42:54Z",
+  "generated_at": "2026-10-03T20:35:03Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -7363,6 +7363,15 @@
       "total": 46.5,
       "source": "nflverse",
       "updated_at": "2026-10-03T15:42:54Z"
+    },
+    {
+      "season": 2026,
+      "week": 4,
+      "game_id": "2026_04_GB_TB",
+      "spread": -3.0,
+      "total": 38.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-03T20:35:03Z"
     }
   ]
 }
