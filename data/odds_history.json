@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-02T21:47:58Z",
+  "generated_at": "2026-10-03T03:43:46Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -7336,6 +7336,24 @@
       "total": 49.5,
       "source": "nflverse",
       "updated_at": "2026-10-02T21:47:58Z"
+    },
+    {
+      "season": 2026,
+      "week": 4,
+      "game_id": "2026_04_GB_TB",
+      "spread": -3.0,
+      "total": 39.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-03T03:43:46Z"
+    },
+    {
+      "season": 2026,
+      "week": 4,
+      "game_id": "2026_04_MIA_MIN",
+      "spread": 10.0,
+      "total": 38.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-03T03:43:46Z"
     }
   ]
 }
