@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-04T16:24:46Z",
+  "generated_at": "2026-10-04T20:51:04Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -7444,6 +7444,15 @@
       "total": 43.5,
       "source": "nflverse",
       "updated_at": "2026-10-04T16:24:46Z"
+    },
+    {
+      "season": 2026,
+      "week": 4,
+      "game_id": "2026_04_ARI_NYG",
+      "spread": -2.5,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-04T20:51:04Z"
     }
   ]
 }
