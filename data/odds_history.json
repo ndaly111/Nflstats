@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-04T09:18:38Z",
+  "generated_at": "2026-10-04T11:45:41Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -7417,6 +7417,24 @@
       "total": 47.5,
       "source": "nflverse",
       "updated_at": "2026-10-04T04:13:51Z"
+    },
+    {
+      "season": 2026,
+      "week": 4,
+      "game_id": "2026_04_TEN_BAL",
+      "spread": 11.5,
+      "total": 42.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-04T11:45:41Z"
+    },
+    {
+      "season": 2026,
+      "week": 4,
+      "game_id": "2026_04_NE_BUF",
+      "spread": 7.0,
+      "total": 49.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-04T11:45:41Z"
     }
   ]
 }
