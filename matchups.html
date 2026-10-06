@@ -514,7 +514,7 @@
     <div class="top-bar">
       <div>
         <h1>Weekly Matchups</h1>
-        <p class="lead">Offense vs defense EPA/play edges for every game. Toggle raw vs opponent-adjusted views and pick any week.</p>
+        <p class="lead">Offense vs defense EPA/play edges for every game. Toggle raw vs opponent-adjusted views, pick any week, and sort by biggest advantage to see the most lopsided games first.</p>
         <p id="meta" class="meta"></p>
       </div>
     </div>
@@ -550,17 +550,17 @@
         </label>
       </div>
       <fieldset style="border: none; padding: 0; margin: 0;">
-        <legend style="font-weight: 600; margin-bottom: 0.25rem; padding: 0;">Layout</legend>
-        <div class="toggle" role="group" aria-label="Games vs ranked list">
-          <button id="games-btn" class="active" type="button">Games</button>
-          <button id="ranked-btn" type="button">Ranked</button>
+        <legend style="font-weight: 600; margin-bottom: 0.25rem; padding: 0;">Sort</legend>
+        <div class="toggle" role="group" aria-label="Sort games by schedule order or biggest advantage">
+          <button id="games-btn" class="active" type="button">Schedule</button>
+          <button id="ranked-btn" type="button" title="Biggest net advantage first, using whichever view (Raw or Opponent-adjusted) is selected">Biggest advantage</button>
         </div>
       </fieldset>
     </section>
 
     <details class="page-help">
       <summary>Legend</summary>
-      <p class="legend">Each offense gets three rows: <strong>Overall</strong>, <strong>Passing</strong>, <strong>Rushing</strong>. Grades are this season's league rank (through the prior week) in the selected view, using the front-page bands: <span class="historical-tier tier-s">S</span> #1–2 · <span class="historical-tier tier-a">A</span> #3–6 · <span class="historical-tier tier-b">B</span> #7–13 · <span class="historical-tier tier-c">C</span> #14–19 · <span class="historical-tier tier-d">D</span> #20–26 · <span class="historical-tier tier-f">F</span> #27–32. Opponent adjustment applies to the Overall row only; Passing and Rushing are raw (momentum mode applies to all three). Edge: <strong>+</strong> favors offense, <strong>−</strong> favors defense, shown in points (EPA/play × 65 overall, × 38 passing, × 27 rushing). <strong>Pxx</strong> = percentile of the NET edge this week. Rank (#/N) is shown in Ranked view. Hover or focus a grade for details.</p>
+      <p class="legend">Each offense gets three rows: <strong>Overall</strong>, <strong>Passing</strong>, <strong>Rushing</strong>. Grades are this season's league rank (through the prior week) in the selected view, using the front-page bands: <span class="historical-tier tier-s">S</span> #1–2 · <span class="historical-tier tier-a">A</span> #3–6 · <span class="historical-tier tier-b">B</span> #7–13 · <span class="historical-tier tier-c">C</span> #14–19 · <span class="historical-tier tier-d">D</span> #20–26 · <span class="historical-tier tier-f">F</span> #27–32. Opponent adjustment applies to the Overall row only; Passing and Rushing are raw (momentum mode applies to all three). Edge: <strong>+</strong> favors offense, <strong>−</strong> favors defense, shown in points (EPA/play × 65 overall, × 38 passing, × 27 rushing). <strong>Pxx</strong> = percentile of the NET edge this week. Sort &rarr; <strong>Biggest advantage</strong> orders games by the NET edge (largest first) in whichever view is selected, Raw or Opponent-adjusted, and shows each game's rank (#/N). Hover or focus a grade for details.</p>
     </details>
 
     <div id="cards" class="cards" aria-live="polite"></div>

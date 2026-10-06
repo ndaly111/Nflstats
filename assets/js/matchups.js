@@ -1824,7 +1824,8 @@
       const ratingWeekText = ratingWeek > 0 ? formatWeekLabel(ratingWeek, seasonKey) : '0 (no prior games)';
       const modeText = mode === 'sos' ? 'opponent-adjusted' : 'raw';
       const momentumText = momentumMode ? `, momentum last ${MOMENTUM_WINDOW} games` : '';
-      metaEl.textContent = `Weeks: ${weeksLabel}. Ratings through ${ratingWeekText} (${modeText}${momentumText}). Edge: + favors OFF, − favors DEF.`;
+      const sortText = layoutMode === 'ranked' ? ` Sorted by biggest net advantage (${modeText}).` : '';
+      metaEl.textContent = `Weeks: ${weeksLabel}. Ratings through ${ratingWeekText} (${modeText}${momentumText}). Edge: + favors OFF, − favors DEF.${sortText}`;
 
       const { gameEntries, lanes, lanesByGame } = buildGameEntries(games, ratings, { noRatings, week, seasonKey });
       const edgeCount = annotateEdgeDistribution(lanes);
