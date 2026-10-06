@@ -397862,6 +397862,20 @@
               "def_pass_plays": 54,
               "def_rush": 0.30132993651528117,
               "def_rush_plays": 9
+            },
+            "4": {
+              "off": 0.3276163481449184,
+              "off_plays": 72,
+              "def": 0.051242939441644764,
+              "def_plays": 99,
+              "off_pass": 0.5071359899082247,
+              "off_pass_plays": 21,
+              "off_rush": 0.3661272769007183,
+              "off_rush_plays": 33,
+              "def_pass": -0.013355030774933229,
+              "def_pass_plays": 50,
+              "def_rush": 0.30058769978227484,
+              "def_rush_plays": 19
             }
           }
         },
@@ -399129,6 +399143,20 @@
               "def_pass_plays": 38,
               "def_rush": 0.0934300817339681,
               "def_rush_plays": 25
+            },
+            "4": {
+              "off": -0.051242939441644764,
+              "off_plays": 99,
+              "def": -0.3276163481449184,
+              "def_plays": 72,
+              "off_pass": 0.013355030774933229,
+              "off_pass_plays": 50,
+              "off_rush": -0.30058769978227484,
+              "off_rush_plays": 19,
+              "def_pass": -0.5071359899082247,
+              "def_pass_plays": 21,
+              "def_rush": -0.3661272769007183,
+              "def_rush_plays": 33
             }
           }
         },
@@ -401056,6 +401084,34 @@
           "plays": 168
         },
         {
+          "game_id": "2026_04_ATL_NO",
+          "week": 4,
+          "team": "ATL",
+          "opp": "NO",
+          "off_epa_pp": 0.3276163481449184,
+          "def_epa_pp": 0.051242939441644764,
+          "off_plays": 72,
+          "def_plays": 99,
+          "points_for": 45,
+          "points_against": 24,
+          "net_epa_pp": 0.3788592875865632,
+          "plays": 171
+        },
+        {
+          "game_id": "2026_04_ATL_NO",
+          "week": 4,
+          "team": "NO",
+          "opp": "ATL",
+          "off_epa_pp": -0.051242939441644764,
+          "def_epa_pp": -0.3276163481449184,
+          "off_plays": 99,
+          "def_plays": 72,
+          "points_for": 24,
+          "points_against": 45,
+          "net_epa_pp": -0.3788592875865632,
+          "plays": 171
+        },
+        {
           "game_id": "2026_04_DAL_HOU",
           "week": 4,
           "team": "DAL",
@@ -401450,6 +401506,6 @@
       ]
     }
   },
-  "generated_at": "2026-10-05T09:58:57Z",
-  "git_sha": "3344c519672526b05ac48f72a3a9da54458ea65d"
+  "generated_at": "2026-10-06T09:45:09Z",
+  "git_sha": "be4b35ab276204272c2f96f00f8d4fe87430350d"
 }
