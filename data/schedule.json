@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T12:37:08Z",
+  "generated_at": "2026-10-07T22:40:06Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "seasons": {
     "2026": {
@@ -599,6 +599,15 @@
           "game_type": "REG"
         },
         {
+          "game_id": "2026_05_CHI_GB",
+          "week": 5,
+          "home": "GB",
+          "away": "CHI",
+          "gameday": "2026-10-11",
+          "season_type": null,
+          "game_type": "REG"
+        },
+        {
           "game_id": "2026_05_CIN_MIA",
           "week": 5,
           "home": "MIA",
@@ -675,15 +684,6 @@
           "week": 5,
           "home": "ARI",
           "away": "DET",
-          "gameday": "2026-10-11",
-          "season_type": null,
-          "game_type": "REG"
-        },
-        {
-          "game_id": "2026_05_CHI_GB",
-          "week": 5,
-          "home": "GB",
-          "away": "CHI",
           "gameday": "2026-10-11",
           "season_type": null,
           "game_type": "REG"
