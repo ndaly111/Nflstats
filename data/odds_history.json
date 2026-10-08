@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-07T22:40:06Z",
+  "generated_at": "2026-10-08T04:25:09Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -8218,6 +8218,15 @@
       "total": 50.5,
       "source": "nflverse",
       "updated_at": "2026-10-07T22:40:06Z"
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "game_id": "2026_05_DEN_LAC",
+      "spread": -3.5,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-08T04:25:09Z"
     }
   ]
 }
