@@ -397754,7 +397754,8 @@
         1,
         2,
         3,
-        4
+        4,
+        5
       ],
       "teams": [
         {
@@ -397868,7 +397869,7 @@
               "off_plays": 72,
               "def": 0.051242939441644764,
               "def_plays": 99,
-              "off_pass": 0.5071359899082248,
+              "off_pass": 0.5071359899082247,
               "off_pass_plays": 21,
               "off_rush": 0.3661272769007183,
               "off_rush_plays": 33,
@@ -398151,7 +398152,7 @@
               "off_rush_plays": 22,
               "def_pass": 0.1570425613442205,
               "def_pass_plays": 58,
-              "def_rush": 0.5382909334632809,
+              "def_rush": 0.538290933463281,
               "def_rush_plays": 18
             },
             "3": {
@@ -398303,6 +398304,20 @@
               "def_pass_plays": 31,
               "def_rush": 0.160746402764313,
               "def_rush_plays": 19
+            },
+            "5": {
+              "off": -0.07813921505162502,
+              "off_plays": 71,
+              "def": -0.07449575576162894,
+              "def_plays": 92,
+              "off_pass": -0.07643636221642879,
+              "off_pass_plays": 43,
+              "off_rush": 0.05122176568973093,
+              "off_rush_plays": 13,
+              "def_pass": -0.22584883746897422,
+              "def_pass_plays": 26,
+              "def_rush": -0.11643605949703252,
+              "def_rush_plays": 37
             }
           }
         },
@@ -398513,7 +398528,7 @@
               "def_plays": 82,
               "off_pass": -0.1570425613442205,
               "off_pass_plays": 58,
-              "off_rush": -0.5382909334632809,
+              "off_rush": -0.538290933463281,
               "off_rush_plays": 18,
               "def_pass": 0.015214599767865981,
               "def_pass_plays": 36,
@@ -398529,7 +398544,7 @@
               "off_pass_plays": 30,
               "off_rush": -0.07671898872303289,
               "off_rush_plays": 21,
-              "def_pass": 0.17178856503454393,
+              "def_pass": 0.17178856503454398,
               "def_pass_plays": 40,
               "def_rush": 0.03877170624271516,
               "def_rush_plays": 31
@@ -398586,7 +398601,7 @@
               "off_plays": 84,
               "def": 0.05467966612427544,
               "def_plays": 70,
-              "off_pass": -0.17178856503454393,
+              "off_pass": -0.17178856503454398,
               "off_pass_plays": 40,
               "off_rush": -0.03877170624271516,
               "off_rush_plays": 31,
@@ -398745,7 +398760,7 @@
               "off_pass_plays": 28,
               "off_rush": -0.1354256611250873,
               "off_rush_plays": 28,
-              "def_pass": -0.1419302216435567,
+              "def_pass": -0.14193022164355665,
               "def_pass_plays": 34,
               "def_rush": -0.2205165465323565,
               "def_rush_plays": 30
@@ -398970,7 +398985,7 @@
               "off_pass_plays": 19,
               "off_rush": 0.27040616074939156,
               "off_rush_plays": 18,
-              "def_pass": 0.016204670534432596,
+              "def_pass": 0.016204670534432607,
               "def_pass_plays": 41,
               "def_rush": 0.09184828963299345,
               "def_rush_plays": 28
@@ -399027,7 +399042,7 @@
               "off_plays": 96,
               "def": 0.23680361956289617,
               "def_plays": 54,
-              "off_pass": -0.016204670534432596,
+              "off_pass": -0.016204670534432607,
               "off_pass_plays": 41,
               "off_rush": -0.09184828963299345,
               "off_rush_plays": 28,
@@ -399153,7 +399168,7 @@
               "off_pass_plays": 50,
               "off_rush": -0.30058769978227484,
               "off_rush_plays": 19,
-              "def_pass": -0.5071359899082248,
+              "def_pass": -0.5071359899082247,
               "def_pass_plays": 21,
               "def_rush": -0.3661272769007183,
               "def_rush_plays": 33
@@ -399473,7 +399488,7 @@
               "off_plays": 76,
               "def": 0.1930101404599383,
               "def_plays": 73,
-              "off_pass": 0.1419302216435567,
+              "off_pass": 0.14193022164355665,
               "off_pass_plays": 34,
               "off_rush": 0.2205165465323565,
               "off_rush_plays": 30,
@@ -399584,6 +399599,20 @@
               "def_pass_plays": 30,
               "def_rush": 0.2709776633247119,
               "def_rush_plays": 22
+            },
+            "5": {
+              "off": 0.07449575576162894,
+              "off_plays": 92,
+              "def": 0.07813921505162502,
+              "def_plays": 71,
+              "off_pass": 0.22584883746897422,
+              "off_pass_plays": 26,
+              "off_rush": 0.11643605949703252,
+              "off_rush_plays": 37,
+              "def_pass": 0.07643636221642879,
+              "def_pass_plays": 43,
+              "def_rush": -0.05122176568973093,
+              "def_rush_plays": 13
             }
           }
         },
@@ -401502,10 +401531,38 @@
           "points_against": 24,
           "net_epa_pp": -0.05277074441569999,
           "plays": 161
+        },
+        {
+          "game_id": "2026_05_TB_DAL",
+          "week": 5,
+          "team": "DAL",
+          "opp": "TB",
+          "off_epa_pp": -0.07813921505162502,
+          "def_epa_pp": -0.07449575576162894,
+          "off_plays": 71,
+          "def_plays": 92,
+          "points_for": 16,
+          "points_against": 24,
+          "net_epa_pp": -0.15263497081325395,
+          "plays": 163
+        },
+        {
+          "game_id": "2026_05_TB_DAL",
+          "week": 5,
+          "team": "TB",
+          "opp": "DAL",
+          "off_epa_pp": 0.07449575576162894,
+          "def_epa_pp": 0.07813921505162502,
+          "off_plays": 92,
+          "def_plays": 71,
+          "points_for": 24,
+          "points_against": 16,
+          "net_epa_pp": 0.15263497081325395,
+          "plays": 163
         }
       ]
     }
   },
-  "generated_at": "2026-10-08T09:56:05Z",
-  "git_sha": "402803636ee091ac2fb6ee65c69282d61f3c867b"
+  "generated_at": "2026-10-09T10:00:07Z",
+  "git_sha": "f6199af45ea714e89ad575a12cfa16c15dbbef59"
 }

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-09T04:29:24Z",
+  "generated_at": "2026-10-09T10:00:11Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -8371,6 +8371,24 @@
       "total": 41.5,
       "source": "nflverse",
       "updated_at": "2026-10-09T04:29:24Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_PIT_TB",
+      "spread": -2.5,
+      "total": 39.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-09T10:00:11Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_DAL_GB",
+      "spread": -1.5,
+      "total": 50.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-09T10:00:11Z"
     }
   ]
 }
