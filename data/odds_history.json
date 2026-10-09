@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-09T12:32:43Z",
+  "generated_at": "2026-10-09T22:13:11Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -8389,6 +8389,51 @@
       "total": 50.5,
       "source": "nflverse",
       "updated_at": "2026-10-09T10:00:11Z"
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "game_id": "2026_05_CIN_MIA",
+      "spread": -7.0,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-09T22:13:11Z"
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "game_id": "2026_05_IND_PIT",
+      "spread": 3.0,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-09T22:13:11Z"
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "game_id": "2026_05_HOU_TEN",
+      "spread": -7.0,
+      "total": 37.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-09T22:13:11Z"
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "game_id": "2026_05_NYG_WAS",
+      "spread": 4.5,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-09T22:13:11Z"
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "game_id": "2026_05_BAL_ATL",
+      "spread": 3.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-09T22:13:11Z"
     }
   ]
 }
