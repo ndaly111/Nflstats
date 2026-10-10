@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-09T22:13:11Z",
+  "generated_at": "2026-10-10T04:14:47Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -8434,6 +8434,24 @@
       "total": 43.5,
       "source": "nflverse",
       "updated_at": "2026-10-09T22:13:11Z"
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "game_id": "2026_05_HOU_TEN",
+      "spread": -7.0,
+      "total": 38.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-10T04:14:47Z"
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "game_id": "2026_05_NYG_WAS",
+      "spread": 3.5,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-10T04:14:47Z"
     }
   ]
 }
