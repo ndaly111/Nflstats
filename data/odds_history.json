@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T16:56:20Z",
+  "generated_at": "2026-10-10T21:07:58Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -8470,6 +8470,15 @@
       "total": 43.5,
       "source": "nflverse",
       "updated_at": "2026-10-10T16:56:20Z"
+    },
+    {
+      "season": 2026,
+      "week": 5,
+      "game_id": "2026_05_BUF_LA",
+      "spread": 3.5,
+      "total": 54.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-10T21:07:58Z"
     }
   ]
 }
