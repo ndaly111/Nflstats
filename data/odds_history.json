@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-13T00:07:13Z",
+  "generated_at": "2026-10-13T10:04:25Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -8848,6 +8848,33 @@
       "total": 41.5,
       "source": "nflverse",
       "updated_at": "2026-10-13T00:07:13Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_NYJ_NE",
+      "spread": 7.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-13T10:04:25Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_ARI_LA",
+      "spread": 13.5,
+      "total": 52.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-13T10:04:25Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_BUF_LV",
+      "spread": -6.0,
+      "total": 53.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-13T10:04:25Z"
     }
   ]
 }
