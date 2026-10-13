@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-13T10:04:25Z",
+  "generated_at": "2026-10-13T13:31:52Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -8875,6 +8875,15 @@
       "total": 53.5,
       "source": "nflverse",
       "updated_at": "2026-10-13T10:04:25Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_SEA_DEN",
+      "spread": -2.5,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-13T13:31:52Z"
     }
   ]
 }
