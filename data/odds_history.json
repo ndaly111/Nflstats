@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T07:58:35Z",
+  "generated_at": "2026-10-15T10:49:56Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -9163,6 +9163,15 @@
       "total": 51.5,
       "source": "nflverse",
       "updated_at": "2026-10-15T07:58:35Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_CAR_PHI",
+      "spread": -1.5,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-15T10:49:56Z"
     }
   ]
 }
