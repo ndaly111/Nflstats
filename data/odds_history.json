@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T03:06:46Z",
+  "generated_at": "2026-10-15T07:58:35Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -9154,6 +9154,15 @@
       "total": 39.5,
       "source": "nflverse",
       "updated_at": "2026-10-14T21:16:19Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_CHI_ATL",
+      "spread": -1.5,
+      "total": 51.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-15T07:58:35Z"
     }
   ]
 }
