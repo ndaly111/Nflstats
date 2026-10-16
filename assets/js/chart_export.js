@@ -242,7 +242,13 @@
   // Shows the rendered PNG on its own in a full-screen viewer so it can be
   // copied (right-click / long-press) or saved. Tap outside or Esc to close.
   function show(opts, filename) {
-    const url = render(opts).toDataURL('image/png');
+    const canvas = render(opts);
+    const url = canvas.toDataURL('image/png');
+    // Blob is created up front so the Copy tap can hand it to the clipboard
+    // inside the same user gesture (Safari requires that).
+    const blobPromise = new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+    let blobUrl = null;
+    blobPromise.then((blob) => { if (blob) { blobUrl = URL.createObjectURL(blob); img.src = blobUrl; } });
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,0.85);'
       + 'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px;';
@@ -252,14 +258,12 @@
     img.style.cssText = 'max-width:100%;max-height:calc(100vh - 110px);border-radius:8px;background:#fff;'
       + 'box-shadow:0 10px 40px rgba(0,0,0,0.4);-webkit-touch-callout:default;user-select:auto;';
     const hint = document.createElement('div');
-    hint.textContent = window.matchMedia('(pointer: coarse)').matches
-      ? 'Press and hold the image to copy or save it'
-      : 'Right-click the image to copy or save it';
+    hint.textContent = 'Tap Copy image, then paste anywhere';
     hint.style.cssText = 'color:#e2e8f0;font:500 14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;';
     const bar = document.createElement('div');
     bar.style.cssText = 'display:flex;gap:10px;';
     const btnCss = 'font:600 14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:8px 14px;'
-      + 'border-radius:10px;border:1px solid #cbd5e1;background:#fff;color:#1d4ed8;cursor:pointer;text-decoration:none;';
+      + 'border-radius:10px;border:1px solid #cbd5e1;background:#fff;color:#1d4ed8;cursor:pointer;text-decoration:none;width:auto;margin:0;';
     const dl = document.createElement('a');
     dl.href = url;
     dl.download = filename;
@@ -269,12 +273,41 @@
     close.type = 'button';
     close.textContent = 'Close';
     close.style.cssText = btnCss;
-    bar.append(dl, close);
+    const copy = document.createElement('button');
+    copy.type = 'button';
+    copy.textContent = 'Copy image';
+    copy.style.cssText = btnCss + 'background:#1d4ed8;color:#fff;border-color:#1d4ed8;';
+    const canCopy = !!(navigator.clipboard && window.ClipboardItem);
+    copy.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
+        copy.textContent = 'Copied!';
+        hint.textContent = 'Copied — paste it into a text, email, or post';
+      } catch (err) {
+        copy.textContent = 'Copy failed';
+        hint.textContent = 'Use Open image, then press and hold it to copy';
+      }
+      setTimeout(() => { copy.textContent = 'Copy image'; }, 2000);
+    });
+    const open = document.createElement('button');
+    open.type = 'button';
+    open.textContent = 'Open image';
+    open.style.cssText = btnCss;
+    open.addEventListener('click', () => {
+      // Image on its own page: long-press / right-click copy works reliably there.
+      const w = window.open(blobUrl || url, '_blank');
+      if (!w) window.location.href = blobUrl || url;
+    });
+    if (canCopy) bar.append(copy);
+    bar.append(open, dl, close);
+    bar.style.flexWrap = 'wrap';
+    bar.style.justifyContent = 'center';
     overlay.append(img, hint, bar);
 
     const prevOverflow = document.body.style.overflow;
     const dismiss = () => {
       overlay.remove();
+      if (blobUrl) setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
       document.body.style.overflow = prevOverflow;
       document.removeEventListener('keydown', onKey);
     };
