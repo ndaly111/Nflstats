@@ -53,15 +53,15 @@
 
   // Greedy placement: try positions around each dot (closest first), pick the
   // first that collides with no dot, no placed label, and stays in the plot.
-  function placeLabels(ctx, dots, plot) {
+  function placeLabels(ctx, dots, plot, dotR = DOT_R, h = 16) {
     const placed = [];
-    const order = dots.slice().sort((a, b) => crowding(b, dots) - crowding(a, dots));
-    const g = DOT_R + 3;
+    const order = dots.slice().sort((a, b) => crowding(b, dots, h * 4) - crowding(a, dots, h * 4));
+    const g = dotR + 3;
+    const k = h / 16;
     for (const d of order) {
       const w = ctx.measureText(d.label).width + 4;
-      const h = 16;
       const cands = [];
-      for (const dist of [0, 10, 22, 36]) {
+      for (const dist of [0, 10 * k, 22 * k, 36 * k]) {
         cands.push(
           { x: d.px + g + dist, y: d.py - h / 2 },
           { x: d.px - g - dist - w, y: d.py - h / 2 },
@@ -78,7 +78,7 @@
         const rect = { x: c.x, y: c.y, w, h };
         if (rect.x < plot.left + 2 || rect.x + w > plot.right - 2 || rect.y < plot.top + 2 || rect.y + h > plot.bottom - 2) continue;
         if (placed.some((p) => overlaps(p.rect, rect))) continue;
-        if (dots.some((o) => circleHitsRect(o.px, o.py, DOT_R + 2, rect))) continue;
+        if (dots.some((o) => circleHitsRect(o.px, o.py, dotR + 2, rect))) continue;
         best = rect;
         break;
       }
@@ -88,8 +88,39 @@
     return placed;
   }
 
-  function crowding(d, dots) {
-    return dots.reduce((n, o) => n + (Math.hypot(o.px - d.px, o.py - d.py) < 60 ? 1 : 0), 0);
+  function crowding(d, dots, radius) {
+    return dots.reduce((n, o) => n + (Math.hypot(o.px - d.px, o.py - d.py) < radius ? 1 : 0), 0);
+  }
+
+  // Draws placed labels: dark text with a white halo, plus a thin leader line
+  // when a label had to move away from its dot. Caller sets ctx.font first.
+  function drawLabels(ctx, dots, plot, dotR = DOT_R, h = 16) {
+    const placed = placeLabels(ctx, dots, plot, dotR, h);
+    ctx.save();
+    for (const { dot, rect } of placed) {
+      const cx = rect.x + rect.w / 2;
+      const cy = rect.y + rect.h / 2;
+      if (Math.hypot(cx - dot.px, cy - dot.py) > dotR + rect.w / 2 + 12 * (h / 16)) {
+        const ex = Math.max(rect.x, Math.min(dot.px, rect.x + rect.w));
+        const ey = Math.max(rect.y, Math.min(dot.py, rect.y + rect.h));
+        const ang = Math.atan2(ey - dot.py, ex - dot.px);
+        ctx.strokeStyle = INK_3;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(dot.px + Math.cos(ang) * (dotR + 1), dot.py + Math.sin(ang) * (dotR + 1));
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+      }
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = h / 4;
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.strokeText(dot.label, cx, cy + 1);
+      ctx.fillStyle = INK;
+      ctx.fillText(dot.label, cx, cy + 1);
+    }
+    ctx.restore();
   }
 
   function render(opts) {
@@ -185,31 +216,7 @@
 
     // Labels (with leader lines when pushed away from the dot)
     ctx.font = `700 15px ${FONT}`;
-    const placed = placeLabels(ctx, dots, plot);
-    for (const { dot, rect } of placed) {
-      const cx = rect.x + rect.w / 2;
-      const cy = rect.y + rect.h / 2;
-      const dist = Math.hypot(cx - dot.px, cy - dot.py);
-      if (dist > DOT_R + rect.w / 2 + 12) {
-        const ex = Math.max(rect.x, Math.min(dot.px, rect.x + rect.w));
-        const ey = Math.max(rect.y, Math.min(dot.py, rect.y + rect.h));
-        const ang = Math.atan2(ey - dot.py, ex - dot.px);
-        ctx.strokeStyle = INK_3;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(dot.px + Math.cos(ang) * (DOT_R + 1), dot.py + Math.sin(ang) * (DOT_R + 1));
-        ctx.lineTo(ex, ey);
-        ctx.stroke();
-      }
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.lineJoin = 'round';
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-      ctx.strokeText(dot.label, cx, cy + 1);
-      ctx.fillStyle = INK;
-      ctx.fillText(dot.label, cx, cy + 1);
-    }
+    drawLabels(ctx, dots, plot);
     ctx.textBaseline = 'alphabetic';
 
     // Footer
@@ -251,5 +258,5 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  window.EpaChartExport = { render, download };
+  window.EpaChartExport = { render, download, drawLabels, QUADS };
 })();

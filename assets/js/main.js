@@ -96,6 +96,52 @@
       }
     };
 
+    // Team labels beside the dots (collision-avoiding), quadrant corner labels, solid zero lines.
+    const scatterLabelPlugin = {
+      id: 'scatterLabels',
+      afterDatasetsDraw(chartInstance) {
+        const { ctx, chartArea, scales } = chartInstance;
+        const exporter = window.EpaChartExport;
+        if (!chartArea || !exporter) return;
+        const small = chartArea.right - chartArea.left < 500;
+        const fontPx = small ? 10 : 12;
+        const fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        const plot = { left: chartArea.left, right: chartArea.right, top: chartArea.top, bottom: chartArea.bottom };
+
+        ctx.save();
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.25;
+        const x0 = scales.x.getPixelForValue(0);
+        const y0 = scales.y.getPixelForValue(0);
+        if (x0 > plot.left && x0 < plot.right) { ctx.beginPath(); ctx.moveTo(x0, plot.top); ctx.lineTo(x0, plot.bottom); ctx.stroke(); }
+        if (y0 > plot.top && y0 < plot.bottom) { ctx.beginPath(); ctx.moveTo(plot.left, y0); ctx.lineTo(plot.right, y0); ctx.stroke(); }
+
+        const q = exporter.QUADS;
+        const qText = small
+          ? { tl: 'BAD O \u00b7 GOOD D', tr: 'GOOD O \u00b7 GOOD D', bl: 'BAD O \u00b7 BAD D', br: 'GOOD O \u00b7 BAD D' }
+          : { tl: q.tl.label.toUpperCase(), tr: q.tr.label.toUpperCase(), bl: q.bl.label.toUpperCase(), br: q.br.label.toUpperCase() };
+        ctx.font = `600 ${small ? 9 : 11}px ${fontFamily}`;
+        const pad = 6;
+        const corner = (key, x, y, align, baseline) => {
+          ctx.fillStyle = q[key].text;
+          ctx.textAlign = align;
+          ctx.textBaseline = baseline;
+          ctx.fillText(qText[key], x, y);
+        };
+        corner('tl', plot.left + pad, plot.top + pad, 'left', 'top');
+        corner('tr', plot.right - pad, plot.top + pad, 'right', 'top');
+        corner('bl', plot.left + pad, plot.bottom - pad, 'left', 'bottom');
+        corner('br', plot.right - pad, plot.bottom - pad, 'right', 'bottom');
+
+        const meta = chartInstance.getDatasetMeta(0);
+        const raw = chartInstance.data.datasets[0].data;
+        const dots = meta.data.map((el, i) => ({ px: el.x, py: el.y, label: raw[i].label }));
+        ctx.font = `700 ${fontPx}px ${fontFamily}`;
+        exporter.drawLabels(ctx, dots, plot, chartInstance.data.datasets[0].pointRadius, fontPx + 3);
+        ctx.restore();
+      },
+    };
+
     const zeroLinePlugin = {
       id: 'zeroLine',
       afterDraw(chartInstance) {
@@ -525,12 +571,10 @@
             : `through Week ${endWeek}`;
         subtitleParts.push(`SOS-adjusted offense/defense EPA (opp basis: ${basisLabel})`);
       }
-      const offenseAxisLabel = metricMode === 'sos'
-        ? 'Offense EPA per play (SOS-adjusted via opponent defenses)'
-        : 'Offense EPA per play (higher = better offense)';
-      const defenseAxisLabel = metricMode === 'sos'
-        ? 'Defense EPA per play (SOS-adjusted via opponent offenses)'
-        : 'Defense EPA per play (higher = better defense)';
+      const adjNote = metricMode === 'sos' ? ', opp-adjusted' : '';
+      const offenseAxisLabel = `Offense EPA/play${adjNote}  (\u2192 better)`;
+      const defenseAxisLabel = `Defense EPA/play${adjNote}  (\u2192 better)`;
+      const tickFmt = (v) => (Math.abs(v) < 1e-9 ? '0' : `${v > 0 ? '+' : ''}${Number(v.toFixed(2))}`);
 
       lastScatterExport = {
         points: points.map((p) => ({ x: p.x, y: p.y, label: p.label, color: p.backgroundColor })),
@@ -547,11 +591,11 @@
         data: { datasets: [{
           label: 'EPA per play',
           data: points,
-          pointRadius: 12,
-          pointHoverRadius: 14,
+          pointRadius: window.innerWidth < 640 ? 6 : 8,
+          pointHoverRadius: window.innerWidth < 640 ? 8 : 10,
           backgroundColor: points.map((p) => p.backgroundColor),
           pointBackgroundColor: points.map((p) => p.backgroundColor),
-          pointBorderColor: points.map((p) => p.borderColor),
+          pointBorderColor: '#ffffff',
           pointBorderWidth: 1.5,
         }] },
         options: {
@@ -562,16 +606,6 @@
             legend: { display: false },
             title: { display: false },
             subtitle: { display: false, text: subtitleParts.join(' — ') },
-            datalabels: {
-              backgroundColor: null,
-              borderWidth: 0,
-              color: '#0f172a',
-              formatter: (value) => value.label,
-              font: { weight: 'bold', size: 11 },
-              padding: { top: 2, bottom: 2, left: 2, right: 2 },
-              textStrokeColor: '#fff',
-              textStrokeWidth: 3,
-            },
             tooltip: {
               callbacks: {
                 label: (ctx) => {
@@ -584,16 +618,20 @@
           },
           scales: {
             x: {
-              title: { display: true, text: offenseAxisLabel },
+              title: { display: true, text: offenseAxisLabel, color: '#0f172a', font: { weight: '600' } },
               grid: { color: '#e2e8f0' },
+              ticks: { callback: tickFmt, color: '#475569', maxTicksLimit: 9 },
+              grace: '4%',
             },
             y: {
-              title: { display: true, text: defenseAxisLabel },
+              title: { display: true, text: defenseAxisLabel, color: '#0f172a', font: { weight: '600' } },
               grid: { color: '#e2e8f0' },
+              ticks: { callback: tickFmt, color: '#475569', maxTicksLimit: 9 },
+              grace: '4%',
             },
           },
         },
-        plugins: [ChartDataLabels, quadrantPlugin],
+        plugins: [quadrantPlugin, scatterLabelPlugin],
       });
     }
 
