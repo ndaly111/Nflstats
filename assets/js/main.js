@@ -100,6 +100,14 @@
     // Team labels beside the dots (collision-avoiding), quadrant corner labels, solid zero lines.
     const scatterLabelPlugin = {
       id: 'scatterLabels',
+      beforeDatasetsDraw(chartInstance) {
+        const exporter = window.EpaChartExport;
+        const ds = chartInstance.data.datasets[1];
+        if (!exporter || !ds) return;
+        const meta = chartInstance.getDatasetMeta(1);
+        if (meta.hidden) return;
+        meta.data.forEach((el) => exporter.drawGlow(chartInstance.ctx, el.x, el.y, ds.pointRadius));
+      },
       afterDatasetsDraw(chartInstance) {
         const { ctx, chartArea, scales } = chartInstance;
         const exporter = window.EpaChartExport;

@@ -88,6 +88,20 @@
     return placed;
   }
 
+  // Soft yellow halo that marks a historically significant team.
+  function drawGlow(ctx, x, y, r) {
+    const g = ctx.createRadialGradient(x, y, r * 0.6, x, y, r * 2.4);
+    g.addColorStop(0, 'rgba(250, 204, 21, 0.75)');
+    g.addColorStop(0.45, 'rgba(250, 204, 21, 0.35)');
+    g.addColorStop(1, 'rgba(250, 204, 21, 0)');
+    ctx.save();
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 2.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
   function crowding(d, dots, radius) {
     return dots.reduce((n, o) => n + (Math.hypot(o.px - d.px, o.py - d.py) < radius ? 1 : 0), 0);
   }
@@ -202,8 +216,9 @@
     ctx.fillText(yLabel, 0, 0);
     ctx.restore();
 
-    // Dots
+    // Dots (glows first so no halo covers a neighboring dot)
     const dots = points.map((p) => ({ ...p, px: sx(p.x), py: sy(p.y) }));
+    for (const d of dots) if (d.shape === 'diamond') drawGlow(ctx, d.px, d.py, DOT_R + 2);
     for (const d of dots) {
       ctx.beginPath();
       if (d.shape === 'diamond') {
@@ -264,5 +279,5 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  window.EpaChartExport = { render, download, drawLabels, QUADS };
+  window.EpaChartExport = { render, download, drawLabels, drawGlow, QUADS };
 })();
