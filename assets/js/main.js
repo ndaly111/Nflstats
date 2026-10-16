@@ -561,7 +561,7 @@
         .filter(Boolean);
     }
 
-    // All-time reference teams: top-2 offenses and defenses ever (full season incl. playoffs,
+    // All-time reference teams: top-2 offenses ever, three hand-picked legendary defenses (full season incl. playoffs,
     // same basis as the Hall of Fame page), the 2008 Lions, and the prior season's champion.
     // Completed seasons only; a team from the season on screen is skipped (it's already a dot).
     function buildBenchmarkPoints(selectedSeasonKey) {
@@ -589,9 +589,10 @@
       const eligible = seasonRows.filter((r) => r.season !== String(selectedSeasonKey));
       eligible.slice().sort((a, b) => b.off - a.off).slice(0, 2)
         .forEach((r, i) => add(r, `#${i + 1} offense of all time`));
-      eligible.slice().sort((a, b) => b.def - a.def).slice(0, 2)
-        .forEach((r, i) => add(r, `#${i + 1} defense of all time`));
-      add(seasonRows.find((r) => r.season === '2008' && normalizeTeamAbbr(r.team) === 'DET'), '0\u201316 Lions');
+      const findTeam = (seasonKey, abbr) => seasonRows.find((r) => r.season === seasonKey && normalizeTeamAbbr(r.team) === abbr);
+      [['2000', 'BAL'], ['2002', 'TB'], ['2013', 'SEA']]
+        .forEach(([seasonKey, abbr]) => add(findTeam(seasonKey, abbr), 'Legendary defense'));
+      add(findTeam('2008', 'DET'), '0\u201316 Lions');
 
       const prevSeason = seasonData[String(Number(selectedSeasonKey) - 1)];
       if (prevSeason && Array.isArray(prevSeason.games) && prevSeason.games.length) {
