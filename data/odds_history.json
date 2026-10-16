@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-16T03:03:29Z",
+  "generated_at": "2026-10-16T07:52:41Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -9226,6 +9226,15 @@
       "total": 53.5,
       "source": "nflverse",
       "updated_at": "2026-10-16T03:03:29Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_LAC_KC",
+      "spread": 7.5,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-16T07:52:41Z"
     }
   ]
 }

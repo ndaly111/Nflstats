@@ -397755,7 +397755,8 @@
         2,
         3,
         4,
-        5
+        5,
+        6
       ],
       "teams": [
         {
@@ -398491,6 +398492,20 @@
               "def_pass_plays": 28,
               "def_rush": 0.25457040734438446,
               "def_rush_plays": 34
+            },
+            "6": {
+              "off": -0.05733621639860376,
+              "off_plays": 77,
+              "def": 0.0636569442064547,
+              "def_plays": 102,
+              "off_pass": -0.20969011005343355,
+              "off_pass_plays": 29,
+              "off_rush": -0.07299292568227328,
+              "off_rush_plays": 27,
+              "def_pass": 0.12096879033388616,
+              "def_pass_plays": 55,
+              "def_rush": 0.015162885706209077,
+              "def_rush_plays": 26
             }
           }
         },
@@ -399827,6 +399842,20 @@
               "def_pass_plays": 33,
               "def_rush": 0.2031617973255435,
               "def_rush_plays": 22
+            },
+            "6": {
+              "off": -0.0636569442064547,
+              "off_plays": 102,
+              "def": 0.05733621639860376,
+              "def_plays": 77,
+              "off_pass": -0.12096879033388616,
+              "off_pass_plays": 55,
+              "off_rush": -0.015162885706209077,
+              "off_rush_plays": 26,
+              "def_pass": 0.20969011005343355,
+              "def_pass_plays": 29,
+              "def_rush": 0.07299292568227328,
+              "def_rush_plays": 27
             }
           }
         },
@@ -402343,10 +402372,38 @@
           "points_against": 16,
           "net_epa_pp": 0.15263497081325395,
           "plays": 163
+        },
+        {
+          "game_id": "2026_06_SEA_DEN",
+          "week": 6,
+          "team": "DEN",
+          "opp": "SEA",
+          "off_epa_pp": -0.05733621639860376,
+          "def_epa_pp": 0.0636569442064547,
+          "off_plays": 77,
+          "def_plays": 102,
+          "points_for": 17,
+          "points_against": 14,
+          "net_epa_pp": 0.00632072780785093,
+          "plays": 179
+        },
+        {
+          "game_id": "2026_06_SEA_DEN",
+          "week": 6,
+          "team": "SEA",
+          "opp": "DEN",
+          "off_epa_pp": -0.0636569442064547,
+          "def_epa_pp": 0.05733621639860376,
+          "off_plays": 102,
+          "def_plays": 77,
+          "points_for": 14,
+          "points_against": 17,
+          "net_epa_pp": -0.00632072780785093,
+          "plays": 179
         }
       ]
     }
   },
-  "generated_at": "2026-10-15T07:58:32Z",
-  "git_sha": "7292f278a742c920639df4275e4ed73f35ac99e3"
+  "generated_at": "2026-10-16T07:52:38Z",
+  "git_sha": "a93d95cd03a4fdbcdfbd8e899b1b201ffcbc5d7d"
 }
