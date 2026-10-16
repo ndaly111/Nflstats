@@ -1173,10 +1173,13 @@
       if (!team) return null;
       const weeks = regularGameWeeks(team, year);
       const selected = weeks.filter((week) => week >= start && week <= end);
-      const hasPostseason = Object.keys(team.weeks).some((week) =>
-        Number(week) > getRegSeasonMax(year) && Number(week) >= start && Number(week) <= end);
-      if (!selected.length || hasPostseason) return null;
-      return { first: weeks.indexOf(selected[0]) + 1, last: weeks.indexOf(selected.at(-1)) + 1 };
+      // Playoff games stay in the team's number; the tier compares it with the same
+      // regular-season game span historically (playoff counts vary, so no exact match exists).
+      const playoffGames = Object.entries(team.weeks).filter(([week, value]) =>
+        Number(week) > getRegSeasonMax(year) && Number(week) >= start && Number(week) <= end &&
+        Number.isFinite(value.off)).length;
+      if (!selected.length) return null;
+      return { first: weeks.indexOf(selected[0]) + 1, last: weeks.indexOf(selected.at(-1)) + 1, playoffGames };
     }
 
     function historicalReference(metricMode, sample, sosBasis = 'season_to_date') {
@@ -1233,7 +1236,7 @@
       const period = sample.first === 1 ? `first ${count} game${count === 1 ? '' : 's'}` : `games ${sample.first}–${sample.last}`;
       const early = count < 4;
       const years = reference.metricSeasons?.[metric] || reference.seasons;
-      const label = `${tier} historical tier: approximately ${percentile.toFixed(1)} percentile among ${values.length} historical teams over their ${period} (${Math.min(...years)}–${Math.max(...years)}), ${metricMode === 'sos' ? 'SOS-adjusted' : 'raw'} ${metric} EPA/play. Byes excluded.${early ? ' Early sample: describes this start or stretch, not proven team quality.' : ''}`;
+      const label = `${tier} historical tier: approximately ${percentile.toFixed(1)} percentile among ${values.length} historical teams over their ${period} (${Math.min(...years)}–${Math.max(...years)}), ${metricMode === 'sos' ? 'SOS-adjusted' : 'raw'} ${metric} EPA/play. Byes excluded.${sample.playoffGames ? ` This team's number includes ${sample.playoffGames} playoff game${sample.playoffGames === 1 ? '' : 's'}; historical teams are compared on regular-season games only.` : ''}${early ? ' Early sample: describes this start or stretch, not proven team quality.' : ''}`;
       return `<span class="historical-tier tier-${tier.toLowerCase()}" tabindex="0" title="${label}" aria-label="${label}">${tier}</span>`;
     }
 
