@@ -716,7 +716,7 @@
 
     document.getElementById('download-chart-btn')?.addEventListener('click', () => {
       if (!lastScatterExport || !window.EpaChartExport) return;
-      window.EpaChartExport.download(lastScatterExport, lastScatterExport.filename);
+      window.EpaChartExport.show(lastScatterExport, lastScatterExport.filename);
     });
 
     function buildTeamWeeklyRows(seasonKey, team) {

@@ -239,30 +239,52 @@
     return canvas;
   }
 
-  async function download(opts, filename) {
-    const canvas = render(opts);
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
-    if (!blob) return;
-    const file = new File([blob], filename, { type: 'image/png' });
-    // On phones the share sheet is the way to "Save Image" to Photos.
-    const touch = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-    if (touch && navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title: opts.title });
-        return;
-      } catch (err) {
-        if (err && err.name === 'AbortError') return;
-      }
-    }
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // Shows the rendered PNG on its own in a full-screen viewer so it can be
+  // copied (right-click / long-press) or saved. Tap outside or Esc to close.
+  function show(opts, filename) {
+    const url = render(opts).toDataURL('image/png');
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,0.85);'
+      + 'display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px;';
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = opts.title;
+    img.style.cssText = 'max-width:100%;max-height:calc(100vh - 110px);border-radius:8px;background:#fff;'
+      + 'box-shadow:0 10px 40px rgba(0,0,0,0.4);-webkit-touch-callout:default;user-select:auto;';
+    const hint = document.createElement('div');
+    hint.textContent = window.matchMedia('(pointer: coarse)').matches
+      ? 'Press and hold the image to copy or save it'
+      : 'Right-click the image to copy or save it';
+    hint.style.cssText = 'color:#e2e8f0;font:500 14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;';
+    const bar = document.createElement('div');
+    bar.style.cssText = 'display:flex;gap:10px;';
+    const btnCss = 'font:600 14px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:8px 14px;'
+      + 'border-radius:10px;border:1px solid #cbd5e1;background:#fff;color:#1d4ed8;cursor:pointer;text-decoration:none;';
+    const dl = document.createElement('a');
+    dl.href = url;
+    dl.download = filename;
+    dl.textContent = 'Download';
+    dl.style.cssText = btnCss;
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = 'Close';
+    close.style.cssText = btnCss;
+    bar.append(dl, close);
+    overlay.append(img, hint, bar);
+
+    const prevOverflow = document.body.style.overflow;
+    const dismiss = () => {
+      overlay.remove();
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') dismiss(); };
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) dismiss(); });
+    close.addEventListener('click', dismiss);
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    document.body.appendChild(overlay);
   }
 
-  window.EpaChartExport = { render, download, drawLabels, QUADS };
+  window.EpaChartExport = { render, show, drawLabels, QUADS };
 })();
