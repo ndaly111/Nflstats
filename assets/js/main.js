@@ -64,6 +64,7 @@
 
     let scatterChart;
     let lastScatterExport = null;
+    let showBenchmarks = false;
     let teamCombinedChart;
     let teamOffChart;
     let teamDefChart;
@@ -133,9 +134,10 @@
         corner('bl', plot.left + pad, plot.bottom - pad, 'left', 'bottom');
         corner('br', plot.right - pad, plot.bottom - pad, 'right', 'bottom');
 
-        const meta = chartInstance.getDatasetMeta(0);
-        const raw = chartInstance.data.datasets[0].data;
-        const dots = meta.data.map((el, i) => ({ px: el.x, py: el.y, label: raw[i].label }));
+        const dots = chartInstance.data.datasets.flatMap((ds, di) => {
+          const meta = chartInstance.getDatasetMeta(di);
+          return meta.hidden ? [] : meta.data.map((el, i) => ({ px: el.x, py: el.y, label: ds.data[i].label }));
+        });
         ctx.font = `700 ${fontPx}px ${fontFamily}`;
         exporter.drawLabels(ctx, dots, plot, chartInstance.data.datasets[0].pointRadius, fontPx + 3);
         ctx.restore();
@@ -559,7 +561,62 @@
         .filter(Boolean);
     }
 
+    // All-time reference teams: top-2 offenses and defenses ever (full season incl. playoffs,
+    // same basis as the Hall of Fame page), the 2008 Lions, and the prior season's champion.
+    // Completed seasons only; a team from the season on screen is skipped (it's already a dot).
+    function buildBenchmarkPoints(selectedSeasonKey) {
+      const seasonRows = [];
+      Object.entries(seasonData).forEach(([seasonKey, season]) => {
+        if (!Array.isArray(season.weeks) || season.weeks.length === 0) return;
+        const endWeek = Math.max(...season.weeks);
+        if (endWeek < 19) return;
+        const startWeek = Math.min(...season.weeks);
+        season.teams.forEach((teamEntry) => {
+          const weeks = {};
+          Object.entries(teamEntry.weeks).forEach(([week, values]) => { weeks[Number(week)] = values; });
+          const avg = averageWeeks(weeks, startWeek, endWeek);
+          if (avg) seasonRows.push({ season: seasonKey, team: teamEntry.team, off: avg.off, def: avg.def });
+        });
+      });
+
+      const picks = new Map();
+      const add = (row, tag) => {
+        if (!row || row.season === String(selectedSeasonKey)) return;
+        const key = `${row.season}-${row.team}`;
+        if (picks.has(key)) picks.get(key).tags.push(tag);
+        else picks.set(key, { ...row, tags: [tag] });
+      };
+      const eligible = seasonRows.filter((r) => r.season !== String(selectedSeasonKey));
+      eligible.slice().sort((a, b) => b.off - a.off).slice(0, 2)
+        .forEach((r, i) => add(r, `#${i + 1} offense of all time`));
+      eligible.slice().sort((a, b) => b.def - a.def).slice(0, 2)
+        .forEach((r, i) => add(r, `#${i + 1} defense of all time`));
+      add(seasonRows.find((r) => r.season === '2008' && normalizeTeamAbbr(r.team) === 'DET'), '0\u201316 Lions');
+
+      const prevSeason = seasonData[String(Number(selectedSeasonKey) - 1)];
+      if (prevSeason && Array.isArray(prevSeason.games) && prevSeason.games.length) {
+        const lastWeek = Math.max(...prevSeason.games.map((g) => g.week));
+        const sb = prevSeason.games.find((g) => g.week === lastWeek && g.points_for > g.points_against);
+        if (sb && lastWeek >= 19) {
+          add(seasonRows.find((r) => r.season === String(Number(selectedSeasonKey) - 1) && r.team === sb.team),
+            'Defending Super Bowl champ');
+        }
+      }
+
+      return [...picks.values()].map((r) => {
+        const abbr = normalizeTeamAbbr(r.team);
+        return {
+          x: r.off,
+          y: r.def,
+          label: `${r.season} ${abbr}`,
+          tag: r.tags.join(' \u00b7 '),
+          backgroundColor: TEAM_COLORS[abbr] || '#0f172a',
+        };
+      });
+    }
+
     function renderScatterChart(points, seasonLabel, startWeek, endWeek, metricMode, sosBasis) {
+      const benchmarks = showBenchmarks ? buildBenchmarkPoints(seasonLabel) : [];
       if (scatterChart) scatterChart.destroy();
       const subtitle = startWeek === endWeek ? `Week ${startWeek}` : `Weeks ${startWeek}\u2013${endWeek}`;
       const subtitleParts = [subtitle];
@@ -577,7 +634,9 @@
       const tickFmt = (v) => (Math.abs(v) < 1e-9 ? '0' : `${v > 0 ? '+' : ''}${Number(v.toFixed(2))}`);
 
       lastScatterExport = {
-        points: points.map((p) => ({ x: p.x, y: p.y, label: p.label, color: p.backgroundColor })),
+        points: points.map((p) => ({ x: p.x, y: p.y, label: p.label, color: p.backgroundColor }))
+          .concat(benchmarks.map((p) => ({ x: p.x, y: p.y, label: p.label, color: p.backgroundColor, shape: 'diamond' }))),
+        legend: benchmarks.length ? '\u25c6 All-time reference teams (full season, unadjusted)' : '',
         title: `NFL Offense vs. Defense EPA — ${seasonLabel}`,
         subtitle: [subtitle, 'EPA per play', metricMode === 'sos' ? 'Adjusted for opponent strength' : 'Unadjusted'].join(' · '),
         xLabel: 'Offense EPA per play  (→ better offense)',
@@ -597,7 +656,17 @@
           pointBackgroundColor: points.map((p) => p.backgroundColor),
           pointBorderColor: '#ffffff',
           pointBorderWidth: 1.5,
-        }] },
+        }].concat(benchmarks.length ? [{
+          label: 'All-time reference teams',
+          data: benchmarks,
+          pointStyle: 'rectRot',
+          pointRadius: (window.innerWidth < 640 ? 6 : 8) + 1,
+          pointHoverRadius: (window.innerWidth < 640 ? 8 : 10) + 1,
+          backgroundColor: benchmarks.map((p) => p.backgroundColor),
+          pointBackgroundColor: benchmarks.map((p) => p.backgroundColor),
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 1.5,
+        }] : []) },
         options: {
           responsive: true,
           maintainAspectRatio: false,
@@ -609,7 +678,8 @@
             tooltip: {
               callbacks: {
                 label: (ctx) => {
-                  const { x, y, label } = ctx.raw;
+                  const { x, y, label, tag } = ctx.raw;
+                  if (tag) return `${label} (${tag}): Off ${x.toFixed(3)}, Def ${y.toFixed(3)}`;
                   const shiftedNote = metricMode === 'sos' ? ' (SOS-adjusted)' : '';
                   return `${label}: Off ${x.toFixed(3)}, Def ${y.toFixed(3)}${shiftedNote}`;
                 },
@@ -634,6 +704,14 @@
         plugins: [quadrantPlugin, scatterLabelPlugin],
       });
     }
+
+    const benchmarksBtn = document.getElementById('benchmarks-btn');
+    benchmarksBtn?.addEventListener('click', () => {
+      showBenchmarks = !showBenchmarks;
+      benchmarksBtn.setAttribute('aria-pressed', String(showBenchmarks));
+      benchmarksBtn.textContent = showBenchmarks ? 'Hide all-time teams' : 'Show all-time teams';
+      refreshChart();
+    });
 
     document.getElementById('download-chart-btn')?.addEventListener('click', () => {
       if (!lastScatterExport || !window.EpaChartExport) return;

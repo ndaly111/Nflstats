@@ -124,7 +124,7 @@
   }
 
   function render(opts) {
-    const { points, title, subtitle, xLabel, yLabel, footer } = opts;
+    const { points, title, subtitle, xLabel, yLabel, footer, legend } = opts;
     const canvas = document.createElement('canvas');
     canvas.width = W * SCALE;
     canvas.height = H * SCALE;
@@ -206,7 +206,13 @@
     const dots = points.map((p) => ({ ...p, px: sx(p.x), py: sy(p.y) }));
     for (const d of dots) {
       ctx.beginPath();
-      ctx.arc(d.px, d.py, DOT_R, 0, Math.PI * 2);
+      if (d.shape === 'diamond') {
+        const r = DOT_R + 2;
+        ctx.moveTo(d.px, d.py - r); ctx.lineTo(d.px + r, d.py); ctx.lineTo(d.px, d.py + r); ctx.lineTo(d.px - r, d.py);
+        ctx.closePath();
+      } else {
+        ctx.arc(d.px, d.py, DOT_R, 0, Math.PI * 2);
+      }
       ctx.fillStyle = d.color || INK;
       ctx.fill();
       ctx.lineWidth = 2;
@@ -226,7 +232,7 @@
     ctx.font = `400 14px ${FONT}`;
     ctx.fillStyle = INK_3;
     ctx.textAlign = 'left';
-    ctx.fillText(footer, 56, H - 24);
+    ctx.fillText(legend ? `${footer} \u00b7 ${legend}` : footer, 56, H - 24);
     ctx.textAlign = 'right';
     ctx.fillText('ndaly111.github.io/Nflstats', W - 56, H - 24);
 

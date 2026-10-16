@@ -100,6 +100,8 @@
     .chart-actions {
       display: flex;
       justify-content: flex-end;
+      gap: 0.5rem;
+      flex-wrap: wrap;
       margin: 0.5rem 0 1rem;
     }
 
@@ -114,6 +116,7 @@
     }
 
     .download-btn:hover { background: #eff6ff; }
+    .download-btn[aria-pressed="true"] { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
 
     .chart-wrap canvas {
       display: block;
@@ -481,6 +484,7 @@
           <canvas id="epa-chart" aria-label="EPA scatter chart" role="img"></canvas>
         </div>
         <div class="chart-actions">
+          <button id="benchmarks-btn" type="button" class="download-btn" aria-pressed="false">Show all-time teams</button>
           <button id="download-chart-btn" type="button" class="download-btn">Download chart (PNG)</button>
         </div>
 
@@ -598,7 +602,7 @@
     </footer>
   </main>
 
-  <script src="assets/js/chart_export.js?v=2"></script>
-  <script src="assets/js/main.js?v=chart-export-2"></script>
+  <script src="assets/js/chart_export.js?v=3"></script>
+  <script src="assets/js/main.js?v=chart-export-3"></script>
 </body>
 </html>
