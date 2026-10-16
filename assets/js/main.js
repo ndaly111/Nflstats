@@ -63,6 +63,7 @@
     const DATA_URL = new URL('data/epa.json', document.baseURI);
 
     let scatterChart;
+    let lastScatterExport = null;
     let teamCombinedChart;
     let teamOffChart;
     let teamDefChart;
@@ -531,6 +532,16 @@
         ? 'Defense EPA per play (SOS-adjusted via opponent offenses)'
         : 'Defense EPA per play (higher = better defense)';
 
+      lastScatterExport = {
+        points: points.map((p) => ({ x: p.x, y: p.y, label: p.label, color: p.backgroundColor })),
+        title: `NFL Offense vs. Defense EPA — ${seasonLabel}`,
+        subtitle: [subtitle, 'EPA per play', metricMode === 'sos' ? 'Adjusted for opponent strength' : 'Unadjusted'].join(' · '),
+        xLabel: 'Offense EPA per play  (→ better offense)',
+        yLabel: 'Defense EPA per play  (→ better defense)',
+        footer: `Data: nflverse play-by-play · Updated ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+        filename: `nfl-epa-${seasonLabel}-wk${startWeek}${startWeek === endWeek ? '' : `-${endWeek}`}${metricMode === 'sos' ? '-sos' : ''}.png`,
+      };
+
       scatterChart = new Chart(scatterCtx, {
         type: 'scatter',
         data: { datasets: [{
@@ -585,6 +596,11 @@
         plugins: [ChartDataLabels, quadrantPlugin],
       });
     }
+
+    document.getElementById('download-chart-btn')?.addEventListener('click', () => {
+      if (!lastScatterExport || !window.EpaChartExport) return;
+      window.EpaChartExport.download(lastScatterExport, lastScatterExport.filename);
+    });
 
     function buildTeamWeeklyRows(seasonKey, team) {
       const season = seasonData[seasonKey];

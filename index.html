@@ -97,6 +97,24 @@
       overflow: hidden;
     }
 
+    .chart-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin: 0.5rem 0 1rem;
+    }
+
+    .download-btn {
+      background: #fff;
+      color: #1d4ed8;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 0.5rem 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .download-btn:hover { background: #eff6ff; }
+
     .chart-wrap canvas {
       display: block;
       width: 100% !important;
@@ -462,6 +480,9 @@
         <div class="chart-wrap">
           <canvas id="epa-chart" aria-label="EPA scatter chart" role="img"></canvas>
         </div>
+        <div class="chart-actions">
+          <button id="download-chart-btn" type="button" class="download-btn">Download chart (PNG)</button>
+        </div>
 
         <section id="table-section" class="table-wrapper">
           <h2>EPA/play table</h2>
@@ -577,6 +598,7 @@
     </footer>
   </main>
 
-  <script src="assets/js/main.js?v=split-tiers-1"></script>
+  <script src="assets/js/chart_export.js?v=1"></script>
+  <script src="assets/js/main.js?v=chart-export-1"></script>
 </body>
 </html>
