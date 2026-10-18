@@ -1,3 +1,19 @@
+    // Follows the OS/browser dark-mode setting (same query as assets/css/dark.css).
+    const DARK_MODE = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+    const INK = DARK_MODE ? '#e2e8f0' : '#0f172a';
+    const PAPER = DARK_MODE ? '#111827' : '#ffffff';
+
+    // Very dark team colors (NE, PIT, LV...) vanish against the dark theme; lift them toward white.
+    function readableOnDark(hex) {
+      if (!DARK_MODE || typeof hex !== 'string' || !/^#[0-9a-f]{6}$/i.test(hex)) return hex;
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+      const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+      if (lum >= 0.35) return hex;
+      const t = Math.min(0.65, 0.35 - lum + 0.3);
+      const mix = (c) => Math.round(c + (255 - c) * t);
+      return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`;
+    }
+
     const statusEl = document.getElementById('status');
     const metaEl = document.getElementById('meta');
     const seasonSelect = document.getElementById('season-select');
@@ -1014,6 +1030,7 @@
     function accentTextColor(hex) {
       const lum = relativeLuminance(hex);
       if (!Number.isFinite(lum)) return hex;
+      if (DARK_MODE) return readableOnDark(hex);
       return lum > 0.55 ? '#0f172a' : hex;
     }
 
@@ -1328,11 +1345,11 @@
       head.className = 'matchup-row matchup-row--head';
       const offHead = document.createElement('div');
       offHead.className = 'matchup-row__team';
-      offHead.style.setProperty('--team', teamColor(lane.off));
+      offHead.style.setProperty('--team', readableOnDark(teamColor(lane.off)));
       offHead.innerHTML = `<b>${lane.off}</b> OFF`;
       const defHead = document.createElement('div');
       defHead.className = 'matchup-row__team';
-      defHead.style.setProperty('--team', teamColor(lane.def));
+      defHead.style.setProperty('--team', readableOnDark(teamColor(lane.def)));
       defHead.innerHTML = `<b>${lane.def}</b> DEF`;
       head.innerHTML = '<div class="matchup-row__label"></div>';
       head.appendChild(offHead);
@@ -1487,7 +1504,7 @@
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', d);
       path.setAttribute('fill', 'none');
-      path.setAttribute('stroke', '#0f172a');
+      path.setAttribute('stroke', INK);
       path.setAttribute('stroke-width', '2');
       path.setAttribute('stroke-linecap', 'round');
 
@@ -1513,8 +1530,8 @@
         circle.setAttribute('cx', x.toFixed(2));
         circle.setAttribute('cy', y.toFixed(2));
         circle.setAttribute('r', isLast ? '3' : '2');
-        circle.setAttribute('fill', '#0f172a');
-        circle.setAttribute('stroke', '#ffffff');
+        circle.setAttribute('fill', INK);
+        circle.setAttribute('stroke', PAPER);
         circle.setAttribute('stroke-width', '1');
         circle.setAttribute('class', 'spark-dot');
         const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');

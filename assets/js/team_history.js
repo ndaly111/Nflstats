@@ -1,3 +1,12 @@
+    // Follows the OS/browser dark-mode setting (same query as assets/css/dark.css).
+    const DARK_MODE = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+    const INK_MUTED = DARK_MODE ? '#94a3b8' : '#475569';
+    const GRID = DARK_MODE ? '#334155' : '#e2e8f0';
+    if (DARK_MODE && window.Chart) {
+      Chart.defaults.color = INK_MUTED;
+      Chart.defaults.borderColor = GRID;
+    }
+
     const TEAM_ALIASES = { WSH: 'WAS', JAC: 'JAX', OAK: 'LV', SD: 'LAC', STL: 'LAR', LA: 'LAR' };
 
     function normalizeTeam(code) {

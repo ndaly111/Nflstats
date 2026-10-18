@@ -1,3 +1,24 @@
+    // Follows the OS/browser dark-mode setting (same query as assets/css/dark.css).
+    const DARK_MODE = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+    const INK = DARK_MODE ? '#e2e8f0' : '#0f172a';
+    const INK_MUTED = DARK_MODE ? '#94a3b8' : '#475569';
+    const GRID = DARK_MODE ? '#334155' : '#e2e8f0';
+    if (DARK_MODE && window.Chart) {
+      Chart.defaults.color = INK_MUTED;
+      Chart.defaults.borderColor = GRID;
+    }
+
+    // Very dark team colors (NE, PIT, LV...) vanish against the dark theme; lift them toward white.
+    function readableOnDark(hex) {
+      if (!DARK_MODE || typeof hex !== 'string' || !/^#[0-9a-f]{6}$/i.test(hex)) return hex;
+      const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+      const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+      if (lum >= 0.35) return hex;
+      const t = Math.min(0.65, 0.35 - lum + 0.3);
+      const mix = (c) => Math.round(c + (255 - c) * t);
+      return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`;
+    }
+
     const TEAM_COLORS = {
       ARI: '#97233F', ATL: '#A71930', BAL: '#241773', BUF: '#00338D', CAR: '#0085CA', CHI: '#0B162A',
       CIN: '#FB4F14', CLE: '#311D00', DAL: '#003594', DEN: '#FB4F14', DET: '#0076B6', GB: '#203731',
@@ -124,7 +145,7 @@
         ctx.font = `600 ${small ? 9 : 11}px ${fontFamily}`;
         const pad = 6;
         const corner = (key, x, y, align, baseline) => {
-          ctx.fillStyle = q[key].text;
+          ctx.fillStyle = DARK_MODE ? mixColors(q[key].text, '#ffffff', 0.45) : q[key].text;
           ctx.textAlign = align;
           ctx.textBaseline = baseline;
           ctx.fillText(qText[key], x, y);
@@ -689,15 +710,15 @@
           },
           scales: {
             x: {
-              title: { display: true, text: offenseAxisLabel, color: '#0f172a', font: { weight: '600' } },
-              grid: { color: '#e2e8f0' },
-              ticks: { callback: tickFmt, color: '#475569', maxTicksLimit: 9 },
+              title: { display: true, text: offenseAxisLabel, color: INK, font: { weight: '600' } },
+              grid: { color: GRID },
+              ticks: { callback: tickFmt, color: INK_MUTED, maxTicksLimit: 9 },
               grace: '4%',
             },
             y: {
-              title: { display: true, text: defenseAxisLabel, color: '#0f172a', font: { weight: '600' } },
-              grid: { color: '#e2e8f0' },
-              ticks: { callback: tickFmt, color: '#475569', maxTicksLimit: 9 },
+              title: { display: true, text: defenseAxisLabel, color: INK, font: { weight: '600' } },
+              grid: { color: GRID },
+              ticks: { callback: tickFmt, color: INK_MUTED, maxTicksLimit: 9 },
               grace: '4%',
             },
           },
@@ -872,12 +893,12 @@
         scales: {
           x: {
             title: { display: true, text: 'Week' },
-            grid: { color: '#e2e8f0' },
+            grid: { color: GRID },
             ticks: { precision: 0 },
           },
           y: {
             title: { display: true, text: 'EPA per play' },
-            grid: { color: '#e2e8f0' },
+            grid: { color: GRID },
           },
         },
       };
@@ -910,7 +931,7 @@
 
       const transformed = applyTeamEpaMode(rows, mode, trailingWindow);
       const labels = transformed.map((row) => row.week);
-      const teamColor = TEAM_COLORS[team] || '#0f172a';
+      const teamColor = readableOnDark(TEAM_COLORS[team] || INK);
       const defColor = '#0ea5e9';
 
       destroyTeamCharts();
@@ -923,7 +944,7 @@
             {
               label: 'Net EPA (Off + Def)',
               data: transformed.map((row) => row.netMode),
-              borderColor: '#0f172a',
+              borderColor: INK,
               backgroundColor: 'transparent',
               tension: 0.15,
               borderWidth: 2.5,
@@ -1077,7 +1098,7 @@
     }
 
     function getRankColor(rank, totalTeams) {
-      if (!Number.isFinite(rank) || totalTeams <= 1) return '#0f172a';
+      if (!Number.isFinite(rank) || totalTeams <= 1) return INK;
       const position = 1 - ((rank - 1) / Math.max(totalTeams - 1, 1));
       const red = '#ef4444';
       const gray = '#9ca3af';
@@ -1151,7 +1172,7 @@
         return {
           team: row.team,
           displayName: row.displayName,
-          color: row.backgroundColor,
+          color: readableOnDark(row.backgroundColor),
           record: row.record,
           onBye: !playedWeek(selectedSeason, row.team, endWeek),
           movement,
@@ -1272,13 +1293,13 @@
           <td class="metric-cell sos-only" data-value="${sosOffValue}">
             <span class="metric-value">${Number.isFinite(row.sosOffFaced) ? formatNumber(row.sosOffFaced) : 'N/A'}</span>
             ${Number.isFinite(row.sosOffFaced)
-              ? `<span class="rank-label" style="color: #0f172a">(#${sosOffRank})</span>`
+              ? `<span class="rank-label" style="color: ${INK}">(#${sosOffRank})</span>`
               : ''}
           </td>
           <td class="metric-cell sos-only" data-value="${sosDefValue}">
             <span class="metric-value">${Number.isFinite(row.sosDefFaced) ? formatNumber(row.sosDefFaced) : 'N/A'}</span>
             ${Number.isFinite(row.sosDefFaced)
-              ? `<span class="rank-label" style="color: #0f172a">(#${sosDefRank})</span>`
+              ? `<span class="rank-label" style="color: ${INK}">(#${sosDefRank})</span>`
               : ''}
           </td>
           <td class="metric-cell" data-value="${row.off.toFixed(6)}">

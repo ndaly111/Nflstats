@@ -1,0 +1,94 @@
+/* Dark mode, following the OS/browser setting. Linked after each page's own
+   <style> block so these rules win ties without !important. Scripts read the
+   same media query for chart/SVG colors (see DARK_MODE in the page JS). */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --panel: #1e293b;
+    --surface: #111827;
+    --neutral-edge: #475569;
+    --pill-neutral: #64748b;
+    --above: #60a5fa;
+    --below: #f87171;
+  }
+
+  body { background: #0b1120; }
+
+  /* Surfaces that were hard-coded white. */
+  select, button, .toggle button, .view-btn, .movers-btn,
+  .chart-wrap, .chart-card, .team-section, table,
+  .card, .lane, .edge-badge, .net-badge,
+  .page-help, .odds-movement, details.team, .bet-box__result,
+  .segmented button.active {
+    background: var(--surface);
+    color: var(--text);
+  }
+  .team-section, .edge-badge, .net-badge, .bet-box { box-shadow: none; }
+  body:has(#sos-banner) .controls label { background: var(--surface); }
+
+  th, tbody tr:nth-child(odd) { background: var(--panel); }
+  tbody tr:nth-child(even) { background: var(--surface); }
+  .raw-value { color: #64748b; }
+
+  /* Primary/active buttons keep their blue. */
+  #update-btn, .toggle button.active, .view-btn.active {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+  }
+  .movers-btn.active { background: var(--text); color: #0b1120; }
+
+  .download-btn { background: var(--surface); color: #93c5fd; border-color: var(--border); }
+  .download-btn:hover { background: #172554; }
+  .download-btn[aria-pressed="true"] { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
+
+  /* Notices: scripts set inline colors, so these need !important. */
+  .notice {
+    background: #2a1a0e !important;
+    border-color: #7c2d12 !important;
+    color: #fdba74 !important;
+  }
+  .notice.error { background: #2a0f14 !important; border-color: #881337 !important; color: #fda4af !important; }
+  .banner { background: #2a1f0a; border-color: #b45309; color: #fcd34d; }
+
+  .segmented { background: #0b1120; }
+  .segmented button.active { background: #334155; }
+  .bar { background: var(--panel); }
+  .bar-axis { background: var(--border); }
+  .site-nav a:focus-visible, .historical-tier:focus-visible { outline-color: #60a5fa; }
+  .site-nav .nav-current { border-bottom-color: #60a5fa; }
+  details summary, .tier-details summary { color: #93c5fd; }
+  .tier-details summary { color: var(--muted); }
+
+  .movers-change.up { color: #4ade80; }
+  .movers-change.down { color: #f87171; }
+  .movers-change.flat { color: #64748b; }
+
+  /* Historical tier chips. */
+  .tier-s { color: #d8b4fe; background: #3b0764; }
+  .tier-a { color: #86efac; background: #14532d; }
+  .tier-b { color: #7dd3fc; background: #0c4a6e; }
+  .tier-c { color: #cbd5e1; background: #334155; }
+  .tier-d { color: #fdba74; background: #7c2d12; }
+  .tier-f { color: #fca5a5; background: #7f1d1d; }
+
+  /* Matchups: odds sparkline + model-vs-spread callout. */
+  .spark-dot.is-selected { fill: #60a5fa; }
+  .spark-readout.is-active { color: #60a5fa; }
+  .inline-toggle input { accent-color: #60a5fa; }
+  .bet-box { border-color: var(--border); background: var(--panel); }
+  .bet-box__title, .bet-box__v, .bet-box__pick-v { color: var(--text); }
+  .bet-box__note { color: var(--muted); background: rgba(148, 163, 184, 0.12); }
+  .bet-box__k, .bet-box__edge-k, .bet-box__pick-k { color: var(--muted); }
+  .bet-box__pick-v { background: rgba(148, 163, 184, 0.12); }
+  .bet-box__result { border-color: var(--border); }
+  .bet-box--pos { background: #052e16; border-color: #166534; }
+  .bet-box--neg { background: #2a0f14; border-color: #881337; }
+  .bet-box--pos .bet-box__result { border-color: #166534; }
+  .bet-box--neg .bet-box__result { border-color: #881337; }
+  .bet-box--pos .bet-box__edge-v { color: #4ade80; }
+  .bet-box--neg .bet-box__edge-v { color: #fda4af; }
+}
