@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-18T10:21:34Z",
+  "generated_at": "2026-10-18T15:21:31Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -9352,6 +9352,60 @@
       "total": 44.5,
       "source": "nflverse",
       "updated_at": "2026-10-18T07:45:20Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_HOU_JAX",
+      "spread": 2.5,
+      "total": 42.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-18T15:21:31Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_CHI_ATL",
+      "spread": -1.5,
+      "total": 51.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-18T15:21:31Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_TEN_IND",
+      "spread": 6.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-18T15:21:31Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_NO_NYG",
+      "spread": -1.5,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-18T15:21:31Z"
+    },
+    {
+      "season": 2026,
+      "week": 6,
+      "game_id": "2026_06_PIT_TB",
+      "spread": -1.5,
+      "total": 38.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-18T15:21:31Z"
+    },
+    {
+      "season": 2026,
+      "week": 7,
+      "game_id": "2026_07_NYG_HOU",
+      "spread": 7.5,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-18T15:21:31Z"
     }
   ]
 }
