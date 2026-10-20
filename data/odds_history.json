@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-20T10:54:29Z",
+  "generated_at": "2026-10-20T16:19:36Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -9730,6 +9730,15 @@
       "total": 51.5,
       "source": "nflverse",
       "updated_at": "2026-10-20T10:54:28Z"
+    },
+    {
+      "season": 2026,
+      "week": 7,
+      "game_id": "2026_07_SF_ATL",
+      "spread": -3.0,
+      "total": 50.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-20T16:19:36Z"
     }
   ]
 }
