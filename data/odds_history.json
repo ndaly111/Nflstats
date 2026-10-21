@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-21T16:34:49Z",
+  "generated_at": "2026-10-21T21:14:06Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -9919,6 +9919,51 @@
       "total": 39.5,
       "source": "nflverse",
       "updated_at": "2026-10-21T16:34:49Z"
+    },
+    {
+      "season": 2026,
+      "week": 7,
+      "game_id": "2026_07_SF_ATL",
+      "spread": -3.0,
+      "total": 49.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-21T21:14:06Z"
+    },
+    {
+      "season": 2026,
+      "week": 7,
+      "game_id": "2026_07_CIN_BAL",
+      "spread": -1.5,
+      "total": 48.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-21T21:14:06Z"
+    },
+    {
+      "season": 2026,
+      "week": 7,
+      "game_id": "2026_07_TB_CAR",
+      "spread": 3.0,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-21T21:14:06Z"
+    },
+    {
+      "season": 2026,
+      "week": 7,
+      "game_id": "2026_07_NYG_HOU",
+      "spread": 10.5,
+      "total": 42.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-21T21:14:06Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_BAL_BUF",
+      "spread": 3.0,
+      "total": 51.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-21T21:14:06Z"
     }
   ]
 }
