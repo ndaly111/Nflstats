@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-21T21:14:06Z",
+  "generated_at": "2026-10-22T03:13:01Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -9964,6 +9964,15 @@
       "total": 51.5,
       "source": "nflverse",
       "updated_at": "2026-10-21T21:14:06Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_LV_NYJ",
+      "spread": -1.5,
+      "total": 42.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-22T03:13:01Z"
     }
   ]
 }
