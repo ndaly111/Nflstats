@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-22T21:10:59Z",
+  "generated_at": "2026-10-23T03:18:50Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -10207,6 +10207,24 @@
       "total": 41.5,
       "source": "nflverse",
       "updated_at": "2026-10-22T21:10:59Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_MIN_DET",
+      "spread": 2.5,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-23T03:18:50Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_LAC_LA",
+      "spread": 7.0,
+      "total": 45.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-23T03:18:50Z"
     }
   ]
 }
