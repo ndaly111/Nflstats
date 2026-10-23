@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-23T16:25:39Z",
+  "generated_at": "2026-10-23T20:57:47Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -10243,6 +10243,24 @@
       "total": 44.5,
       "source": "nflverse",
       "updated_at": "2026-10-23T08:13:49Z"
+    },
+    {
+      "season": 2026,
+      "week": 7,
+      "game_id": "2026_07_CIN_BAL",
+      "spread": -1.5,
+      "total": 48.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-23T20:57:47Z"
+    },
+    {
+      "season": 2026,
+      "week": 7,
+      "game_id": "2026_07_CLE_TEN",
+      "spread": -2.5,
+      "total": 36.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-23T20:57:47Z"
     }
   ]
 }
