@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T03:07:34Z",
+  "generated_at": "2026-10-25T08:05:20Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -10396,6 +10396,42 @@
       "total": 43.5,
       "source": "nflverse",
       "updated_at": "2026-10-25T03:07:34Z"
+    },
+    {
+      "season": 2026,
+      "week": 7,
+      "game_id": "2026_07_NYG_HOU",
+      "spread": 10.5,
+      "total": 42.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-25T08:05:20Z"
+    },
+    {
+      "season": 2026,
+      "week": 7,
+      "game_id": "2026_07_CLE_TEN",
+      "spread": -1.5,
+      "total": 36.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-25T08:05:20Z"
+    },
+    {
+      "season": 2026,
+      "week": 7,
+      "game_id": "2026_07_GB_DET",
+      "spread": 3.5,
+      "total": 55.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-25T08:05:20Z"
+    },
+    {
+      "season": 2026,
+      "week": 7,
+      "game_id": "2026_07_DAL_PHI",
+      "spread": -4.5,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-25T08:05:20Z"
     }
   ]
 }
