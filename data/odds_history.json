@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T08:05:20Z",
+  "generated_at": "2026-10-25T10:40:59Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -10432,6 +10432,15 @@
       "total": 44.5,
       "source": "nflverse",
       "updated_at": "2026-10-25T08:05:20Z"
+    },
+    {
+      "season": 2026,
+      "week": 7,
+      "game_id": "2026_07_DAL_PHI",
+      "spread": -4.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-25T10:40:59Z"
     }
   ]
 }
