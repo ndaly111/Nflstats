@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-26T03:07:05Z",
+  "generated_at": "2026-10-26T08:29:23Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -10639,6 +10639,69 @@
       "total": 40.5,
       "source": "nflverse",
       "updated_at": "2026-10-26T03:07:05Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_CAR_GB",
+      "spread": 3.5,
+      "total": 47.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-26T08:29:23Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_TEN_CIN",
+      "spread": 10.0,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-26T08:29:23Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_ARI_DAL",
+      "spread": 6.5,
+      "total": 53.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-26T08:29:23Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_CLE_PIT",
+      "spread": 3.5,
+      "total": 38.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-26T08:29:23Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_ATL_TB",
+      "spread": 1.5,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-26T08:29:23Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_LAC_LA",
+      "spread": 7.0,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-26T08:29:23Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_KC_DEN",
+      "spread": -1.5,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-26T08:29:23Z"
     }
   ]
 }
