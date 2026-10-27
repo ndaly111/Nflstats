@@ -398628,6 +398628,20 @@
               "def_pass_plays": 44,
               "def_rush": 0.15739969846375365,
               "def_rush_plays": 24
+            },
+            "7": {
+              "off": 0.32337938253496834,
+              "off_plays": 81,
+              "def": -0.04544161327779009,
+              "def_plays": 84,
+              "off_pass": 0.44578222752353946,
+              "off_pass_plays": 27,
+              "off_rush": 0.22899018748862046,
+              "off_rush_plays": 39,
+              "def_pass": 0.09065260833941048,
+              "def_pass_plays": 37,
+              "def_rush": -0.10172218050807715,
+              "def_rush_plays": 25
             }
           }
         },
@@ -400281,6 +400295,20 @@
               "def_pass_plays": 42,
               "def_rush": -0.15110792357308858,
               "def_rush_plays": 31
+            },
+            "7": {
+              "off": 0.04544161327779009,
+              "off_plays": 84,
+              "def": -0.32337938253496834,
+              "def_plays": 81,
+              "off_pass": -0.09065260833941048,
+              "off_pass_plays": 37,
+              "off_rush": 0.10172218050807715,
+              "off_rush_plays": 25,
+              "def_pass": -0.44578222752353946,
+              "def_pass_plays": 27,
+              "def_rush": -0.22899018748862046,
+              "def_rush_plays": 39
             }
           }
         },
@@ -403551,6 +403579,34 @@
           "plays": 165
         },
         {
+          "game_id": "2026_07_DAL_PHI",
+          "week": 7,
+          "team": "DAL",
+          "opp": "PHI",
+          "off_epa_pp": 0.32337938253496834,
+          "def_epa_pp": -0.04544161327779009,
+          "off_plays": 81,
+          "def_plays": 84,
+          "points_for": 38,
+          "points_against": 21,
+          "net_epa_pp": 0.2779377692571783,
+          "plays": 165
+        },
+        {
+          "game_id": "2026_07_DAL_PHI",
+          "week": 7,
+          "team": "PHI",
+          "opp": "DAL",
+          "off_epa_pp": 0.04544161327779009,
+          "def_epa_pp": -0.32337938253496834,
+          "off_plays": 84,
+          "def_plays": 81,
+          "points_for": 21,
+          "points_against": 38,
+          "net_epa_pp": -0.2779377692571783,
+          "plays": 165
+        },
+        {
           "game_id": "2026_07_DEN_ARI",
           "week": 7,
           "team": "ARI",
@@ -403861,6 +403917,6 @@
       ]
     }
   },
-  "generated_at": "2026-10-26T08:29:20Z",
-  "git_sha": "be2741bb5f97f8f7de0f53914dfb72082615577e"
+  "generated_at": "2026-10-27T08:37:04Z",
+  "git_sha": "2c5b8d166bb956916cfa1e2761930c3f9793a059"
 }
