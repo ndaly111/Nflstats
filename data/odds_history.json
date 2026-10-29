@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-29T04:17:51Z",
+  "generated_at": "2026-10-29T09:17:52Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -11350,6 +11350,15 @@
       "total": 42.5,
       "source": "nflverse",
       "updated_at": "2026-10-28T22:09:13Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_CAR_GB",
+      "spread": 3.5,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-29T09:17:52Z"
     }
   ]
 }
