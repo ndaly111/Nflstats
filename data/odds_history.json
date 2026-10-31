@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-31T16:47:35Z",
+  "generated_at": "2026-10-31T20:57:44Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -11503,6 +11503,15 @@
       "total": 40.5,
       "source": "nflverse",
       "updated_at": "2026-10-31T16:47:35Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_CLE_PIT",
+      "spread": 3.5,
+      "total": 39.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-31T20:57:44Z"
     }
   ]
 }
