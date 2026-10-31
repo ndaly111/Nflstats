@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-30T21:55:32Z",
+  "generated_at": "2026-10-31T03:58:16Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -11467,6 +11467,24 @@
       "total": 48.5,
       "source": "nflverse",
       "updated_at": "2026-10-30T21:55:32Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_PHI_WAS",
+      "spread": 5.5,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-31T03:58:16Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_GB_NE",
+      "spread": 3.0,
+      "total": 47.5,
+      "source": "nflverse",
+      "updated_at": "2026-10-31T03:58:16Z"
     }
   ]
 }
