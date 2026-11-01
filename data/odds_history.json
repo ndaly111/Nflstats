@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-31T20:57:44Z",
+  "generated_at": "2026-11-01T04:16:15Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -11512,6 +11512,33 @@
       "total": 39.5,
       "source": "nflverse",
       "updated_at": "2026-10-31T20:57:44Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_LV_NYJ",
+      "spread": 1.5,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-01T04:16:15Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_CLE_PIT",
+      "spread": 3.5,
+      "total": 38.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-01T04:16:15Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_ATL_TB",
+      "spread": 1.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-01T04:16:15Z"
     }
   ]
 }
