@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-01T04:16:15Z",
+  "generated_at": "2026-11-01T10:01:51Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -11539,6 +11539,15 @@
       "total": 43.5,
       "source": "nflverse",
       "updated_at": "2026-11-01T04:16:15Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_BAL_BUF",
+      "spread": 3.5,
+      "total": 54.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-01T10:01:51Z"
     }
   ]
 }
