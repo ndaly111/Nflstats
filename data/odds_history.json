@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-01T10:01:51Z",
+  "generated_at": "2026-11-01T12:39:12Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -11548,6 +11548,15 @@
       "total": 54.5,
       "source": "nflverse",
       "updated_at": "2026-11-01T10:01:51Z"
+    },
+    {
+      "season": 2026,
+      "week": 8,
+      "game_id": "2026_08_PHI_WAS",
+      "spread": 6.5,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-01T12:39:12Z"
     }
   ]
 }
