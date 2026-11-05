@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-04T23:10:42Z",
+  "generated_at": "2026-11-05T05:00:35Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -12277,6 +12277,15 @@
       "total": 38.5,
       "source": "nflverse",
       "updated_at": "2026-11-04T23:10:42Z"
+    },
+    {
+      "season": 2026,
+      "week": 10,
+      "game_id": "2026_10_LA_ARI",
+      "spread": -7.5,
+      "total": 47.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-05T05:00:35Z"
     }
   ]
 }
