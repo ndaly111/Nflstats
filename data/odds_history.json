@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-06T10:21:36Z",
+  "generated_at": "2026-11-06T13:43:05Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -12376,6 +12376,15 @@
       "total": 37.5,
       "source": "nflverse",
       "updated_at": "2026-11-06T10:21:36Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_DET_MIA",
+      "spread": -6.5,
+      "total": 50.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-06T13:43:05Z"
     }
   ]
 }
