@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-05T23:14:45Z",
+  "generated_at": "2026-11-06T05:00:24Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -12340,6 +12340,24 @@
       "total": 40.5,
       "source": "nflverse",
       "updated_at": "2026-11-05T23:14:45Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_JAX_BAL",
+      "spread": -8.5,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-06T05:00:24Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_HOU_LAC",
+      "spread": -6.0,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-06T05:00:24Z"
     }
   ]
 }
