@@ -397758,7 +397758,8 @@
         5,
         6,
         7,
-        8
+        8,
+        9
       ],
       "teams": [
         {
@@ -398109,6 +398110,20 @@
               "def_pass_plays": 36,
               "def_rush": -0.0038023668345691917,
               "def_rush_plays": 39
+            },
+            "9": {
+              "off": -0.29326464347314696,
+              "off_plays": 76,
+              "def": -0.12380256599206808,
+              "def_plays": 74,
+              "off_pass": -0.8359931451470043,
+              "off_pass_plays": 20,
+              "off_rush": -0.05707145208896905,
+              "off_rush_plays": 34,
+              "def_pass": -0.297282215002664,
+              "def_pass_plays": 26,
+              "def_rush": 0.17076681261811572,
+              "def_rush_plays": 29
             }
           }
         },
@@ -399429,6 +399444,20 @@
               "def_pass_plays": 34,
               "def_rush": 0.28584108349847764,
               "def_rush_plays": 24
+            },
+            "9": {
+              "off": 0.12380256599206808,
+              "off_plays": 74,
+              "def": 0.29326464347314696,
+              "def_plays": 76,
+              "off_pass": 0.297282215002664,
+              "off_pass_plays": 26,
+              "off_rush": -0.17076681261811572,
+              "off_rush_plays": 29,
+              "def_pass": 0.8359931451470043,
+              "def_pass_plays": 20,
+              "def_rush": 0.05707145208896905,
+              "def_rush_plays": 34
             }
           }
         },
@@ -404698,10 +404727,38 @@
           "points_against": 43,
           "net_epa_pp": -0.012787767476665712,
           "plays": 188
+        },
+        {
+          "game_id": "2026_09_JAX_BAL",
+          "week": 9,
+          "team": "BAL",
+          "opp": "JAX",
+          "off_epa_pp": -0.29326464347314696,
+          "def_epa_pp": -0.12380256599206808,
+          "off_plays": 76,
+          "def_plays": 74,
+          "points_for": 10,
+          "points_against": 33,
+          "net_epa_pp": -0.417067209465215,
+          "plays": 150
+        },
+        {
+          "game_id": "2026_09_JAX_BAL",
+          "week": 9,
+          "team": "JAX",
+          "opp": "BAL",
+          "off_epa_pp": 0.12380256599206808,
+          "def_epa_pp": 0.29326464347314696,
+          "off_plays": 74,
+          "def_plays": 76,
+          "points_for": 33,
+          "points_against": 10,
+          "net_epa_pp": 0.417067209465215,
+          "plays": 150
         }
       ]
     }
   },
-  "generated_at": "2026-11-05T10:18:24Z",
-  "git_sha": "8fb9d50f9167afd526dca28a6fe3fb1bc99a906e"
+  "generated_at": "2026-11-06T10:21:32Z",
+  "git_sha": "00214e3d15456a26352c245a2ae44a0acc4a59f5"
 }
