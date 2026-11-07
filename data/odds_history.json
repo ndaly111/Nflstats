@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-07T12:24:58Z",
+  "generated_at": "2026-11-07T21:25:50Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -12457,6 +12457,24 @@
       "total": 51.5,
       "source": "nflverse",
       "updated_at": "2026-11-07T04:33:54Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_DEN_CAR",
+      "spread": -2.5,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-07T21:25:50Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_CLE_NO",
+      "spread": 3.0,
+      "total": 42.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-07T21:25:50Z"
     }
   ]
 }
