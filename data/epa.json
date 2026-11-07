@@ -397929,7 +397929,7 @@
               "off_plays": 72,
               "def": 0.051242939441644764,
               "def_plays": 99,
-              "off_pass": 0.5071359899082248,
+              "off_pass": 0.5071359899082247,
               "off_pass_plays": 21,
               "off_rush": 0.3661272769007183,
               "off_rush_plays": 33,
@@ -398478,7 +398478,7 @@
               "off_rush_plays": 22,
               "def_pass": 0.1570425613442205,
               "def_pass_plays": 58,
-              "def_rush": 0.5382909334632809,
+              "def_rush": 0.538290933463281,
               "def_rush_plays": 18
             },
             "3": {
@@ -399000,7 +399000,7 @@
               "off_pass_plays": 29,
               "off_rush": 0.028015204734492677,
               "off_rush_plays": 38,
-              "def_pass": 0.05001412591469559,
+              "def_pass": 0.050014125914695645,
               "def_pass_plays": 33,
               "def_rush": 0.17433057512457975,
               "def_rush_plays": 17
@@ -399148,7 +399148,7 @@
               "def_plays": 82,
               "off_pass": -0.1570425613442205,
               "off_pass_plays": 58,
-              "off_rush": -0.5382909334632809,
+              "off_rush": -0.538290933463281,
               "off_rush_plays": 18,
               "def_pass": 0.015214599767865981,
               "def_pass_plays": 36,
@@ -399164,7 +399164,7 @@
               "off_pass_plays": 30,
               "off_rush": -0.07671898872303289,
               "off_rush_plays": 21,
-              "def_pass": 0.17178856503454393,
+              "def_pass": 0.17178856503454398,
               "def_pass_plays": 40,
               "def_rush": 0.03877170624271516,
               "def_rush_plays": 31
@@ -399216,7 +399216,7 @@
               "off_plays": 78,
               "def": -0.12115203150666976,
               "def_plays": 83,
-              "off_pass": -0.013405333074476127,
+              "off_pass": -0.01340533307447617,
               "off_pass_plays": 30,
               "off_rush": -0.12093601947883144,
               "off_rush_plays": 25,
@@ -399263,7 +399263,7 @@
               "off_plays": 84,
               "def": 0.05467966612427544,
               "def_plays": 70,
-              "off_pass": -0.17178856503454393,
+              "off_pass": -0.17178856503454398,
               "off_pass_plays": 40,
               "off_rush": -0.03877170624271516,
               "off_rush_plays": 31,
@@ -399576,7 +399576,7 @@
               "off_pass_plays": 28,
               "off_rush": -0.1354256611250873,
               "off_rush_plays": 28,
-              "def_pass": -0.1419302216435567,
+              "def_pass": -0.14193022164355665,
               "def_pass_plays": 34,
               "def_rush": -0.2205165465323565,
               "def_rush_plays": 30
@@ -399955,7 +399955,7 @@
               "off_pass_plays": 19,
               "off_rush": 0.27040616074939156,
               "off_rush_plays": 18,
-              "def_pass": 0.016204670534432596,
+              "def_pass": 0.016204670534432607,
               "def_pass_plays": 41,
               "def_rush": 0.09184828963299345,
               "def_rush_plays": 28
@@ -400054,7 +400054,7 @@
               "off_plays": 96,
               "def": 0.23680361956289617,
               "def_plays": 54,
-              "off_pass": -0.016204670534432596,
+              "off_pass": -0.016204670534432607,
               "off_pass_plays": 41,
               "off_rush": -0.09184828963299345,
               "off_rush_plays": 28,
@@ -400096,7 +400096,7 @@
               "off_plays": 68,
               "def": 0.06617085009442251,
               "def_plays": 87,
-              "off_pass": -0.05001412591469559,
+              "off_pass": -0.050014125914695645,
               "off_pass_plays": 33,
               "off_rush": -0.17433057512457975,
               "off_rush_plays": 17,
@@ -400278,7 +400278,7 @@
               "off_pass_plays": 50,
               "off_rush": -0.30058769978227484,
               "off_rush_plays": 19,
-              "def_pass": -0.5071359899082248,
+              "def_pass": -0.5071359899082247,
               "def_pass_plays": 21,
               "def_rush": -0.3661272769007183,
               "def_rush_plays": 33
@@ -400423,7 +400423,7 @@
               "off_pass_plays": 30,
               "off_rush": 0.3011487594810794,
               "off_rush_plays": 34,
-              "def_pass": 0.013405333074476127,
+              "def_pass": 0.01340533307447617,
               "def_pass_plays": 30,
               "def_rush": 0.12093601947883144,
               "def_rush_plays": 25
@@ -400906,7 +400906,7 @@
               "off_plays": 76,
               "def": 0.1930101404599383,
               "def_plays": 73,
-              "off_pass": 0.1419302216435567,
+              "off_pass": 0.14193022164355665,
               "off_pass_plays": 34,
               "off_rush": 0.2205165465323565,
               "off_rush_plays": 30,
@@ -404759,6 +404759,6 @@
       ]
     }
   },
-  "generated_at": "2026-11-06T10:21:32Z",
-  "git_sha": "00214e3d15456a26352c245a2ae44a0acc4a59f5"
+  "generated_at": "2026-11-07T09:35:56Z",
+  "git_sha": "80df5c27bd7bc1354a0b3a6ff91537dfd1b713c4"
 }
