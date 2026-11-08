@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-08T12:43:59Z",
+  "generated_at": "2026-11-08T21:39:37Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -12529,6 +12529,78 @@
       "total": 44.5,
       "source": "nflverse",
       "updated_at": "2026-11-08T12:43:59Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_DEN_CAR",
+      "spread": -3.0,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-08T21:39:37Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_DAL_IND",
+      "spread": -4.5,
+      "total": 51.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-08T21:39:37Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_NYJ_KC",
+      "spread": 9.5,
+      "total": 47.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-08T21:39:37Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_DET_MIA",
+      "spread": -6.5,
+      "total": 49.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-08T21:39:37Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_CLE_NO",
+      "spread": 4.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-08T21:39:37Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_LA_WAS",
+      "spread": -4.5,
+      "total": 48.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-08T21:39:37Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_HOU_LAC",
+      "spread": -5.5,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-08T21:39:37Z"
+    },
+    {
+      "season": 2026,
+      "week": 9,
+      "game_id": "2026_09_LV_SF",
+      "spread": 8.5,
+      "total": 51.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-08T21:39:37Z"
     }
   ]
 }
