@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-13T13:53:51Z",
+  "generated_at": "2026-11-13T23:13:25Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -13285,6 +13285,15 @@
       "total": 47.5,
       "source": "nflverse",
       "updated_at": "2026-11-13T13:53:51Z"
+    },
+    {
+      "season": 2026,
+      "week": 10,
+      "game_id": "2026_10_MIN_GB",
+      "spread": 3.0,
+      "total": 42.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-13T23:13:25Z"
     }
   ]
 }
