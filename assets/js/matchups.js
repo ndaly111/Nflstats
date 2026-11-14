@@ -416,6 +416,16 @@
         rows.forEach((r) => {
           const gid = r?.game_id || r?.gameId;
           if (!gid) return;
+          // nflverse spreads are home-margin (positive = home favored); convert to a
+          // home betting line like fetchOdds does, or the movement chart reads flipped.
+          if (!r.spread_team) {
+            const spreadNum = Number(r?.spread);
+            const home = normalizeTeam(parseGameId(gid)?.home);
+            if (Number.isFinite(spreadNum) && home) {
+              r.spread_team = home;
+              r.spread = -spreadNum;
+            }
+          }
           (oddsHistoryIndex[gid] ||= []).push(r);
         });
 
