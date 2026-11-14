@@ -36,7 +36,13 @@
     // Typical split of those 65 plays; used to turn pass/rush EPA/play edges into points.
     const PASS_PLAYS_PER_TEAM_GAME = 38;
     const RUSH_PLAYS_PER_TEAM_GAME = 27;
-    const HFA_POINTS = 3;
+    const HFA_POINTS = 1.5;
+    // Game projection settings, from a 2016-2026 walk-forward backtest (nfl_backtest/):
+    // blend last season's final rating in as PRIOR_GAMES games, regressed PRIOR_REGRESS toward
+    // average, and scale the EPA->points margin by PROJ_SCALE. Cut margin error 11.9 -> 10.3 pts.
+    const PRIOR_GAMES = 8;
+    const PRIOR_REGRESS = 0.6;
+    const PROJ_SCALE = 0.9;
     const MOMENTUM_WINDOW = 3;
 
     const TEAM_COLORS = {
@@ -1048,6 +1054,40 @@
       return Number.isFinite(epa) ? epa * playsPerGame : null;
     }
 
+    // Projected game margin (points) from a net EPA/play gap.
+    function netToPoints(epa) {
+      return Number.isFinite(epa) ? epa * PLAYS_PER_TEAM_GAME * PROJ_SCALE : null;
+    }
+
+    // team -> { prior: last season's final net EPA/play (regressed), games: games played before week }
+    function computeProjectionContext(season, week, seasonKey) {
+      const ctx = {};
+      const limitWeek = normalizeWeekValue(week, seasonKey);
+      (season?.games || []).forEach((g) => {
+        const team = normalizeTeam(g.team || g.home || g.away);
+        const gw = normalizeWeekValue(g.week, seasonKey, g?.season_type);
+        if (!team || !Number.isFinite(gw) || !(gw < limitWeek)) return;
+        (ctx[team] ??= { prior: 0, games: 0 }).games += 1;
+      });
+      const prevKey = String(Number(seasonKey) - 1);
+      const prevSeason = data?.seasons?.[prevKey];
+      if (prevSeason) {
+        const prev = computeTeamAggregates(prevSeason, 99, prevKey);
+        Object.entries(prev).forEach(([team, r]) => {
+          if (!Number.isFinite(r?.offEPA) || !Number.isFinite(r?.defEPA)) return;
+          (ctx[team] ??= { prior: 0, games: 0 }).prior = (r.offEPA + r.defEPA) * PRIOR_REGRESS;
+        });
+      }
+      return ctx;
+    }
+
+    function blendedNet(team, current, projCtx) {
+      const c = projCtx?.[team];
+      if (!c) return current;
+      const n = c.games;
+      return (n * current + PRIOR_GAMES * c.prior) / (n + PRIOR_GAMES);
+    }
+
     function formatSigned(val, digits = 2) {
       if (!Number.isFinite(val)) return '—';
       const rounded = val.toFixed(digits);
@@ -1136,7 +1176,7 @@
       return Math.max(1, Math.min(100, Math.round(pct)));
     }
 
-    function buildGameEntries(games, ratings, { noRatings, week, seasonKey }) {
+    function buildGameEntries(games, ratings, { noRatings, week, seasonKey, projCtx = null }) {
       const lanes = [];
       const lanesByGame = {};
       const gameEntries = [];
@@ -1190,7 +1230,9 @@
         lanesByGame[game.game_id].push(laneA, laneB);
 
         const hasTotals = Number.isFinite(offA) && Number.isFinite(defA) && Number.isFinite(offB) && Number.isFinite(defB);
-        const netA = hasTotals ? (offA + defA) - (offB + defB) : null;
+        const netA = hasTotals
+          ? blendedNet(teamA.team, offA + defA, projCtx) - blendedNet(teamB.team, offB + defB, projCtx)
+          : null;
 
         const winnerTeam = Number.isFinite(netA) ? (netA >= 0 ? teamA.team : teamB.team) : null;
         const netAbs = Number.isFinite(netA) ? Math.abs(netA) : null;
@@ -1426,7 +1468,7 @@
 
       const valueEl = document.createElement('div');
       valueEl.className = 'value';
-      const netPoints = Number.isFinite(game.netEdge) ? formatPointsShort(epaToPoints(game.netEdge)) : '—';
+      const netPoints = Number.isFinite(game.netEdge) ? formatPointsShort(netToPoints(game.netEdge)) : '—';
       valueEl.textContent = netPoints;
       const pointsEl = document.createElement('div');
       pointsEl.className = 'badge-sub';
@@ -1455,7 +1497,7 @@
         `${teamB}: Off ${formatNumber(game.offB)} · Def ${formatNumber(game.defB)} · Total ${formatNumber(game.totalB)} (${formatPoints(epaToPoints(game.totalB))})`,
         `${teamA} OFF vs ${teamB} DEF: ${formatNumber(game.laneA.edge)} (${formatPoints(epaToPoints(game.laneA.edge))})`,
         `${teamB} OFF vs ${teamA} DEF: ${formatNumber(game.laneB.edge)} (${formatPoints(epaToPoints(game.laneB.edge))})`,
-        `NET advantage (${game.winnerTeam || '—'}): ${formatSigned(game.netEdge)} (${formatPoints(epaToPoints(game.netEdge))})`,
+        `NET advantage (${game.winnerTeam || '—'}): ${formatSigned(game.netEdge)} (${formatPoints(netToPoints(game.netEdge))})`,
         Number.isFinite(game.rank) ? `Rank: #${game.rank}/${gameTotal} · P${game.percentile}` : null,
       ].filter(Boolean);
       body.innerHTML = lines.join('<br>');
@@ -1688,7 +1730,7 @@
         const summaryText = document.createElement('div');
         summaryText.className = 'summary-text';
         const netSummary = game.winnerTeam
-          ? `NET: ${game.winnerTeam} ${formatPoints(epaToPoints(game.netEdge))} (${formatSigned(game.netEdge)} EPA/play)`
+          ? `NET: ${game.winnerTeam} ${formatPoints(netToPoints(game.netEdge))} (${formatSigned(game.netEdge)} EPA/play)`
           : 'NET: —';
         summaryText.innerHTML = `<div>${netSummary}</div>`;
         const drivers = document.createElement('div');
@@ -1736,7 +1778,7 @@
         const home = normalizeTeam(parsed?.home);
         const away = normalizeTeam(parsed?.away);
         const netLeaderTeam = normalizeTeam(game.netTeam || game.netLeader || game.winnerTeam);
-        const netPts = epaToPoints(game.netEdge);
+        const netPts = netToPoints(game.netEdge);
         const netPtsAbs = Number.isFinite(netPts) ? Math.abs(netPts) : NaN;
         const marketSpread = getHomeSpreadFromOdds(odds, home, away);
 
@@ -1774,7 +1816,7 @@
           betBox.innerHTML = `
             <div class="bet-box__header">
               <div class="bet-box__title">Model vs Spread</div>
-              <div class="bet-box__note">${neutralField ? 'Neutral' : '+3 HFA'}</div>
+              <div class="bet-box__note">${neutralField ? 'Neutral' : `+${HFA_POINTS} HFA`}</div>
             </div>
 
             <div class="bet-box__grid">
@@ -1792,7 +1834,7 @@
               </div>
 
               <div>
-                <div class="bet-box__pick-k">Right side</div>
+                <div class="bet-box__pick-k">Model leans</div>
                 <div class="bet-box__pick-v">${rightSide}</div>
               </div>
             </div>
@@ -1854,7 +1896,9 @@
       const sortText = layoutMode === 'ranked' ? ` Sorted by biggest net advantage (${modeText}).` : '';
       metaEl.textContent = `Weeks: ${weeksLabel}. Ratings through ${ratingWeekText} (${modeText}${momentumText}). Edge: + favors OFF, − favors DEF.${sortText}`;
 
-      const { gameEntries, lanes, lanesByGame } = buildGameEntries(games, ratings, { noRatings, week, seasonKey });
+      const { gameEntries, lanes, lanesByGame } = buildGameEntries(games, ratings, {
+        noRatings, week, seasonKey, projCtx: computeProjectionContext(season, Math.max(1, week), seasonKey),
+      });
       const edgeCount = annotateEdgeDistribution(lanes);
       const gameCount = annotateGameDistribution(gameEntries);
 
