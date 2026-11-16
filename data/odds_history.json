@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-15T22:27:40Z",
+  "generated_at": "2026-11-16T04:41:08Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -13447,6 +13447,96 @@
       "total": 55.5,
       "source": "nflverse",
       "updated_at": "2026-11-15T22:27:40Z"
+    },
+    {
+      "season": 2026,
+      "week": 10,
+      "game_id": "2026_10_PIT_CIN",
+      "spread": 4.5,
+      "total": 49.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-16T04:41:08Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_BAL_CAR",
+      "spread": 2.5,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-16T04:41:08Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_NO_CHI",
+      "spread": 10.0,
+      "total": 48.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-16T04:41:08Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_TEN_DAL",
+      "spread": 7.5,
+      "total": 53.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-16T04:41:08Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_TB_DET",
+      "spread": 5.5,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-16T04:41:08Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_ARI_KC",
+      "spread": 16.5,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-16T04:41:08Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_JAX_NYG",
+      "spread": -6.0,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-16T04:41:08Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_NYJ_LAC",
+      "spread": 3.0,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-16T04:41:08Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_LV_DEN",
+      "spread": 9.5,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-16T04:41:08Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_MIN_SF",
+      "spread": 3.0,
+      "total": 45.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-16T04:41:08Z"
     }
   ]
 }
