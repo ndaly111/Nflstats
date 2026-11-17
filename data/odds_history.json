@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-16T14:43:27Z",
+  "generated_at": "2026-11-17T01:32:39Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -13591,6 +13591,78 @@
       "total": 40.5,
       "source": "nflverse",
       "updated_at": "2026-11-16T14:43:27Z"
+    },
+    {
+      "season": 2026,
+      "week": 10,
+      "game_id": "2026_10_LAC_BAL",
+      "spread": 4.5,
+      "total": 39.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T01:32:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_IND_HOU",
+      "spread": 11.5,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T01:32:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_MIA_BUF",
+      "spread": 16.5,
+      "total": 45.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T01:32:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_NO_CHI",
+      "spread": 11.5,
+      "total": 48.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T01:32:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_TEN_DAL",
+      "spread": 8.5,
+      "total": 54.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T01:32:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_TB_DET",
+      "spread": 6.5,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T01:32:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_JAX_NYG",
+      "spread": -6.0,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T01:32:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_CIN_WAS",
+      "spread": -6.5,
+      "total": 52.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T01:32:39Z"
     }
   ]
 }
