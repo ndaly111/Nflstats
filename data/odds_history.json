@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-17T11:28:02Z",
+  "generated_at": "2026-11-17T15:28:34Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -13690,6 +13690,33 @@
       "total": 41.5,
       "source": "nflverse",
       "updated_at": "2026-11-17T11:28:02Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_IND_HOU",
+      "spread": 12.5,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T15:28:34Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_TB_DET",
+      "spread": 6.5,
+      "total": 45.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T15:28:34Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_NYJ_LAC",
+      "spread": 3.5,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T15:28:34Z"
     }
   ]
 }
