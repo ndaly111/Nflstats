@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-17T01:32:39Z",
+  "generated_at": "2026-11-17T11:28:02Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -13663,6 +13663,33 @@
       "total": 52.5,
       "source": "nflverse",
       "updated_at": "2026-11-17T01:32:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_BAL_CAR",
+      "spread": 2.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T11:28:02Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_NO_CHI",
+      "spread": 11.5,
+      "total": 49.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T11:28:02Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_ARI_KC",
+      "spread": 16.5,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-17T11:28:02Z"
     }
   ]
 }
