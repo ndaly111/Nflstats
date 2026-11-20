@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-20T14:52:17Z",
+  "generated_at": "2026-11-20T23:39:43Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -14266,6 +14266,51 @@
       "total": 43.5,
       "source": "nflverse",
       "updated_at": "2026-11-20T10:53:05Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_TB_DET",
+      "spread": 5.5,
+      "total": 45.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-20T23:39:43Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_PIT_PHI",
+      "spread": -3.5,
+      "total": 37.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-20T23:39:43Z"
+    },
+    {
+      "season": 2026,
+      "week": 11,
+      "game_id": "2026_11_MIN_SF",
+      "spread": 3.0,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-20T23:39:43Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_NYG_IND",
+      "spread": -6.5,
+      "total": 43.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-20T23:39:43Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_TEN_JAX",
+      "spread": 14.5,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-20T23:39:43Z"
     }
   ]
 }
