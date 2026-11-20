@@ -397760,7 +397760,8 @@
         7,
         8,
         9,
-        10
+        10,
+        11
       ],
       "teams": [
         {
@@ -399547,6 +399548,20 @@
               "def_pass_plays": 44,
               "def_rush": -0.10634245513153795,
               "def_rush_plays": 22
+            },
+            "11": {
+              "off": 0.029444421682037862,
+              "off_plays": 78,
+              "def": 0.3030015157946844,
+              "def_plays": 63,
+              "off_pass": 0.26631184621893744,
+              "off_pass_plays": 28,
+              "off_rush": -0.0943824023705297,
+              "off_rush_plays": 36,
+              "def_pass": 0.31829628392956016,
+              "def_pass_plays": 31,
+              "def_rush": 0.2991850807769661,
+              "def_rush_plays": 17
             }
           }
         },
@@ -399692,6 +399707,20 @@
               "def_pass_plays": 37,
               "def_rush": 0.17915788563020818,
               "def_rush_plays": 26
+            },
+            "11": {
+              "off": -0.3030015157946844,
+              "off_plays": 63,
+              "def": -0.029444421682037862,
+              "def_plays": 78,
+              "off_pass": -0.31829628392956016,
+              "off_pass_plays": 31,
+              "off_rush": -0.2991850807769661,
+              "off_rush_plays": 17,
+              "def_pass": -0.26631184621893744,
+              "def_pass_plays": 28,
+              "def_rush": 0.0943824023705297,
+              "def_rush_plays": 36
             }
           }
         },
@@ -406324,10 +406353,38 @@
           "points_against": 21,
           "net_epa_pp": 0.04845014857058928,
           "plays": 168
+        },
+        {
+          "game_id": "2026_11_IND_HOU",
+          "week": 11,
+          "team": "HOU",
+          "opp": "IND",
+          "off_epa_pp": 0.029444421682037862,
+          "def_epa_pp": 0.3030015157946844,
+          "off_plays": 78,
+          "def_plays": 63,
+          "points_for": 26,
+          "points_against": 3,
+          "net_epa_pp": 0.33244593747672224,
+          "plays": 141
+        },
+        {
+          "game_id": "2026_11_IND_HOU",
+          "week": 11,
+          "team": "IND",
+          "opp": "HOU",
+          "off_epa_pp": -0.3030015157946844,
+          "def_epa_pp": -0.029444421682037862,
+          "off_plays": 63,
+          "def_plays": 78,
+          "points_for": 3,
+          "points_against": 26,
+          "net_epa_pp": -0.33244593747672224,
+          "plays": 141
         }
       ]
     }
   },
-  "generated_at": "2026-11-19T11:05:26Z",
-  "git_sha": "682b7a6c3b11e89be200ced99abec9eeb17c455e"
+  "generated_at": "2026-11-20T10:53:03Z",
+  "git_sha": "2d27558369a5336ded8a0ac7734a844c23be326f"
 }
