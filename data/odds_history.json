@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T11:45:39Z",
+  "generated_at": "2026-11-23T17:20:10Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -14851,6 +14851,42 @@
       "total": 36.5,
       "source": "nflverse",
       "updated_at": "2026-11-23T11:45:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_LV_CLE",
+      "spread": 4.5,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-23T17:20:10Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_NYJ_MIA",
+      "spread": -3.5,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-23T17:20:10Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_ATL_MIN",
+      "spread": 6.5,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-23T17:20:10Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_NE_LAC",
+      "spread": 1.5,
+      "total": 35.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-23T17:20:10Z"
     }
   ]
 }
