@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-24T13:14:56Z",
+  "generated_at": "2026-11-24T16:56:34Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -14986,6 +14986,24 @@
       "total": 42.5,
       "source": "nflverse",
       "updated_at": "2026-11-24T13:14:56Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_DEN_PIT",
+      "spread": -3.0,
+      "total": 38.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-24T16:56:34Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_NO_CIN",
+      "spread": 9.5,
+      "total": 50.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-24T16:56:34Z"
     }
   ]
 }
