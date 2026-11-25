@@ -398208,7 +398208,7 @@
               "off_rush_plays": 15,
               "def_pass": 0.08040782900828095,
               "def_pass_plays": 20,
-              "def_rush": -0.06001525532941618,
+              "def_rush": -0.06002719801428341,
               "def_rush_plays": 34
             },
             "11": {
@@ -400407,7 +400407,7 @@
               "def_plays": 87,
               "off_pass": -0.08040782900828095,
               "off_pass_plays": 20,
-              "off_rush": 0.06001525532941618,
+              "off_rush": 0.06002719801428341,
               "off_rush_plays": 34,
               "def_pass": 0.05041269058945829,
               "def_pass_plays": 50,
@@ -407057,6 +407057,6 @@
       ]
     }
   },
-  "generated_at": "2026-11-24T13:14:54Z",
-  "git_sha": "5571eea59fcf19468442c9823637833438c769a9"
+  "generated_at": "2026-11-25T12:03:56Z",
+  "git_sha": "e992653c356eec89db0f1ed00d25d244894af63c"
 }
