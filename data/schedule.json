@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-25T12:03:58Z",
+  "generated_at": "2026-11-26T01:31:39Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "seasons": {
     "2026": {
@@ -1184,15 +1184,6 @@
           "game_type": "REG"
         },
         {
-          "game_id": "2026_09_LV_SF",
-          "week": 9,
-          "home": "SF",
-          "away": "LV",
-          "gameday": "2026-11-08",
-          "season_type": null,
-          "game_type": "REG"
-        },
-        {
           "game_id": "2026_09_GB_NE",
           "week": 9,
           "home": "NE",
@@ -1206,6 +1197,15 @@
           "week": 9,
           "home": "SEA",
           "away": "ARI",
+          "gameday": "2026-11-08",
+          "season_type": null,
+          "game_type": "REG"
+        },
+        {
+          "game_id": "2026_09_LV_SF",
+          "week": 9,
+          "home": "SF",
+          "away": "LV",
           "gameday": "2026-11-08",
           "season_type": null,
           "game_type": "REG"
@@ -1418,10 +1418,10 @@
           "game_type": "REG"
         },
         {
-          "game_id": "2026_11_JAX_NYG",
+          "game_id": "2026_11_PIT_PHI",
           "week": 11,
-          "home": "NYG",
-          "away": "JAX",
+          "home": "PHI",
+          "away": "PIT",
           "gameday": "2026-11-22",
           "season_type": null,
           "game_type": "REG"
@@ -1445,10 +1445,10 @@
           "game_type": "REG"
         },
         {
-          "game_id": "2026_11_PIT_PHI",
+          "game_id": "2026_11_JAX_NYG",
           "week": 11,
-          "home": "PHI",
-          "away": "PIT",
+          "home": "NYG",
+          "away": "JAX",
           "gameday": "2026-11-22",
           "season_type": null,
           "game_type": "REG"
@@ -1526,15 +1526,6 @@
           "game_type": "REG"
         },
         {
-          "game_id": "2026_12_LV_CLE",
-          "week": 12,
-          "home": "CLE",
-          "away": "LV",
-          "gameday": "2026-11-29",
-          "season_type": null,
-          "game_type": "REG"
-        },
-        {
           "game_id": "2026_12_BAL_HOU",
           "week": 12,
           "home": "HOU",
@@ -1548,6 +1539,15 @@
           "week": 12,
           "home": "IND",
           "away": "NYG",
+          "gameday": "2026-11-29",
+          "season_type": null,
+          "game_type": "REG"
+        },
+        {
+          "game_id": "2026_12_TEN_JAX",
+          "week": 12,
+          "home": "JAX",
+          "away": "TEN",
           "gameday": "2026-11-29",
           "season_type": null,
           "game_type": "REG"
@@ -1571,10 +1571,10 @@
           "game_type": "REG"
         },
         {
-          "game_id": "2026_12_TEN_JAX",
+          "game_id": "2026_12_NE_LAC",
           "week": 12,
-          "home": "JAX",
-          "away": "TEN",
+          "home": "LAC",
+          "away": "NE",
           "gameday": "2026-11-29",
           "season_type": null,
           "game_type": "REG"
@@ -1598,10 +1598,10 @@
           "game_type": "REG"
         },
         {
-          "game_id": "2026_12_NE_LAC",
+          "game_id": "2026_12_LV_CLE",
           "week": 12,
-          "home": "LAC",
-          "away": "NE",
+          "home": "CLE",
+          "away": "LV",
           "gameday": "2026-11-29",
           "season_type": null,
           "game_type": "REG"
