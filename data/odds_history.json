@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-26T01:31:39Z",
+  "generated_at": "2026-11-26T11:51:56Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -15337,6 +15337,87 @@
       "total": 41.5,
       "source": "nflverse",
       "updated_at": "2026-11-26T01:31:39Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_PHI_DAL",
+      "spread": 8.5,
+      "total": 48.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-26T11:51:56Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_KC_BUF",
+      "spread": 3.0,
+      "total": 45.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-26T11:51:56Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_DEN_PIT",
+      "spread": -4.5,
+      "total": 36.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-26T11:51:56Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_NYG_IND",
+      "spread": -6.0,
+      "total": 41.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-26T11:51:56Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_TEN_JAX",
+      "spread": 14.5,
+      "total": 49.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-26T11:51:56Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_NYJ_MIA",
+      "spread": -4.5,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-26T11:51:56Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_LV_CLE",
+      "spread": 4.5,
+      "total": 40.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-26T11:51:56Z"
+    },
+    {
+      "season": 2026,
+      "week": 13,
+      "game_id": "2026_13_KC_LA",
+      "spread": 1.5,
+      "total": 44.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-26T11:51:56Z"
+    },
+    {
+      "season": 2026,
+      "week": 13,
+      "game_id": "2026_13_GB_NO",
+      "spread": -4.5,
+      "total": 46.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-26T11:51:56Z"
     }
   ]
 }

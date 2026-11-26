@@ -397761,7 +397761,8 @@
         8,
         9,
         10,
-        11
+        11,
+        12
       ],
       "teams": [
         {
@@ -399543,6 +399544,20 @@
               "def_pass_plays": 34,
               "def_rush": 0.0010463858255919446,
               "def_rush_plays": 30
+            },
+            "12": {
+              "off": -0.13870190992555903,
+              "off_plays": 60,
+              "def": -0.02890944018767884,
+              "def_plays": 95,
+              "off_pass": -0.23445608585758634,
+              "off_pass_plays": 30,
+              "off_rush": -0.030190728439039676,
+              "off_rush_plays": 14,
+              "def_pass": 0.0818466906638832,
+              "def_pass_plays": 24,
+              "def_rush": -0.046519744960347706,
+              "def_rush_plays": 47
             }
           }
         },
@@ -400282,6 +400297,20 @@
               "def_pass_plays": 23,
               "def_rush": 0.3512571294045862,
               "def_rush_plays": 11
+            },
+            "12": {
+              "off": 0.02890944018767884,
+              "off_plays": 95,
+              "def": 0.13870190992555903,
+              "def_plays": 60,
+              "off_pass": -0.0818466906638832,
+              "off_pass_plays": 24,
+              "off_rush": 0.046519744960347706,
+              "off_rush_plays": 47,
+              "def_pass": 0.23445608585758634,
+              "def_pass_plays": 30,
+              "def_rush": 0.030190728439039676,
+              "def_rush_plays": 14
             }
           }
         },
@@ -407053,10 +407082,38 @@
           "points_against": 51,
           "net_epa_pp": -0.23796578954598283,
           "plays": 170
+        },
+        {
+          "game_id": "2026_12_GB_LA",
+          "week": 12,
+          "team": "GB",
+          "opp": "LA",
+          "off_epa_pp": -0.13870190992555903,
+          "def_epa_pp": -0.02890944018767884,
+          "off_plays": 60,
+          "def_plays": 95,
+          "points_for": 13,
+          "points_against": 26,
+          "net_epa_pp": -0.16761135011323786,
+          "plays": 155
+        },
+        {
+          "game_id": "2026_12_GB_LA",
+          "week": 12,
+          "team": "LA",
+          "opp": "GB",
+          "off_epa_pp": 0.02890944018767884,
+          "def_epa_pp": 0.13870190992555903,
+          "off_plays": 95,
+          "def_plays": 60,
+          "points_for": 26,
+          "points_against": 13,
+          "net_epa_pp": 0.16761135011323786,
+          "plays": 155
         }
       ]
     }
   },
-  "generated_at": "2026-11-25T12:03:56Z",
-  "git_sha": "e992653c356eec89db0f1ed00d25d244894af63c"
+  "generated_at": "2026-11-26T11:51:53Z",
+  "git_sha": "4c2300df5c24fee83ddf8a355471decc30fee40f"
 }
