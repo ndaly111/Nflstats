@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-27T01:28:17Z",
+  "generated_at": "2026-11-27T11:44:13Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -15490,6 +15490,42 @@
       "total": 43.5,
       "source": "nflverse",
       "updated_at": "2026-11-27T01:28:17Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_DEN_PIT",
+      "spread": -4.5,
+      "total": 37.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-27T11:44:13Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_NYJ_MIA",
+      "spread": -5.5,
+      "total": 39.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-27T11:44:13Z"
+    },
+    {
+      "season": 2026,
+      "week": 13,
+      "game_id": "2026_13_PHI_ARI",
+      "spread": -3.0,
+      "total": 37.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-27T11:44:13Z"
+    },
+    {
+      "season": 2026,
+      "week": 13,
+      "game_id": "2026_13_DAL_SEA",
+      "spread": 6.0,
+      "total": 51.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-27T11:44:13Z"
     }
   ]
 }
