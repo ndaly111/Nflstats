@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-27T11:44:13Z",
+  "generated_at": "2026-11-27T16:05:31Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -15526,6 +15526,24 @@
       "total": 51.5,
       "source": "nflverse",
       "updated_at": "2026-11-27T11:44:13Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_TEN_JAX",
+      "spread": 14.5,
+      "total": 48.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-27T16:05:31Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_LV_CLE",
+      "spread": 4.5,
+      "total": 39.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-27T16:05:31Z"
     }
   ]
 }
