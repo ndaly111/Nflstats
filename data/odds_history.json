@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-28T01:03:31Z",
+  "generated_at": "2026-11-28T11:19:19Z",
   "source": "nflverse-data schedules/games via nflreadpy",
   "history": [
     {
@@ -15598,6 +15598,15 @@
       "total": 42.5,
       "source": "nflverse",
       "updated_at": "2026-11-28T01:03:31Z"
+    },
+    {
+      "season": 2026,
+      "week": 12,
+      "game_id": "2026_12_LV_CLE",
+      "spread": 4.5,
+      "total": 38.5,
+      "source": "nflverse",
+      "updated_at": "2026-11-28T11:19:19Z"
     }
   ]
 }
